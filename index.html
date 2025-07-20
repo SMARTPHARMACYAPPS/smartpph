@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMART PPH - إيصال قياس</title>
+    <title>SMART PPH</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
@@ -926,18 +926,28 @@
         }
 
         function toggleMeasurementView(type) {
-            if (sugarInputContainer) sugarInputContainer.style.display = 'block';
-            if (pressureInputContainer) pressureInputContainer.style.display = 'none';
-            if (receiptTitle) receiptTitle.textContent = 'قياس السكر';
-            if (receiptValueSugar) receiptValueSugar.style.display = 'block';
-            if (receiptValuePressure) receiptValuePressure.style.display = 'none';
+            if (type === 'sugar') {
+                if (sugarInputContainer) sugarInputContainer.style.display = 'block';
+                if (pressureInputContainer) pressureInputContainer.style.display = 'none';
+                if (receiptTitle) receiptTitle.textContent = 'قياس السكر';
+                if (receiptValueSugar) receiptValueSugar.style.display = 'block';
+                if (receiptValuePressure) receiptValuePressure.style.display = 'none';
+            } else if (type === 'pressure') {
+                if (sugarInputContainer) sugarInputContainer.style.display = 'none';
+                if (pressureInputContainer) pressureInputContainer.style.display = 'block';
+                if (receiptTitle) receiptTitle.textContent = 'قياس الضغط';
+                if (receiptValueSugar) receiptValueSugar.style.display = 'none';
+                if (receiptValuePressure) receiptValuePressure.style.display = 'block';
+            }
             
+            // Clear input values when switching measurement types
             if (sugarValueInput) sugarValueInput.value = '';
             if (pressureValueHighInput) pressureValueHighInput.value = '';
             if (pressureValueLowInput) pressureValueLowInput.value = '';
             
+            // Uncheck all status radios when switching measurement types
             document.querySelectorAll('input[name="status"]').forEach(radio => radio.checked = false);
-            updateDisplayValues();
+            updateDisplayValues(); // Update display to reflect changes
         }
 
         function getMeasurementStatus(type, value) {
@@ -1311,6 +1321,14 @@
                 helpImagePlaceholder.style.display = 'none';
             }
             helpModal.classList.remove('hidden');
+            
+            // Adjust text color based on dark mode status
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                helpTextPlaceholder.style.color = '#e2e8f0'; // White for dark mode
+            } else {
+                helpTextPlaceholder.style.color = '#333'; // Dark for light mode
+            }
         }
 
         function closeHelpModal() {
@@ -1359,6 +1377,10 @@
                 svgIcon.appendChild(path);
                 darkModeToggleBtn.appendChild(svgIcon); // Append icon first (for RTL, icon on right)
                 darkModeToggleBtn.appendChild(spanText);
+            }
+            // Update help modal text color after toggling dark mode
+            if (!helpModal.classList.contains('hidden')) { // Only update if modal is open
+                openHelpModal(); // Re-call to apply correct text color
             }
         }
 
@@ -1506,7 +1528,9 @@
             // Initial calls for clock and measurement view
             updateDateTime(); 
             setInterval(updateDateTime, 1000); 
-            toggleMeasurementView('sugar'); 
+            // Set initial measurement view based on default radio button checked
+            const initialMeasurementType = document.querySelector('input[name="measurement"]:checked').value;
+            toggleMeasurementView(initialMeasurementType); 
             console.log("Initial display updates complete.");
 
             // Attach event listeners here
