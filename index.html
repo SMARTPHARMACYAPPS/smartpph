@@ -832,7 +832,7 @@
                 <button class="modal-close-button" onclick="closeReceiptLogModal()">×</button>
                 <div class="modal-title">سجل الطباعة</div>
                 <div class="mb-4 flex flex-col md:flex-row gap-2 items-center">
-                    <input type="text" id="logSearchInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ابحث بالتاريخ أو الوقت...">
+                    <!-- تم إزالة حقل البحث -->
                     <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">مسح الكل</button>
                 </div>
                 <div id="receiptLogList" class="space-y-3">
@@ -851,7 +851,7 @@
                 <div class="modal-title" id="messageModalTitle"></div>
                 <p id="messageModalText" class="text-gray-700 text-center mb-4"></p>
                 <div class="text-center">
-                    <button onclick="closeMessageModal()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">حسناً</button>
+                    <!-- Buttons will be dynamically added here -->
                 </div>
             </div>
         </div>
@@ -940,7 +940,7 @@
         let showPrintLogBtn; // New element for print log button
         let receiptLogModal; // New element for print log modal
         let receiptLogList; // New element for print log list container
-        let logSearchInput; // New element for print log search input
+        // let logSearchInput; // Removed: New element for print log search input
         let clearLogBtn; // New element for clear log button
 
         // --- الدوال العامة (للوصول إليها من HTML) ---
@@ -958,7 +958,7 @@
         window.openReceiptLogModal = openReceiptLogModal; // New function for print log modal
         window.closeReceiptLogModal = closeReceiptLogModal; // New function for print log modal
         window.deleteReceiptFromLog = deleteReceiptFromLog; // New function to delete specific receipt from log
-        window.printSpecificReceipt = printSpecificReceipt; // New function to print specific receipt from log
+        // window.printSpecificReceipt = printSpecificReceipt; // Removed: New function to print specific receipt from log
         window.clearAllReceipts = clearAllReceipts; // New function to clear all receipts from log
 
         // --- الدوال ---
@@ -1151,78 +1151,11 @@
             printContent('modalReceiptContent');
         }
 
-        function printSpecificReceipt(receiptData) {
-            // Create a temporary div to render the receipt HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = `
-                <div class="receipt-container receipt-thermal bg-white rounded-lg shadow-lg">
-                    <div class="logo-placeholder mb-4 pharmacy-info-section">
-                        <img src="${receiptData.pharmacy.logoUrl || 'https://placehold.co/150x150/d1d5db/9ca3af?text=مساحة+الشعار'}" alt="Company Logo" style="width:100%; height:100%; object-fit:contain;" />
-                    </div>
-                    <div class="text-center mb-2 pharmacy-info-section">
-                        <h1 class="text-xl font-bold text-black">${receiptData.pharmacy.name || ''}</h1>
-                        <p class="subtitle-text text-black">${receiptData.pharmacy.slogan || ''}</p>
-                        <p class="subtitle-text text-black">${receiptData.pharmacy.address || ''}</p>
-                    </div>
-                    <div class="text-black mb-3 measurement-section">
-                        <p>${new Date(receiptData.timestamp).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}</p>
-                    </div>
-                    <div class="text-center measurement-section">
-                        <h2 class="text-lg font-extrabold text-black">${receiptData.measurement.type === 'sugar' ? 'قياس السكر' : 'قياس الضغط'}</h2>
-                        ${receiptData.measurement.type === 'sugar' ? `
-                            <div class="mb-2 py-2">
-                                <span class="value-display font-extrabold text-black">${receiptData.measurement.sugarValue || '---'}</span>
-                                <span class="unit-display align-middle text-lg text-black">mg/dL</span>
-                            </div>
-                        ` : `
-                            <div class="mb-2 py-2 text-center">
-                                <span class="value-display font-extrabold text-black">${receiptData.measurement.pressureHigh || '--'}</span>
-                                <div class="pressure-divider font-mono font-extrabold text-black">-</div>
-                                <span class="value-display font-extrabold text-black">${receiptData.measurement.pressureLow || '--'}</span>
-                                <span class="unit-display pressure-unit-print block text-lg text-black">mmHg</span>
-                            </div>
-                        `}
-                        <div class="text-center mt-3">
-                            <span class="font-bold text-black text-lg">${receiptData.status.text || ''} ${receiptData.status.icon || ''}</span>
-                        </div>
-                    </div>
-                    <div class="mt-4 text-right text-sm notes-section">
-                        <p class="font-bold text-black">ملاحظات:</p>
-                        <div class="notes-display pt-1 text-black">${receiptData.notes || 'لا توجد ملاحظات'}</div>
-                    </div>
-                    <div class="text-center mt-6 pt-3 footer-text receipt-footer-divider">
-                        <div class="flex flex-col items-center justify-center font-bold text-black">
-                            <span>${receiptData.pharmacy.phone || ''}</span>
-                        </div>
-                        <div class="flex items-center justify-center mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="text-black">شكراً لزيارتكم</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            `;
-            tempDiv.id = 'tempPrintReceipt'; // Give it a temporary ID
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px'; // Hide it off-screen
-            document.body.appendChild(tempDiv);
-
-            printContent('tempPrintReceipt'); // Call the generic print function
-            
-            // Clean up the temporary div after a short delay to allow printing to initiate
-            setTimeout(() => {
-                document.body.removeChild(tempDiv);
-            }, 1000); 
-        }
-
+        // Removed printSpecificReceipt function as per user request.
 
         function printIdCard() {
             // Show message that ID card cannot be printed
-            openMessageModal('غير متاح', 'لا يمكن طباعة بطاقة التعريف مباشرة. يرجى تنزيلها كصورة أولاً.');
+            window.openMessageModal('غير متاح', 'لا يمكن طباعة بطاقة التعريف مباشرة. يرجى تنزيلها كصورة أولاً.');
         }
 
         // Function to download ID card as image
@@ -1265,7 +1198,7 @@
                 document.body.removeChild(link);
             } catch (error) {
                 console.error("Error generating ID card image:", error);
-                openMessageModal('خطأ', 'حدث خطأ أثناء إنشاء الصورة: ' + error.message);
+                window.openMessageModal('خطأ', 'حدث خطأ أثناء إنشاء الصورة: ' + error.message);
             } finally {
                 document.body.removeChild(tempContainer); // Clean up
             }
@@ -1463,11 +1396,36 @@
         }
 
         // Generic Message Modal Functions
-        function openMessageModal(title, message) {
+        window.openMessageModal = function(title, message, isConfirm = false, onConfirmCallback = null) {
             messageModalTitle.textContent = title;
             messageModalText.textContent = message;
+            
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg';
+            confirmButton.textContent = 'حسناً';
+            confirmButton.onclick = () => {
+                closeMessageModal();
+                if (onConfirmCallback) {
+                    onConfirmCallback();
+                }
+            };
+
+            const modalPrintButtonContainer = messageModal.querySelector('.text-center'); // Changed to target the div directly
+            if (modalPrintButtonContainer) {
+                modalPrintButtonContainer.innerHTML = ''; // Clear previous buttons
+                modalPrintButtonContainer.appendChild(confirmButton);
+
+                if (isConfirm) {
+                    const cancelButton = document.createElement('button');
+                    cancelButton.className = 'bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg mr-2';
+                    cancelButton.textContent = 'إلغاء';
+                    cancelButton.onclick = closeMessageModal;
+                    modalPrintButtonContainer.insertBefore(cancelButton, confirmButton);
+                }
+            }
+            
             messageModal.classList.remove('hidden');
-        }
+        };
 
         function closeMessageModal() {
             messageModal.classList.add('hidden');
@@ -1568,7 +1526,7 @@
                 localStorage.setItem(RECEIPT_LOG_KEY, JSON.stringify(log));
             } catch (error) {
                 console.error("Error saving receipt log to localStorage:", error);
-                openMessageModal('خطأ في الحفظ', 'حدث خطأ أثناء حفظ سجل الإيصالات.');
+                window.openMessageModal('خطأ في الحفظ', 'حدث خطأ أثناء حفظ سجل الإيصالات.');
             }
         }
 
@@ -1625,21 +1583,19 @@
             saveReceiptLog(currentLog);
         }
 
-        function displayReceiptLog(filterQuery = '') {
+        function displayReceiptLog() { // Removed filterQuery parameter
             const log = loadReceiptLog();
             receiptLogList.innerHTML = ''; // Clear current list
 
-            const filteredLog = log.filter(receipt => {
-                const searchString = `${new Date(receipt.timestamp).toLocaleString()} ${receipt.pharmacy.name} ${receipt.measurement.type === 'sugar' ? receipt.measurement.sugarValue : `${receipt.measurement.pressureHigh}/${receipt.measurement.pressureLow}`} ${receipt.notes} ${receipt.status.text}`.toLowerCase();
-                return searchString.includes(filterQuery.toLowerCase());
-            });
+            // No filtering needed as search is removed
+            const sortedLog = [...log].sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Sort by timestamp descending
 
-            if (filteredLog.length === 0) {
-                receiptLogList.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">لا توجد إيصالات مطبوعة أو لا توجد نتائج للبحث.</p>';
+            if (sortedLog.length === 0) {
+                receiptLogList.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">لا توجد إيصالات مطبوعة.</p>';
                 return;
             }
 
-            filteredLog.forEach(receipt => {
+            sortedLog.forEach(receipt => {
                 const receiptItem = document.createElement('div');
                 receiptItem.className = 'receipt-log-item bg-gray-100 p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4';
                 receiptItem.innerHTML = `
@@ -1659,7 +1615,7 @@
                         </p>
                     </div>
                     <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-3 md:mt-0">
-                        <button onclick="printSpecificReceipt(${JSON.stringify(receipt).replace(/"/g, '&quot;')})" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-lg text-sm">طباعة</button>
+                        <!-- تم إزالة زر الطباعة الفردي -->
                         <button onclick="deleteReceiptFromLog(${receipt.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm">حذف</button>
                     </div>
                 `;
@@ -1673,26 +1629,26 @@
             currentLog = currentLog.filter(receipt => receipt.id !== id);
             if (currentLog.length < initialLength) {
                 saveReceiptLog(currentLog);
-                displayReceiptLog(logSearchInput.value); // Refresh with current search query
-                openMessageModal('تم الحذف', 'تم حذف الإيصال بنجاح.');
+                displayReceiptLog(); // Refresh without search query
+                window.openMessageModal('تم الحذف', 'تم حذف الإيصال بنجاح.');
             } else {
-                openMessageModal('خطأ', 'لم يتم العثور على الإيصال للحذف.');
+                window.openMessageModal('خطأ', 'لم يتم العثور على الإيصال للحذف.');
             }
         }
 
         function clearAllReceipts() {
-            if (confirm('هل أنت متأكد أنك تريد حذف جميع الإيصالات من السجل؟ لا يمكن التراجع عن هذا الإجراء.')) {
+            // Replaced confirm with custom modal
+            window.openMessageModal('تأكيد المسح', 'هل أنت متأكد أنك تريد حذف جميع الإيصالات من السجل؟ لا يمكن التراجع عن هذا الإجراء.', true, () => {
                 localStorage.removeItem(RECEIPT_LOG_KEY);
-                displayReceiptLog(''); // Clear and display empty log
-                logSearchInput.value = ''; // Clear search input
-                openMessageModal('تم المسح', 'تم مسح سجل الإيصالات بالكامل.');
-            }
+                displayReceiptLog(); // Clear and display empty log
+                window.openMessageModal('تم المسح', 'تم مسح سجل الإيصالات بالكامل.');
+            });
         }
 
         function openReceiptLogModal() {
             receiptLogModal.classList.remove('hidden');
             displayReceiptLog(); // Load and display all receipts initially
-            logSearchInput.value = ''; // Clear search input on open
+            // Removed logSearchInput.value = '';
         }
 
         function closeReceiptLogModal() {
@@ -1774,8 +1730,16 @@
             showPrintLogBtn = document.getElementById('showPrintLogBtn'); // Get new print log button
             receiptLogModal = document.getElementById('receiptLogModal'); // Get new print log modal
             receiptLogList = document.getElementById('receiptLogList'); // Get new print log list container
-            logSearchInput = document.getElementById('logSearchInput'); // Get new print log search input
+            // logSearchInput = document.getElementById('logSearchInput'); // Removed
             clearLogBtn = document.getElementById('clearLogBtn'); // Get new clear log button
+            // Ensure the generic modal's button container exists for `openMessageModal`
+            const modalPrintButtonContainer = document.querySelector('#messageModal .text-center'); // Target the div
+            if (!modalPrintButtonContainer) {
+                const newContainer = document.createElement('div');
+                newContainer.className = 'text-center mt-4 flex justify-center space-x-4';
+                messageModal.querySelector('.modal-content').appendChild(newContainer);
+            }
+
 
             console.log("All DOM elements assigned.");
 
@@ -1901,7 +1865,7 @@
             
             // New event listeners for print log
             if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); openReceiptLogModal(); });
-            if (logSearchInput) logSearchInput.addEventListener('input', (event) => { console.log("Log search input changed."); displayReceiptLog(event.target.value); });
+            // Removed logSearchInput event listener
             if (clearLogBtn) clearLogBtn.addEventListener('click', () => { console.log("Clear Log button clicked."); clearAllReceipts(); });
 
             console.log("All event listeners attached.");
