@@ -419,6 +419,29 @@
         body.dark-mode #helpModal .modal-content #helpTextPlaceholder {
             color: #e2e8f0 !important; /* White text for help modal in dark mode */
         }
+        /* Print Log Modal specific styles for dark mode */
+        body.dark-mode #receiptLogModal .modal-content {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        body.dark-mode #receiptLogModal .modal-content .modal-title {
+            color: #e2e8f0;
+        }
+        body.dark-mode #receiptLogModal .modal-content input {
+            background-color: #4a5568;
+            border-color: #667e9c;
+            color: #e2e8f0;
+        }
+        body.dark-mode #receiptLogModal .modal-content .receipt-log-item {
+            background-color: #4a5568;
+            border-color: #667e9c;
+            color: #e2e8f0;
+        }
+        body.dark-mode #receiptLogModal .modal-content .receipt-log-item button {
+            background-color: #3182ce;
+            border-color: #3182ce;
+            color: #e2e8f0;
+        }
 
 
         /* Ensure receipt always stays light for printing purposes */
@@ -691,6 +714,8 @@
             <div class="flex flex-col w-full space-y-3 mt-3">
                 <!-- أزرار المعاينة والطباعة الرئيسية -->
                 <button id="previewAndPrintBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg">معاينة الإيصال وطباعته</button>
+                <!-- زر سجل الطباعة الجديد -->
+                <button id="showPrintLogBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">سجل الطباعة</button>
 
                 <!-- زر المساعدة -->
                 <button id="showHelpBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">كيف يمكنني طباعة ريسيت؟</button>
@@ -719,6 +744,7 @@
                 <div id="receipt-value-pressure" class="hidden mb-2 py-2 text-center">
                     <span id="displayPressureValueHigh" class="value-display font-extrabold text-black">--</span>
                     <div class="pressure-divider font-mono font-extrabold text-black">-</div>
+                    <span id="displayPressureValueLow" class="value-display font-extrabold text-black">--</span> <!-- Added this line -->
                     <span class="unit-display pressure-unit-print block text-lg text-black">mmHg</span>
                 </div>
                 <!-- عرض حالة القياس مع الأيقونات -->
@@ -800,6 +826,24 @@
             </div>
         </div>
 
+        <!-- Modal لسجل الطباعة -->
+        <div id="receiptLogModal" class="modal hidden">
+            <div class="modal-content max-w-2xl w-full">
+                <button class="modal-close-button" onclick="closeReceiptLogModal()">×</button>
+                <div class="modal-title">سجل الطباعة</div>
+                <div class="mb-4 flex flex-col md:flex-row gap-2 items-center">
+                    <input type="text" id="logSearchInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ابحث بالتاريخ أو الوقت...">
+                    <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">مسح الكل</button>
+                </div>
+                <div id="receiptLogList" class="space-y-3">
+                    <!-- سيتم ملء الريسييتات هنا ديناميكياً -->
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="closeReceiptLogModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">إغلاق</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Generic Message Modal -->
         <div id="messageModal" class="modal hidden">
             <div class="modal-content">
@@ -823,6 +867,7 @@
     <script type="module">
         // مفتاح لتخزين البيانات في localStorage
         const LOCAL_STORAGE_KEY = 'pharmacy_data_v1';
+        const RECEIPT_LOG_KEY = 'receipt_log_v1'; // مفتاح جديد لسجل الريسييتات
 
         // --- عناصر الواجهة (تم نقل تعريفها إلى داخل window.onload) ---
         let measurementTypeRadios;
@@ -892,6 +937,11 @@
         let darkModeToggleBtn; // New element for dark mode toggle
         let viewModeToggleBtn; // New element for view mode toggle
 
+        let showPrintLogBtn; // New element for print log button
+        let receiptLogModal; // New element for print log modal
+        let receiptLogList; // New element for print log list container
+        let logSearchInput; // New element for print log search input
+        let clearLogBtn; // New element for clear log button
 
         // --- الدوال العامة (للوصول إليها من HTML) ---
         window.clearAllNotes = clearAllNotes;
@@ -905,6 +955,11 @@
         window.printIdCard = printIdCard; // Now shows a message
         window.downloadIdCardAsImage = downloadIdCardAsImage; // Changed from convertIdCardToPdf
         window.closeMessageModal = closeMessageModal; // For generic message modal
+        window.openReceiptLogModal = openReceiptLogModal; // New function for print log modal
+        window.closeReceiptLogModal = closeReceiptLogModal; // New function for print log modal
+        window.deleteReceiptFromLog = deleteReceiptFromLog; // New function to delete specific receipt from log
+        window.printSpecificReceipt = printSpecificReceipt; // New function to print specific receipt from log
+        window.clearAllReceipts = clearAllReceipts; // New function to clear all receipts from log
 
         // --- الدوال ---
         function updateDateTime() {
@@ -1074,6 +1129,8 @@
                         .no-print, .modal-close-button, .modal-print-button-container, .welcome-box, .modal-print-options, footer { display: none !important; }
                         /* Ensure ID card is not printable */
                         .id-card-content { display: none !important; }
+                        /* Ensure print log modal is not printable */
+                        #receiptLogModal { display: none !important; }
                     </style>
                 </head>
                 <body>
@@ -1089,9 +1146,79 @@
         }
 
         function printModalReceipt() {
-            // Always print app size for receipt
+            // Call saveReceiptToLog before printing the modal content
+            saveReceiptToLog();
             printContent('modalReceiptContent');
         }
+
+        function printSpecificReceipt(receiptData) {
+            // Create a temporary div to render the receipt HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = `
+                <div class="receipt-container receipt-thermal bg-white rounded-lg shadow-lg">
+                    <div class="logo-placeholder mb-4 pharmacy-info-section">
+                        <img src="${receiptData.pharmacy.logoUrl || 'https://placehold.co/150x150/d1d5db/9ca3af?text=مساحة+الشعار'}" alt="Company Logo" style="width:100%; height:100%; object-fit:contain;" />
+                    </div>
+                    <div class="text-center mb-2 pharmacy-info-section">
+                        <h1 class="text-xl font-bold text-black">${receiptData.pharmacy.name || ''}</h1>
+                        <p class="subtitle-text text-black">${receiptData.pharmacy.slogan || ''}</p>
+                        <p class="subtitle-text text-black">${receiptData.pharmacy.address || ''}</p>
+                    </div>
+                    <div class="text-black mb-3 measurement-section">
+                        <p>${new Date(receiptData.timestamp).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}</p>
+                    </div>
+                    <div class="text-center measurement-section">
+                        <h2 class="text-lg font-extrabold text-black">${receiptData.measurement.type === 'sugar' ? 'قياس السكر' : 'قياس الضغط'}</h2>
+                        ${receiptData.measurement.type === 'sugar' ? `
+                            <div class="mb-2 py-2">
+                                <span class="value-display font-extrabold text-black">${receiptData.measurement.sugarValue || '---'}</span>
+                                <span class="unit-display align-middle text-lg text-black">mg/dL</span>
+                            </div>
+                        ` : `
+                            <div class="mb-2 py-2 text-center">
+                                <span class="value-display font-extrabold text-black">${receiptData.measurement.pressureHigh || '--'}</span>
+                                <div class="pressure-divider font-mono font-extrabold text-black">-</div>
+                                <span class="value-display font-extrabold text-black">${receiptData.measurement.pressureLow || '--'}</span>
+                                <span class="unit-display pressure-unit-print block text-lg text-black">mmHg</span>
+                            </div>
+                        `}
+                        <div class="text-center mt-3">
+                            <span class="font-bold text-black text-lg">${receiptData.status.text || ''} ${receiptData.status.icon || ''}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-right text-sm notes-section">
+                        <p class="font-bold text-black">ملاحظات:</p>
+                        <div class="notes-display pt-1 text-black">${receiptData.notes || 'لا توجد ملاحظات'}</div>
+                    </div>
+                    <div class="text-center mt-6 pt-3 footer-text receipt-footer-divider">
+                        <div class="flex flex-col items-center justify-center font-bold text-black">
+                            <span>${receiptData.pharmacy.phone || ''}</span>
+                        </div>
+                        <div class="flex items-center justify-center mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-black">شكراً لزيارتكم</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+            tempDiv.id = 'tempPrintReceipt'; // Give it a temporary ID
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px'; // Hide it off-screen
+            document.body.appendChild(tempDiv);
+
+            printContent('tempPrintReceipt'); // Call the generic print function
+            
+            // Clean up the temporary div after a short delay to allow printing to initiate
+            setTimeout(() => {
+                document.body.removeChild(tempDiv);
+            }, 1000); 
+        }
+
 
         function printIdCard() {
             // Show message that ID card cannot be printed
@@ -1425,6 +1552,152 @@
             updateViewModeButtonText();
         }
 
+        // --- Receipt Log Functions ---
+        function loadReceiptLog() {
+            try {
+                const storedLog = localStorage.getItem(RECEIPT_LOG_KEY);
+                return storedLog ? JSON.parse(storedLog) : [];
+            } catch (error) {
+                console.error("Error loading receipt log from localStorage:", error);
+                return [];
+            }
+        }
+
+        function saveReceiptLog(log) {
+            try {
+                localStorage.setItem(RECEIPT_LOG_KEY, JSON.stringify(log));
+            } catch (error) {
+                console.error("Error saving receipt log to localStorage:", error);
+                openMessageModal('خطأ في الحفظ', 'حدث خطأ أثناء حفظ سجل الإيصالات.');
+            }
+        }
+
+        function saveReceiptToLog() {
+            const currentLog = loadReceiptLog();
+            const now = new Date();
+            const timestamp = now.getTime(); // Use timestamp for unique ID and sorting
+
+            const pharmacyData = {
+                name: pharmacyNameInput.value || '',
+                slogan: sloganInput.value || '',
+                address: addressInput.value || '',
+                phone: phoneInput.value || '',
+                logoUrl: receiptLogo.src.includes('placehold.co') ? '' : receiptLogo.src // Get current displayed logo
+            };
+
+            const measurementType = document.querySelector('input[name="measurement"]:checked').value;
+            let measurementData = { type: measurementType };
+
+            if (measurementType === 'sugar') {
+                measurementData.sugarValue = sugarValueInput.value || '---';
+            } else {
+                measurementData.pressureHigh = pressureValueHighInput.value || '--';
+                measurementData.pressureLow = pressureValueLowInput.value || '--';
+            }
+
+            const selectedStatusRadio = document.querySelector('input[name="status"]:checked');
+            let statusData = { text: '', icon: '' };
+            if (selectedStatusRadio) {
+                const statusValue = selectedStatusRadio.id.replace('status-', '');
+                const measurementLabel = measurementType === 'sugar' ? 'السكر' : 'الضغط';
+                if (statusValue === 'high') {
+                    statusData.text = `حالة قياس ${measurementLabel}: مرتفعة`;
+                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>`;
+                } else if (statusValue === 'normal') {
+                    statusData.text = `حالة قياس ${measurementLabel}: طبيعية`;
+                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                } else if (statusValue === 'low') {
+                    statusData.text = `حالة قياس ${measurementLabel}: منخفضة`;
+                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
+                }
+            }
+
+            const newReceipt = {
+                id: timestamp,
+                timestamp: now.toISOString(), // Store as ISO string for easy parsing
+                pharmacy: pharmacyData,
+                measurement: measurementData,
+                status: statusData,
+                notes: notesInput.value || ''
+            };
+
+            currentLog.unshift(newReceipt); // Add to the beginning (newest first)
+            saveReceiptLog(currentLog);
+        }
+
+        function displayReceiptLog(filterQuery = '') {
+            const log = loadReceiptLog();
+            receiptLogList.innerHTML = ''; // Clear current list
+
+            const filteredLog = log.filter(receipt => {
+                const searchString = `${new Date(receipt.timestamp).toLocaleString()} ${receipt.pharmacy.name} ${receipt.measurement.type === 'sugar' ? receipt.measurement.sugarValue : `${receipt.measurement.pressureHigh}/${receipt.measurement.pressureLow}`} ${receipt.notes} ${receipt.status.text}`.toLowerCase();
+                return searchString.includes(filterQuery.toLowerCase());
+            });
+
+            if (filteredLog.length === 0) {
+                receiptLogList.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">لا توجد إيصالات مطبوعة أو لا توجد نتائج للبحث.</p>';
+                return;
+            }
+
+            filteredLog.forEach(receipt => {
+                const receiptItem = document.createElement('div');
+                receiptItem.className = 'receipt-log-item bg-gray-100 p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4';
+                receiptItem.innerHTML = `
+                    <div class="flex-grow text-right">
+                        <p class="font-bold text-lg">${receipt.pharmacy.name || 'صيدلية غير معروفة'}</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            ${new Date(receipt.timestamp).toLocaleString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                        </p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            القياس: ${receipt.measurement.type === 'sugar' ? `سكر ${receipt.measurement.sugarValue} mg/dL` : `ضغط ${receipt.measurement.pressureHigh}/${receipt.measurement.pressureLow} mmHg`}
+                        </p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            الحالة: ${receipt.status.text.replace(`حالة قياس ${receipt.measurement.type === 'sugar' ? 'السكر' : 'الضغط'}: `, '')}
+                        </p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            ملاحظات: ${receipt.notes || 'لا توجد ملاحظات'}
+                        </p>
+                    </div>
+                    <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-3 md:mt-0">
+                        <button onclick="printSpecificReceipt(${JSON.stringify(receipt).replace(/"/g, '&quot;')})" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-lg text-sm">طباعة</button>
+                        <button onclick="deleteReceiptFromLog(${receipt.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm">حذف</button>
+                    </div>
+                `;
+                receiptLogList.appendChild(receiptItem);
+            });
+        }
+
+        function deleteReceiptFromLog(id) {
+            let currentLog = loadReceiptLog();
+            const initialLength = currentLog.length;
+            currentLog = currentLog.filter(receipt => receipt.id !== id);
+            if (currentLog.length < initialLength) {
+                saveReceiptLog(currentLog);
+                displayReceiptLog(logSearchInput.value); // Refresh with current search query
+                openMessageModal('تم الحذف', 'تم حذف الإيصال بنجاح.');
+            } else {
+                openMessageModal('خطأ', 'لم يتم العثور على الإيصال للحذف.');
+            }
+        }
+
+        function clearAllReceipts() {
+            if (confirm('هل أنت متأكد أنك تريد حذف جميع الإيصالات من السجل؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                localStorage.removeItem(RECEIPT_LOG_KEY);
+                displayReceiptLog(''); // Clear and display empty log
+                logSearchInput.value = ''; // Clear search input
+                openMessageModal('تم المسح', 'تم مسح سجل الإيصالات بالكامل.');
+            }
+        }
+
+        function openReceiptLogModal() {
+            receiptLogModal.classList.remove('hidden');
+            displayReceiptLog(); // Load and display all receipts initially
+            logSearchInput.value = ''; // Clear search input on open
+        }
+
+        function closeReceiptLogModal() {
+            receiptLogModal.classList.add('hidden');
+        }
 
         // --- التهيئة الأولية ---
         window.onload = async function() {
@@ -1497,6 +1770,13 @@
 
             darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); // Get the new dark mode toggle button
             viewModeToggleBtn = document.getElementById('viewModeToggleBtn'); // Get the new view mode toggle button
+            
+            showPrintLogBtn = document.getElementById('showPrintLogBtn'); // Get new print log button
+            receiptLogModal = document.getElementById('receiptLogModal'); // Get new print log modal
+            receiptLogList = document.getElementById('receiptLogList'); // Get new print log list container
+            logSearchInput = document.getElementById('logSearchInput'); // Get new print log search input
+            clearLogBtn = document.getElementById('clearLogBtn'); // Get new clear log button
+
             console.log("All DOM elements assigned.");
 
 
@@ -1618,6 +1898,12 @@
             if (createIdCardBtn) createIdCardBtn.addEventListener('click', () => { console.log("Create ID Card button clicked."); openIdCardModal(); });
             if (darkModeToggleBtn) darkModeToggleBtn.addEventListener('click', () => { console.log("Dark Mode Toggle button clicked."); toggleDarkMode(); }); // Add event listener for dark mode
             if (viewModeToggleBtn) viewModeToggleBtn.addEventListener('click', () => { console.log("View Mode Toggle button clicked."); toggleViewMode(); }); // Add event listener for view mode
+            
+            // New event listeners for print log
+            if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); openReceiptLogModal(); });
+            if (logSearchInput) logSearchInput.addEventListener('input', (event) => { console.log("Log search input changed."); displayReceiptLog(event.target.value); });
+            if (clearLogBtn) clearLogBtn.addEventListener('click', () => { console.log("Clear Log button clicked."); clearAllReceipts(); });
+
             console.log("All event listeners attached.");
 
             // Update current year in footer
