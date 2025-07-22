@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMART PPH</title>
+    <title>SMART PPH - إيصال قياس</title>
+    <link rel="manifest" href="manifest.json"> <!-- PWA Manifest Link -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
@@ -12,10 +13,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Include html2canvas library for image generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Include Chart.js library for pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #ffffff; /* جعل الخلفية بيضاء */
+            overflow: hidden; /* إخفاء شريط التمرير أثناء التحميل */
         }
         .custom-radio input[type="radio"] { display: none; }
         .custom-radio label { transition: all 0.2s ease-in-out; }
@@ -167,6 +171,13 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            opacity: 0; /* Start hidden for animation */
+            visibility: hidden; /* Hide from screen readers/interaction */
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
         }
         .modal-content {
             background-color: white;
@@ -176,6 +187,11 @@
             max-height: 90%;
             overflow-y: auto;
             position: relative;
+            transform: translateY(-20px); /* Start slightly above for animation */
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.visible .modal-content {
+            transform: translateY(0); /* Slide into place */
         }
         .modal-close-button {
             position: absolute;
@@ -186,6 +202,10 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: #333;
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-close-button:hover {
+            transform: scale(1.2);
         }
         .modal-title {
             font-size: 1.5rem;
@@ -264,12 +284,19 @@
             border-radius: 8px; /* Slightly rounded corners */
             border: 1px solid #cbd5e0; /* Light border */
         }
+        /* App Logo Placeholder */
+        #appLogoPlaceholder {
+            width: 24px; /* Visible size for placeholder */
+            height: 24px;
+            object-fit: contain;
+            margin-right: 8px; /* Space from text */
+        }
 
         /* ID Card Modal Styling */
         .id-card-content {
             width: 85.6mm; /* Standard credit card width */
             height: 53.98mm; /* Standard credit card height */
-            background: linear-gradient(135deg, #f0f9ff, #cbe8ff); /* Gradient background */
+            background: linear-gradient(135deg, var(--card-bg-light, #f0f9ff), var(--card-bg-dark, #cbe8ff)); /* Gradient background */
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             padding: 15px;
@@ -282,6 +309,8 @@
             font-family: 'Cairo', sans-serif;
             position: relative; /* For absolute positioning of elements */
             overflow: hidden;
+            /* Added for centering within its modal-content parent */
+            margin: 0 auto;
         }
         .id-card-content .card-logo {
             width: 70px;
@@ -306,13 +335,14 @@
             font-size: 0.8rem;
             color: #666;
         }
-        /* Small decorative elements */
+        /* Small decorative elements (bubbles) */
         .id-card-content::before, .id-card-content::after {
             content: '';
             position: absolute;
-            background-color: rgba(0, 123, 255, 0.1);
+            background-color: var(--bubble-color, rgba(0, 123, 255, 0.1));
             border-radius: 50%;
             z-index: 0;
+            animation: float 6s ease-in-out infinite alternate; /* Floating animation */
         }
         .id-card-content::before {
             width: 100px;
@@ -326,8 +356,12 @@
             bottom: -40px;
             right: -40px;
             opacity: 0.7;
+            animation-delay: 1.5s; /* Stagger animation */
         }
-        /* Removed card-clock styling as clock is moved */
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-10px) translateX(10px); }
+        }
 
 
         /* Dark Mode Styles */
@@ -401,7 +435,7 @@
             color: #e2e8f0;
         }
         body.dark-mode .id-card-content {
-            background: linear-gradient(135deg, #2d3748, #4a5568); /* Darker gradient for ID card */
+            background: linear-gradient(135deg, var(--card-bg-light-darkmode, #2d3748), var(--card-bg-dark-darkmode, #4a5568)); /* Darker gradient for ID card */
             color: #e2e8f0;
         }
         body.dark-mode .id-card-content .card-title {
@@ -413,7 +447,7 @@
         }
         body.dark-mode .id-card-content::before,
         body.dark-mode .id-card-content::after {
-            background-color: rgba(0, 123, 255, 0.2); /* Slightly more visible for dark mode */
+            background-color: var(--bubble-color-darkmode, rgba(0, 123, 255, 0.2)); /* Slightly more visible for dark mode */
         }
         /* Help Modal specific styles for dark mode */
         body.dark-mode #helpModal .modal-content #helpTextPlaceholder {
@@ -433,9 +467,9 @@
             color: #e2e8f0;
         }
         body.dark-mode #receiptLogModal .modal-content .receipt-log-item {
-            background-color: #4a5568;
+            background-color: #ffffff; /* White background in dark mode as requested */
             border-color: #667e9c;
-            color: #e2e8f0;
+            color: #1a202c; /* Dark text for contrast */
         }
         body.dark-mode #receiptLogModal .modal-content .receipt-log-item button {
             background-color: #3182ce;
@@ -590,19 +624,130 @@
             .receipt-container .receipt-footer-divider { /* New class for footer divider */
                 border-top: none !important; /* Removed border-top from footer as notes-section now has border-bottom */
             }
+            /* Designed by Smart PPH text in print */
+            .receipt-container .designed-by-text {
+                font-size: 7pt !important;
+                font-weight: 500 !important;
+                color: #000 !important;
+                margin-top: 5px !important;
+            }
+            /* Copy text in print */
+            .receipt-container .copy-text {
+                font-size: 8pt !important;
+                font-weight: 700 !important;
+                color: #000 !important;
+                margin-top: 2px !important;
+            }
+
 
             /* ID card should not print */
             .id-card-content { display: none !important; }
+        }
+
+        /* Loading Screen Styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f9ff; /* Light blue background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease-out; /* Smooth fade out */
+        }
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none; /* Disable interaction when hidden */
+        }
+        .loading-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2563eb; /* Blue text */
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite alternate; /* Simple pulse animation */
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        .progress-bar-container {
+            width: 80%;
+            max-width: 400px;
+            height: 15px;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #2563eb; /* Blue progress */
+            border-radius: 8px;
+            transition: width 0.1s linear; /* Smooth progress animation */
+        }
+
+        /* Dark mode for loading screen */
+        body.dark-mode #loading-screen {
+            background-color: #1a202c; /* Dark background */
+        }
+        body.dark-mode .loading-text {
+            color: #93c5fd; /* Lighter blue for dark mode */
+        }
+        body.dark-mode .progress-bar-container {
+            background-color: #4a5568;
+        }
+        body.dark-mode .progress-bar {
+            background-color: #60a5fa; /* Lighter blue for dark mode */
+        }
+
+        /* Main content initially hidden */
+        #main-content {
+            display: none;
+        }
+
+        /* Button animations */
+        button {
+            transition: all 0.2s ease-in-out;
+            transform: scale(1);
+        }
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        /* Input focus animation */
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4); /* Blue ring */
+            transition: all 0.2s ease-in-out;
         }
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <div class="w-full flex flex-col items-center">
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-text" data-key="loadingText">جاري التحميل...</div>
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Main Content (initially hidden) -->
+    <div id="main-content" class="w-full flex flex-col items-center">
         <!-- مربع الترحيب الجديد -->
         <div class="welcome-box">
-            <h1>
-                SMART PPH
+            <h1 data-key="appName">
+                <!-- App Logo Placeholder: Points to pphicon.png -->
+        <img src="pphicon.png" alt="App Logo" class="app-logo"> SMART PPH
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2z" />
@@ -610,115 +755,151 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
             </h1>
-            <p id="welcomeMessage" class="welcome-message">مرحباً</p>
+            <p id="welcomeMessage" class="welcome-message" data-key="welcomeMessage">مرحباً</p>
             <img id="welcomeLogo" src="https://placehold.co/60x60/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="pharmacy-logo-small hidden" onerror="this.classList.add('hidden');">
             <div id="live-clock" class="clock-container text-lg font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg"></div>
-            <!-- زر الوضع الليلي - تم نقله هنا -->
+            <!-- زر الوضع الليلي -->
             <button id="darkModeToggleBtn" class="w-fit bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg mt-4 mx-auto flex items-center justify-center">
                 <!-- Icon and text will be added by JS -->
             </button>
-            <!-- زر تغيير التصميم (سطح مكتب/هاتف) - تم إضافته هنا -->
-            <button id="viewModeToggleBtn" class="w-fit bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 mx-auto flex items-center justify-center">
+            <!-- زر تحويل اللغة -->
+            <button id="languageToggleBtn" class="w-fit bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-4 mx-auto flex items-center justify-center">
                 <!-- Icon and text will be added by JS -->
             </button>
-            <button id="createIdCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mt-4">صناعة بطاقة تعريف للصيدلية</button>
+            <button id="createIdCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span data-key="createIdCardBtn">صناعة بطاقة تعريف للصيدلية</span>
+            </button>
         </div>
 
         <!-- قسم التحكم والإدخال -->
         <div class="no-print bg-white p-6 rounded-2xl shadow-lg mb-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">إعدادات التطبيق</h2>
+                <h2 class="text-2xl font-bold text-gray-800" data-key="appSettingsTitle">إعدادات التطبيق</h2>
             </div>
 
             <!-- معلومات الصيدلية -->
             <div class="mb-6 border-b border-gray-200 pb-4">
-                <h3 class="text-xl font-bold text-gray-800 mb-3">بيانات الصيدلية</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-3" data-key="pharmacyDataTitle">بيانات الصيدلية</h3>
                 <!-- زر طي/فك طي القائمة -->
-                <button id="togglePharmacyDetailsBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg mb-3">تعديل بيانات الصيدلية</button>
+                <button id="togglePharmacyDetailsBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span data-key="togglePharmacyDetailsBtn">تعديل بيانات الصيدلية</span>
+                </button>
                 
                 <div id="pharmacyDetailsContent" class="hidden">
                     <div class="mb-3">
-                        <label for="pharmacyNameInput" class="block text-gray-700 text-sm font-bold mb-2">اسم الصيدلية:</label>
-                        <input type="text" id="pharmacyNameInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: صيدليات الأمل">
+                        <label for="pharmacyNameInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="pharmacyNameLabel">اسم الصيدلية:</label>
+                        <input type="text" id="pharmacyNameInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: صيدليات الأمل" data-key="pharmacyNamePlaceholder">
                     </div>
                     <div class="mb-3">
-                        <label for="sloganInput" class="block text-gray-700 text-sm font-bold mb-2">الشعار/الرسالة:</label>
-                        <input type="text" id="sloganInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: اختيارك الأفضل - فرع كذا">
+                        <label for="sloganInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="sloganLabel">الشعار/الرسالة:</label>
+                        <input type="text" id="sloganInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: اختيارك الأفضل - فرع كذا" data-key="sloganPlaceholder">
                     </div>
                     <div class="mb-3">
-                        <label for="addressInput" class="block text-gray-700 text-sm font-bold mb-2">العنوان:</label>
-                        <input type="text" id="addressInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: شارع رئيسي، مبنى رقم 10">
+                        <label for="addressInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="addressLabel">العنوان:</label>
+                        <input type="text" id="addressInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: شارع رئيسي، مبنى رقم 10" data-key="addressPlaceholder">
                     </div>
                     <div class="mb-3">
-                        <label for="phoneInput" class="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف:</label>
-                        <input type="tel" id="phoneInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 01012345678">
+                        <label for="phoneInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="phoneLabel">رقم الهاتف:</label>
+                        <input type="tel" id="phoneInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 01012345678" data-key="phonePlaceholder">
                     </div>
                     <!-- حقل جديد لرابط الشعار -->
                     <div class="mb-3">
-                        <label for="logoUrlInput" class="block text-gray-700 text-sm font-bold mb-2">رابط الشعار (URL):</label>
-                        <input type="url" id="logoUrlInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: https://example.com/logo.png">
+                        <label for="logoUrlInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoUrlLabel">رابط الشعار (URL):</label>
+                        <input type="url" id="logoUrlInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: https://example.com/logo.png" data-key="logoUrlPlaceholder">
                     </div>
                     <div class="mb-4">
-                        <label for="logoFileInput" class="block text-gray-700 text-sm font-bold mb-2">رفع الشعار من جهازك (سيتم حفظه محليًا):</label>
+                        <label for="logoFileInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoFileLabel">رفع الشعار من جهازك (سيتم حفظه محليًا):</label>
                         <input type="file" id="logoFileInput" accept="image/*" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p id="logoUploadStatus" class="mt-1 text-xs text-gray-500">سيتم حفظ الشعار في متصفحك.</p>
+                        <p id="logoUploadStatus" class="mt-1 text-xs text-gray-500" data-key="logoUploadStatus">سيتم حفظ الشعار في متصفحك.</p>
                         <div class="mt-2">
                             <input type="checkbox" id="removeLogoCheckbox" class="ml-2">
-                            <label for="removeLogoCheckbox" class="text-gray-700 text-sm">لا أريد استخدام لوجو</label>
+                            <label for="removeLogoCheckbox" class="text-gray-700 text-sm" data-key="removeLogoCheckboxLabel">لا أريد استخدام لوجو</label>
                         </div>
                     </div>
-                    <button id="savePharmacyDetailsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">حفظ بيانات الصيدلية</button>
+
+                    <button id="savePharmacyDetailsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        <span data-key="savePharmacyDetailsBtn">حفظ بيانات الصيدلية</span>
+                    </button>
                     <div id="saveStatusMessage" class="mt-2 text-center text-sm font-semibold"></div>
                 </div>
             </div>
 
             <div class="flex justify-between items-center mb-4 mt-6">
-                <h2 class="text-2xl font-bold text-gray-800">إعدادات القياس</h2>
+                <h2 class="text-2xl font-bold text-gray-800" data-key="measurementSettingsTitle">إعدادات القياس</h2>
             </div>
 
             <!-- اختيار نوع القياس -->
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">اختر نوع القياس:</label>
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-key="selectMeasurementTypeLabel">اختر نوع القياس:</label>
                 <div class="flex custom-radio rounded-lg border border-gray-300 overflow-hidden">
-                    <div class="w-1/2"><input type="radio" id="sugar" name="measurement" value="sugar" checked><label for="sugar" class="text-center block w-full p-3 cursor-pointer bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white">سكر</label></div>
-                    <div class="w-1/2"><input type="radio" id="pressure" name="measurement" value="pressure"><label for="pressure" class="text-center block w-full p-3 cursor-pointer bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white">ضغط</label></div>
+                    <div class="w-1/2"><input type="radio" id="sugar" name="measurement" value="sugar" checked><label for="sugar" class="text-center block w-full p-3 cursor-pointer bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white" data-key="sugarOption">سكر</label></div>
+                    <div class="w-1/2"><input type="radio" id="pressure" name="measurement" value="pressure"><label for="pressure" class="text-center block w-full p-3 cursor-pointer bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white" data-key="pressureOption">ضغط</label></div>
                 </div>
             </div>
 
             <!-- حقول الإدخال -->
             <div id="sugar-input-container" class="mb-4">
-                <label for="sugarValue" class="block text-gray-700 text-sm font-bold mb-2">قيمة قياس السكر (mg/dL):</label>
-                <input type="number" id="sugarValue" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 120">
+                <label for="sugarValue" class="block text-gray-700 text-sm font-bold mb-2" data-key="sugarValueLabel">قيمة قياس السكر (mg/dL):</label>
+                <input type="number" id="sugarValue" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 120" data-key="sugarPlaceholder">
             </div>
             <div id="pressure-input-container" class="hidden mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">قيمة قياس الضغط (mmHg):</label>
-                <input type="number" id="pressureValueHigh" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2" placeholder="العالي (SYS)">
-                <input type="number" id="pressureValueLow" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="المنخفض (DIA)">
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-key="pressureValueLabel">قيمة قياس الضغط (mmHg):</label>
+                <input type="number" id="pressureValueHigh" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2" placeholder="العالي (SYS)" data-key="pressureHighPlaceholder">
+                <input type="number" id="pressureValueLow" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="المنخفض (DIA)" data-key="pressureLowPlaceholder">
             </div>
             
             <!-- الملاحظات -->
             <div class="mb-4">
-                <label for="notesInput" class="block text-gray-700 text-sm font-bold mb-2">الملاحظات:</label>
-                <textarea id="notesInput" rows="3" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="اكتب ملاحظاتك هنا..."></textarea>
-                <button onclick="clearAllNotes()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mt-2">مسح الكل</button>
+                <label for="notesInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="notesLabel">الملاحظات:</label>
+                <textarea id="notesInput" rows="3" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="اكتب ملاحظاتك هنا..." data-key="notesPlaceholder"></textarea>
+                <button onclick="window.clearAllNotes()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span data-key="clearNotesBtn">مسح الكل</span>
+                </button>
             </div>
 
             <!-- خيارات الحالة (مرتفع، طبيعي، منخفض) -->
             <div class="status-options-group text-black mt-3 py-2 w-full">
-                <div class="status-radio"><input type="radio" id="status-high" name="status"><label for="status-high">مرتفع</label></div>
-                <div class="status-radio"><input type="radio" id="status-normal" name="status"><label for="status-normal">طبيعي</label></div>
-                <div class="status-radio"><input type="radio" id="status-low" name="status"><label for="status-low">منخفض</label></div>
+                <div class="status-radio"><input type="radio" id="status-high" name="status"><label for="status-high" data-key="statusHigh">مرتفع</label></div>
+                <div class="status-radio"><input type="radio" id="status-normal" name="status"><label for="status-normal" data-key="statusNormal">طبيعي</label></div>
+                <div class="status-radio"><input type="radio" id="status-low" name="status"><label for="status-low" data-key="statusLow">منخفض</label></div>
             </div>
 
             <!-- مجموعة الأزرار السفلية مع مسافات متساوية -->
             <div class="flex flex-col w-full space-y-3 mt-3">
                 <!-- أزرار المعاينة والطباعة الرئيسية -->
-                <button id="previewAndPrintBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg">معاينة الإيصال وطباعته</button>
+                <button id="previewAndPrintBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span data-key="previewAndPrintBtn">معاينة الإيصال وطباعته</span>
+                </button>
                 <!-- زر سجل الطباعة الجديد -->
-                <button id="showPrintLogBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">سجل الطباعة</button>
+                <button id="showPrintLogBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <span data-key="showPrintLogBtn">سجل الطباعة</span>
+                </button>
 
                 <!-- زر المساعدة -->
-                <button id="showHelpBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">كيف يمكنني طباعة ريسيت؟</button>
+                <button id="showHelpBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9.228a4.5 4.5 0 116.364 0L10 12.636l-1.828-1.828zm0 0L3.5 16.5m0 0h17m-9.5-6.5l-2.5 2.5m-1 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span data-key="showHelpBtn">كيف يمكنني طباعة ريسيت؟</span>
+                </button>
             </div>
         </div>
 
@@ -736,7 +917,7 @@
                 <p id="datetime"></p>
             </div>
             <div class="text-center measurement-section">
-                <h2 id="receipt-title" class="text-lg font-extrabold text-black">قياس السكر</h2>
+                <h2 id="receipt-title" class="text-lg font-extrabold text-black"></h2>
                 <div id="receipt-value-sugar" class="mb-2 py-2">
                     <span id="displaySugarValue" class="value-display font-extrabold text-black">---</span>
                     <span class="unit-display align-middle text-lg text-black">mg/dL</span>
@@ -753,7 +934,7 @@
                 </div>
             </div>
             <div id="notes-section" class="mt-4 text-right text-sm notes-section"> <!-- Added ID for easy toggling -->
-                <p class="font-bold text-black">ملاحظات:</p>
+                <p class="font-bold text-black" data-key="notesLabelReceipt">ملاحظات:</p>
                 <div id="notes-output" class="notes-display pt-1 text-black"></div> <!-- Removed border-t from here -->
             </div>
             <div class="text-center mt-6 pt-3 footer-text receipt-footer-divider">
@@ -765,34 +946,41 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                     </svg>
-                    <span class="text-black">شكراً لزيارتكم</span>
+                    <span class="text-black" data-key="thankYouMessage">شكراً لزيارتكم</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                     </svg>
                 </div>
+                <p class="designed-by-text text-xs mt-2">Designed by Smart PPH</p>
+                <p id="copyText" class="copy-text text-sm font-bold mt-1 hidden" data-key="copyText">نسخة</p>
             </div>
         </div>
 
         <!-- Modal للمعاينة -->
         <div id="previewModal" class="modal hidden">
             <div class="modal-content">
-                <button class="modal-close-button" onclick="closePreviewModal()">×</button>
-                <div class="modal-title">معاينة الإيصال</div>
+                <button class="modal-close-button" onclick="window.closePreviewModal()">×</button>
+                <div class="modal-title" data-key="previewModalTitle">معاينة الإيصال</div>
                 <!-- نسخة من الإيصال داخل المودال -->
                 <div id="modalReceiptContent" class="receipt-thermal bg-white rounded-lg shadow-lg">
                     <!-- سيتم نسخ محتوى الإيصال هنا ديناميكياً -->
                 </div>
                 <div class="modal-print-button-container text-center mt-4 flex justify-center space-x-4">
-                    <button onclick="printModalReceipt()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">طباعة الإيصال</button>
+                    <button onclick="window.printModalReceipt()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span data-key="printReceiptBtn">طباعة الإيصال</span>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Modal لبطاقة التعريف -->
         <div id="idCardModal" class="modal hidden">
-            <div class="modal-content">
-                <button class="modal-close-button" onclick="closeIdCardModal()">×</button>
-                <div class="modal-title">بطاقة تعريف الصيدلية</div>
+            <div class="modal-content flex flex-col items-center"> <!-- Added flex and items-center for centering children -->
+                <button class="modal-close-button" onclick="window.closeIdCardModal()">×</button>
+                <div class="modal-title" data-key="idCardModalTitle">بطاقة تعريف الصيدلية</div>
                 <div id="idCardContent" class="id-card-content">
                     <!-- سيتم ملء محتوى البطاقة هنا ديناميكياً -->
                     <img id="cardLogo" src="https://placehold.co/70x70/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="card-logo" onerror="this.src='https://placehold.co/70x70/d1d5db/9ca3af?text=شعار';">
@@ -803,8 +991,20 @@
                         <p id="cardPhone" class="card-contact"></p>
                     </div>
                 </div>
+                <!-- قسم جديد لاختيار ألوان بطاقة التعريف (تم نقله هنا) -->
+                <div class="mb-4 mt-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-3" data-key="idCardColorsTitle">تخصيص ألوان بطاقة التعريف</h3>
+                    <div id="idCardColorOptions" class="flex flex-wrap gap-3 justify-center">
+                        <!-- الألوان سيتم إضافتها بواسطة JavaScript -->
+                    </div>
+                </div>
                 <div class="modal-print-button-container text-center mt-4 flex justify-center space-x-4">
-                    <button onclick="downloadIdCardAsImage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">تنزيل الكارت كصورة</button>
+                    <button onclick="window.downloadIdCardAsImage()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span data-key="downloadIdCardBtn">تنزيل الكارت كصورة</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -812,16 +1012,15 @@
         <!-- Modal للمساعدة -->
         <div id="helpModal" class="modal hidden">
             <div class="modal-content">
-                <button class="modal-close-button" onclick="closeHelpModal()">×</button>
-                <div class="modal-title">كيف يمكنني طباعة ريسيت؟</div>
+                <button class="modal-close-button" onclick="window.closeHelpModal()">×</button>
+                <div class="modal-title" data-key="helpModalTitle">كيف يمكنني طباعة ريسيت؟</div>
                 <div class="text-center mb-4">
                     <p id="helpTextPlaceholder" class="text-gray-700 mb-4">
                         <!-- ملاحظاتك ستكون هنا -->
                     </p>
-                    <!-- الصورة تم إزالتها -->
                 </div>
                 <div class="text-center mt-4">
-                    <button onclick="closeHelpModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">رجوع</button>
+                    <button onclick="window.closeHelpModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="backBtn">رجوع</button>
                 </div>
             </div>
         </div>
@@ -829,17 +1028,25 @@
         <!-- Modal لسجل الطباعة -->
         <div id="receiptLogModal" class="modal hidden">
             <div class="modal-content max-w-2xl w-full">
-                <button class="modal-close-button" onclick="closeReceiptLogModal()">×</button>
-                <div class="modal-title">سجل الطباعة</div>
+                <button class="modal-close-button" onclick="window.closeReceiptLogModal()">×</button>
+                <div class="modal-title" data-key="receiptLogModalTitle">سجل الطباعة</div>
+                <!-- Pie Chart Canvas -->
+                <div class="mb-6 flex justify-center">
+                    <canvas id="statusPieChart" class="max-w-xs"></canvas>
+                </div>
                 <div class="mb-4 flex flex-col md:flex-row gap-2 items-center">
-                    <!-- تم إزالة حقل البحث -->
-                    <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">مسح الكل</button>
+                    <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span data-key="clearLogBtn">مسح الكل</span>
+                    </button>
                 </div>
                 <div id="receiptLogList" class="space-y-3">
                     <!-- سيتم ملء الريسييتات هنا ديناميكياً -->
                 </div>
                 <div class="text-center mt-4">
-                    <button onclick="closeReceiptLogModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">إغلاق</button>
+                    <button onclick="window.closeReceiptLogModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="closeBtn">إغلاق</button>
                 </div>
             </div>
         </div>
@@ -847,7 +1054,7 @@
         <!-- Generic Message Modal -->
         <div id="messageModal" class="modal hidden">
             <div class="modal-content">
-                <button class="modal-close-button" onclick="closeMessageModal()">×</button>
+                <button class="modal-close-button" onclick="window.closeMessageModal()">×</button>
                 <div class="modal-title" id="messageModalTitle"></div>
                 <p id="messageModalText" class="text-gray-700 text-center mb-4"></p>
                 <div class="text-center">
@@ -860,14 +1067,16 @@
 
     <!-- Footer -->
     <footer class="w-full bg-black text-white text-center py-4 mt-8">
-        <p>جميع الحقوق محفوظة <span id="currentYear"></span> &copy;</p>
-        <p>للتواصل مع smartpharmacy: <a href="mailto:mhmdmyark0@gmail.com" class="text-blue-300 hover:underline">mhmdmyark0@gmail.com</a></p>
+        <p><span data-key="copyrightText">جميع الحقوق محفوظة</span> <span id="currentYear"></span> &copy;</p>
+        <p><span data-key="contactText">للتواصل مع smartpharmacy:</span> <a href="mailto:mhmdmyark0@gmail.com" class="text-blue-300 hover:underline">mhmdmyark0@gmail.com</a></p>
     </footer>
 
     <script type="module">
         // مفتاح لتخزين البيانات في localStorage
         const LOCAL_STORAGE_KEY = 'pharmacy_data_v1';
         const RECEIPT_LOG_KEY = 'receipt_log_v1'; // مفتاح جديد لسجل الريسييتات
+        const ID_CARD_COLORS_KEY = 'id_card_colors_v1'; // مفتاح جديد لألوان بطاقة التعريف
+        const LANGUAGE_KEY = 'app_language'; // مفتاح جديد للغة
 
         // --- عناصر الواجهة (تم نقل تعريفها إلى داخل window.onload) ---
         let measurementTypeRadios;
@@ -889,6 +1098,7 @@
         let displayPressureValueLow;
         let datetimeElement;
         let displayStatus;
+        let copyTextElement; // New element for "Copy" text on receipt
 
         let pharmacyNameInput;
         let sloganInput;
@@ -902,6 +1112,7 @@
         let saveStatusMessage;
         let pharmacyDetailsContent;
         let togglePharmacyDetailsBtn;
+        let idCardColorOptions; // New element for ID card color options
 
         let receiptPharmacyName;
         let receiptSlogan;
@@ -929,37 +1140,373 @@
 
         let welcomeMessageElement; // New element for welcome message
         let welcomeLogo; // New element for logo in welcome box
+        let appLogoPlaceholder; // New: App Logo Placeholder
 
         let messageModal; // Generic message modal
         let messageModalTitle;
         let messageModalText;
 
         let darkModeToggleBtn; // New element for dark mode toggle
-        let viewModeToggleBtn; // New element for view mode toggle
+        let languageToggleBtn; // New element for language toggle
 
         let showPrintLogBtn; // New element for print log button
         let receiptLogModal; // New element for print log modal
         let receiptLogList; // New element for print log list container
-        // let logSearchInput; // Removed: New element for print log search input
         let clearLogBtn; // New element for clear log button
+        let statusPieChartCanvas; // New: Chart.js canvas element
+        let statusPieChartInstance; // New: Chart.js instance
 
-        // --- الدوال العامة (للوصول إليها من HTML) ---
-        window.clearAllNotes = clearAllNotes;
-        window.applyStatusToRadios = applyStatusToRadios; // Still exists, but button removed
-        window.closePreviewModal = closePreviewModal;
-        window.printModalReceipt = printModalReceipt;
-        window.openHelpModal = openHelpModal;
-        window.closeHelpModal = closeHelpModal;
-        window.openIdCardModal = openIdCardModal;
-        window.closeIdCardModal = closeIdCardModal;
-        window.printIdCard = printIdCard; // Now shows a message
-        window.downloadIdCardAsImage = downloadIdCardAsImage; // Changed from convertIdCardToPdf
-        window.closeMessageModal = closeMessageModal; // For generic message modal
-        window.openReceiptLogModal = openReceiptLogModal; // New function for print log modal
-        window.closeReceiptLogModal = closeReceiptLogModal; // New function for print log modal
-        window.deleteReceiptFromLog = deleteReceiptFromLog; // New function to delete specific receipt from log
-        // window.printSpecificReceipt = printSpecificReceipt; // Removed: New function to print specific receipt from log
-        window.clearAllReceipts = clearAllReceipts; // New function to clear all receipts from log
+        let loadingScreen; // New: Loading screen element
+        let progressBar; // New: Progress bar element
+
+        // Predefined ID card color palettes
+        const ID_CARD_PALETTES = {
+            blue: {
+                name: { ar: 'أزرق', en: 'Blue' },
+                light: { bgLight: '#e0f2fe', bgDark: '#cbe8ff', bubble: 'rgba(0, 123, 255, 0.1)' },
+                dark: { bgLight: '#2d3748', bgDark: '#4a5568', bubble: 'rgba(0, 123, 255, 0.2)' }
+            },
+            pink: {
+                name: { ar: 'وردي', en: 'Pink' },
+                light: { bgLight: '#ffe4e6', bgDark: '#ffc0cb', bubble: 'rgba(255, 105, 180, 0.2)' },
+                dark: { bgLight: '#4a2d37', bgDark: '#684a55', bubble: 'rgba(255, 105, 180, 0.3)' }
+            },
+            green: {
+                name: { ar: 'أخضر', en: 'Green' },
+                light: { bgLight: '#e6ffed', bgDark: '#b2f0c7', bubble: 'rgba(60, 179, 113, 0.2)' },
+                dark: { bgLight: '#374a2d', bgDark: '#55684a', bubble: 'rgba(60, 179, 113, 0.3)' }
+            },
+            gold: {
+                name: { ar: 'ذهبي', en: 'Gold' },
+                light: { bgLight: '#fff8e1', bgDark: '#ffe082', bubble: 'rgba(255, 215, 0, 0.2)' },
+                dark: { bgLight: '#4a412d', bgDark: '#685e4a', bubble: 'rgba(255, 215, 0, 0.3)' }
+            },
+            purple: {
+                name: { ar: 'بنفسجي', en: 'Purple' },
+                light: { bgLight: '#f3e8ff', bgDark: '#d8b4fe', bubble: 'rgba(124, 58, 237, 0.15)' },
+                dark: { bgLight: '#3c2a4d', bgDark: '#5e4274', bubble: 'rgba(124, 58, 237, 0.25)' }
+            },
+            teal: {
+                name: { ar: 'أزرق مخضر', en: 'Teal' },
+                light: { bgLight: '#e0fafa', bgDark: '#a7f3d0', bubble: 'rgba(20, 184, 166, 0.15)' },
+                dark: { bgLight: '#2d4d4a', bgDark: '#4a7470', bubble: 'rgba(20, 184, 166, 0.25)' }
+            },
+            orange: {
+                name: { ar: 'برتقالي', en: 'Orange' },
+                light: { bgLight: '#fff7ed', bgDark: '#fed7aa', bubble: 'rgba(249, 115, 22, 0.15)' },
+                dark: { bgLight: '#4d3b2d', bgDark: '#745a4a', bubble: 'rgba(249, 115, 22, 0.25)' }
+            },
+            cyan: {
+                name: { ar: 'سماوي', en: 'Cyan' },
+                light: { bgLight: '#e0ffff', bgDark: '#81d4fa', bubble: 'rgba(0, 188, 212, 0.15)' },
+                dark: { bgLight: '#2d4d4d', bgDark: '#4a7474', bubble: 'rgba(0, 188, 212, 0.25)' }
+            },
+            lime: {
+                name: { ar: 'ليموني', en: 'Lime' },
+                light: { bgLight: '#f0f4c3', bgDark: '#cddc39', bubble: 'rgba(139, 195, 74, 0.15)' },
+                dark: { bgLight: '#3c4d2d', bgDark: '#5e744a', bubble: 'rgba(139, 195, 74, 0.25)' }
+            },
+            brown: {
+                name: { ar: 'بني', en: 'Brown' },
+                light: { bgLight: '#efebe9', bgDark: '#bcaaa4', bubble: 'rgba(121, 85, 72, 0.1)' },
+                dark: { bgLight: '#3e3532', bgDark: '#5c524f', bubble: 'rgba(121, 85, 72, 0.2)' }
+            }
+        };
+
+        // Translations object
+        const translations = {
+            ar: {
+                loadingText: 'جاري التحميل...',
+                appName: 'SMART PPH',
+                welcomeMessage: 'مرحباً',
+                createIdCardBtn: 'صناعة بطاقة تعريف للصيدلية',
+                appSettingsTitle: 'إعدادات التطبيق',
+                pharmacyDataTitle: 'بيانات الصيدلية',
+                togglePharmacyDetailsBtn: 'تعديل بيانات الصيدلية',
+                pharmacyNameLabel: 'اسم الصيدلية:',
+                pharmacyNamePlaceholder: 'مثال: صيدليات الأمل',
+                sloganLabel: 'الشعار/الرسالة:',
+                sloganPlaceholder: 'مثال: اختيارك الأفضل - فرع كذا',
+                addressLabel: 'العنوان:',
+                addressPlaceholder: 'مثال: شارع رئيسي، مبنى رقم 10',
+                phoneLabel: 'رقم الهاتف:',
+                phonePlaceholder: 'مثال: 01012345678',
+                logoUrlLabel: 'رابط الشعار (URL):',
+                logoUrlPlaceholder: 'مثال: https://example.com/logo.png',
+                logoFileLabel: 'رفع الشعار من جهازك (سيتم حفظه محليًا):',
+                logoUploadStatus: 'سيتم حفظ الشعار في متصفحك.',
+                removeLogoCheckboxLabel: 'لا أريد استخدام لوجو',
+                idCardColorsTitle: 'تخصيص ألوان بطاقة التعريف',
+                savePharmacyDetailsBtn: 'حفظ بيانات الصيدلية',
+                measurementSettingsTitle: 'إعدادات القياس',
+                selectMeasurementTypeLabel: 'اختر نوع القياس:',
+                sugarOption: 'سكر',
+                pressureOption: 'ضغط',
+                sugarValueLabel: 'قيمة قياس السكر (mg/dL):',
+                sugarPlaceholder: 'مثال: 120',
+                pressureValueLabel: 'قيمة قياس الضغط (mmHg):',
+                pressureHighPlaceholder: 'العالي (SYS)',
+                pressureLowPlaceholder: 'المنخفض (DIA)',
+                notesLabel: 'الملاحظات:',
+                notesPlaceholder: 'اكتب ملاحظاتك هنا...',
+                clearNotesBtn: 'مسح الكل',
+                statusHigh: 'مرتفع',
+                statusNormal: 'طبيعي',
+                statusLow: 'منخفض',
+                previewAndPrintBtn: 'معاينة الإيصال وطباعته',
+                showPrintLogBtn: 'سجل الطباعة',
+                showHelpBtn: 'كيف يمكنني طباعة ريسيت؟',
+                notesLabelReceipt: 'ملاحظات:',
+                thankYouMessage: 'شكراً لزيارتكم',
+                copyText: 'نسخة',
+                previewModalTitle: 'معاينة الإيصال',
+                printReceiptBtn: 'طباعة الإيصال',
+                idCardModalTitle: 'بطاقة تعريف الصيدلية',
+                downloadIdCardBtn: 'تنزيل الكارت كصورة',
+                helpModalTitle: 'كيف يمكنني طباعة ريسيت؟',
+                helpContent: `
+                    مرحباً بك في تطبيق SMART PPH! هذا التطبيق مصمم لمساعدتك في تسجيل وطباعة إيصالات قياس السكر والضغط بسهولة وفعالية.
+                    
+                    **الميزات الرئيسية:**
+                    * **تسجيل القياسات:** أدخل قيم السكر أو الضغط، وسيتم تحديد الحالة (مرتفع، طبيعي، منخفض) تلقائيًا.
+                    * **الملاحظات:** أضف أي ملاحظات إضافية حول القياس.
+                    * **تخصيص الصيدلية:** قم بحفظ اسم صيدليتك، شعارها، عنوانها، ورقم هاتفها لتظهر على الإيصالات.
+                    * **سجل الطباعة:** تتبع جميع الإيصالات المطبوعة، مع إمكانية إعادة طباعة أي إيصال كنسخة.
+                    * **بطاقة تعريف الصيدلية:** أنشئ بطاقة تعريف أنيقة لصيدليتك بألوان قابلة للتخصيص.
+                    * **الوضع الليلي:** قم بتبديل الوضع بين الفاتح والداكن لتجربة بصرية مريحة.
+                    * **دعم اللغات:** يمكنك التبديل بين اللغتين العربية والإنجليزية.
+
+                    **كيفية الطباعة:**
+                    تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة.
+                    عند الطباعة، تأكد من ملائمة المحتوى للصفحة (مقاس الورق 72 مم).
+                    في حالة عدم حدوث ذلك، يرجى تعديلها يدويًا من إعدادات الطباعة في المتصفح (مثل "المزيد من الإعدادات" ثم "رسومات الخلفية" و "مقاس الورق").
+                    للحصول على أفضل نتيجة، يفضل استخدام طابعات الإيصالات الحرارية.
+                    تأكد من تفعيل خيار "رسومات الخلفية" أو "طباعة ألوان وخلفيات الخلفية" في إعدادات الطباعة الخاصة بمتصفحك لضمان ظهور الألوان والخطوط الفاصلة.
+                `,
+                backBtn: 'رجوع',
+                receiptLogModalTitle: 'سجل الطباعة',
+                clearLogBtn: 'مسح الكل',
+                reprintBtn: 'إعادة طباعة',
+                deleteBtn: 'حذف',
+                noReceipts: 'لا توجد إيصالات مطبوعة.',
+                unknownPharmacy: 'صيدلية غير معروفة',
+                measurement: 'القياس',
+                status: 'الحالة',
+                notes: 'ملاحظات',
+                noNotes: 'لا توجد ملاحظات',
+                confirmClearLogTitle: 'تأكيد المسح',
+                confirmClearLogMessage: 'هل أنت متأكد أنك تريد حذف جميع الإيصالات من السجل؟ لا يمكن التراجع عن هذا الإجراء.',
+                clearSuccess: 'تم المسح',
+                clearSuccessMessage: 'تم مسح سجل الإيصالات بالكامل.',
+                deleteSuccess: 'تم الحذف',
+                deleteSuccessMessage: 'تم حذف الإيصال بنجاح.',
+                error: 'خطأ',
+                errorMessage: 'حدث خطأ أثناء إنشاء الصورة: ',
+                reprintError: 'لم يتم العثور على الإيصال لإعادة الطباعة.',
+                saveError: 'خطأ في الحفظ: ',
+                loadError: 'خطأ في تحميل البيانات: ',
+                processingLogo: 'جاري معالجة الشعار...',
+                logoProcessedSuccess: 'تم معالجة الشعار بنجاح!',
+                logoProcessingError: 'خطأ في معالجة الشعار: ',
+                logoUrlUsed: 'تم استخدام رابط الشعار المدخل.',
+                logoFileSaved: 'سيتم حفظ الشعار من الملف في متصفحك.',
+                logoRemovedOnSave: 'سيتم إزالة الشعار عند الحفظ.',
+                logoCurrent: 'الشعار الحالي من رابط أو ملف محفوظ.',
+                logoDefault: 'سيتم حفظ الشعار في متصفحك.',
+                saveSuccess: 'تم حفظ البيانات بنجاح!',
+                togglePharmacyDetailsBtnCollapsed: 'تعديل بيانات الصيدلية',
+                togglePharmacyDetailsBtnExpanded: 'إخفاء بيانات الصيدلية',
+                idCardPrintUnavailable: 'غير متاح',
+                idCardPrintMessage: 'لا يمكن طباعة بطاقة التعريف مباشرة. يرجى تنزيلها كصورة أولاً.',
+                copyrightText: 'جميع الحقوق محفوظة',
+                contactText: 'للتواصل مع smartpharmacy:',
+                lightMode: 'الوضع الفاتح',
+                darkMode: 'الوضع الليلي',
+                switchLanguage: 'تبديل اللغة',
+                sugarMeasurement: 'قياس السكر',
+                pressureMeasurement: 'قياس الضغط',
+                statusHighFull: 'حالة قياس {measurementLabel}: مرتفعة',
+                statusNormalFull: 'حالة قياس {measurementLabel}: طبيعية',
+                statusLowFull: 'حالة قياس {measurementLabel}: منخفضة',
+                statusUnknown: 'حالة القياس: غير معروفة',
+                okBtn: 'حسناً',
+                cancelBtn: 'إلغاء',
+                statusHighShort: 'مرتفع',
+                statusNormalShort: 'طبيعي',
+                statusLowShort: 'منخفض',
+                statusUnknownShort: 'غير معروف',
+            },
+            en: {
+                loadingText: 'Loading...',
+                appName: 'SMART PPH',
+                welcomeMessage: 'Welcome',
+                createIdCardBtn: 'Create Pharmacy ID Card',
+                appSettingsTitle: 'App Settings',
+                pharmacyDataTitle: 'Pharmacy Details',
+                togglePharmacyDetailsBtn: 'Edit Pharmacy Details',
+                pharmacyNameLabel: 'Pharmacy Name:',
+                pharmacyNamePlaceholder: 'Ex: Al-Amal Pharmacies',
+                sloganLabel: 'Slogan/Message:',
+                sloganPlaceholder: 'Ex: Your Best Choice - Branch X',
+                addressLabel: 'Address:',
+                addressPlaceholder: 'Ex: Main Street, Building No. 10',
+                phoneLabel: 'Phone Number:',
+                phonePlaceholder: 'Ex: 01012345678',
+                logoUrlLabel: 'Logo URL:',
+                logoUrlPlaceholder: 'Ex: https://example.com/logo.png',
+                logoFileLabel: 'Upload Logo from your device (will be saved locally):',
+                logoUploadStatus: 'Logo will be saved in your browser.',
+                removeLogoCheckboxLabel: 'I don\'t want to use a logo',
+                idCardColorsTitle: 'Customize ID Card Colors',
+                savePharmacyDetailsBtn: 'Save Pharmacy Details',
+                measurementSettingsTitle: 'Measurement Settings',
+                selectMeasurementTypeLabel: 'Select Measurement Type:',
+                sugarOption: 'Sugar',
+                pressureOption: 'Pressure',
+                sugarValueLabel: 'Sugar Measurement Value (mg/dL):',
+                sugarPlaceholder: 'Ex: 120',
+                pressureValueLabel: 'Blood Pressure Value (mmHg):',
+                pressureHighPlaceholder: 'High (SYS)',
+                pressureLowPlaceholder: 'Low (DIA)',
+                notesLabel: 'Notes:',
+                notesPlaceholder: 'Write your notes here...',
+                clearNotesBtn: 'Clear All',
+                statusHigh: 'High',
+                statusNormal: 'Normal',
+                statusLow: 'Low',
+                previewAndPrintBtn: 'Preview & Print Receipt',
+                showPrintLogBtn: 'Print Log',
+                showHelpBtn: 'How can I print a receipt?',
+                notesLabelReceipt: 'Notes:',
+                thankYouMessage: 'Thank you for your visit',
+                copyText: 'Copy',
+                previewModalTitle: 'Receipt Preview',
+                printReceiptBtn: 'Print Receipt',
+                idCardModalTitle: 'Pharmacy ID Card',
+                downloadIdCardBtn: 'Download Card as Image',
+                helpModalTitle: 'How can I print a receipt?',
+                helpContent: `
+                    Welcome to SMART PPH! This application is designed to help you easily record and print sugar and blood pressure measurement receipts.
+
+                    **Key Features:**
+                    * **Record Measurements:** Enter sugar or blood pressure values, and the status (high, normal, low) will be automatically determined.
+                    * **Notes:** Add any additional notes about the measurement.
+                    * **Pharmacy Customization:** Save your pharmacy's name, slogan, address, and phone number to appear on receipts.
+                    * **Print Log:** Keep track of all printed receipts, with the ability to reprint any receipt as a copy.
+                    * **Pharmacy ID Card:** Create an elegant ID card for your pharmacy with customizable colors.
+                    * **Dark Mode:** Toggle between light and dark modes for a comfortable visual experience.
+                    * **Language Support:** You can switch between Arabic and English languages.
+
+                    **How to Print:**
+                    Make sure your printer is connected to your device and ready to print.
+                    When printing, ensure the content fits the page (72mm paper size).
+                    If it doesn't, please adjust it manually from your browser's print settings (e.g., "More settings" then "Background graphics" and "Paper size").
+                    For best results, thermal receipt printers are recommended.
+                    Ensure the "Background graphics" or "Print background colors and images" option is enabled in your browser's print settings to ensure colors and dashed lines appear.
+                `,
+                backBtn: 'Back',
+                receiptLogModalTitle: 'Print Log',
+                clearLogBtn: 'Clear All',
+                reprintBtn: 'Reprint',
+                deleteBtn: 'Delete',
+                noReceipts: 'No receipts printed yet.',
+                unknownPharmacy: 'Unknown Pharmacy',
+                measurement: 'Measurement',
+                status: 'Status',
+                notes: 'Notes',
+                noNotes: 'No notes',
+                confirmClearLogTitle: 'Confirm Clear',
+                confirmClearLogMessage: 'Are you sure you want to delete all receipts from the log? This action cannot be undone.',
+                clearSuccess: 'Cleared',
+                clearSuccessMessage: 'All receipts have been cleared from the log.',
+                deleteSuccess: 'Deleted',
+                deleteSuccessMessage: 'Receipt deleted successfully.',
+                error: 'Error',
+                errorMessage: 'An error occurred while generating the image: ',
+                reprintError: 'Receipt not found for reprinting.',
+                saveError: 'Save error: ',
+                loadError: 'Load error: ',
+                processingLogo: 'جاري معالجة الشعار...',
+                logoProcessedSuccess: 'Logo processed successfully!',
+                logoProcessingError: 'Error processing logo: ',
+                logoUrlUsed: 'Using provided logo URL.',
+                logoFileSaved: 'Logo from file will be saved in your browser.',
+                logoRemovedOnSave: 'Logo will be removed on save.',
+                logoCurrent: 'Current logo from URL or saved file.',
+                logoDefault: 'Logo will be saved in your browser.',
+                saveSuccess: 'Data saved successfully!',
+                togglePharmacyDetailsBtnCollapsed: 'Edit Pharmacy Details',
+                togglePharmacyDetailsBtnExpanded: 'Hide Pharmacy Details',
+                idCardPrintUnavailable: 'Unavailable',
+                idCardPrintMessage: 'ID card cannot be printed directly. Please download it as an image first.',
+                copyrightText: 'All rights reserved',
+                contactText: 'Contact smartpharmacy:',
+                lightMode: 'Light Mode',
+                darkMode: 'Dark Mode',
+                switchLanguage: 'Switch Language',
+                sugarMeasurement: 'Sugar',
+                pressureMeasurement: 'Blood Pressure',
+                statusHighFull: 'Measurement Status ({measurementLabel}): High',
+                statusNormalFull: 'Measurement Status ({measurementLabel}): Normal',
+                statusLowFull: 'Measurement Status ({measurementLabel}): Low',
+                statusUnknown: 'Measurement Status: Unknown',
+                okBtn: 'OK',
+                cancelBtn: 'Cancel',
+                statusHighShort: 'High',
+                statusNormalShort: 'Normal',
+                statusLowShort: 'Low',
+                statusUnknownShort: 'Unknown',
+            }
+        };
+
+        let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ar'; // Default to Arabic
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            localStorage.setItem(LANGUAGE_KEY, lang);
+
+            // Update all elements with data-key
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang][key]) {
+                    if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                        element.setAttribute('placeholder', translations[lang][key]);
+                    } else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+
+            // Special handling for buttons with icons where text is inside a span
+            if (togglePharmacyDetailsBtn) {
+                togglePharmacyDetailsBtn.querySelector('span').textContent = pharmacyDetailsContent.classList.contains('hidden') ? translations[lang].togglePharmacyDetailsBtnCollapsed : translations[lang].togglePharmacyDetailsBtnExpanded;
+            }
+            if (darkModeToggleBtn) {
+                updateDarkModeButtonText();
+            }
+            if (languageToggleBtn) {
+                updateLanguageButtonText();
+            }
+
+            // Update dynamic content
+            updateDisplayValues(); // To update status text on receipt
+            displayReceiptLog(); // To update log entries and chart
+            if (!helpModal.classList.contains('hidden')) { // If help modal is open, update its content
+                window.openHelpModal();
+            }
+            // Update ID card palette names
+            for (const key in ID_CARD_PALETTES) {
+                const label = document.querySelector(`label[for="palette-${key}"]`);
+                if (label) {
+                    label.textContent = palette.name[lang]; // Use palette.name[lang]
+                }
+            }
+        }
+
+        // --- عناصر الواجهة (تم نقل تعريفها إلى داخل window.onload) ---
+        // (Declarations moved to window.onload for proper initialization)
 
         // --- الدوال ---
         function updateDateTime() {
@@ -974,7 +1521,7 @@
                 second: '2-digit', 
                 hour12: true 
             };
-            const timeString = now.toLocaleString('en-US', options); // Using en-US for consistent LTR formatting
+            const timeString = now.toLocaleString(currentLanguage === 'ar' ? 'ar-EG' : 'en-US', options); // Use currentLanguage for formatting
             
             if (datetimeElement) datetimeElement.textContent = timeString;
             if (liveClockElement) liveClockElement.textContent = timeString;
@@ -984,13 +1531,13 @@
             if (type === 'sugar') {
                 if (sugarInputContainer) sugarInputContainer.style.display = 'block';
                 if (pressureInputContainer) pressureInputContainer.style.display = 'none';
-                if (receiptTitle) receiptTitle.textContent = 'قياس السكر';
+                if (receiptTitle) receiptTitle.textContent = translations[currentLanguage].sugarMeasurement;
                 if (receiptValueSugar) receiptValueSugar.style.display = 'block';
                 if (receiptValuePressure) receiptValuePressure.style.display = 'none';
             } else if (type === 'pressure') {
                 if (sugarInputContainer) sugarInputContainer.style.display = 'none';
                 if (pressureInputContainer) pressureInputContainer.style.display = 'block';
-                if (receiptTitle) receiptTitle.textContent = 'قياس الضغط';
+                if (receiptTitle) receiptTitle.textContent = translations[currentLanguage].pressureMeasurement;
                 if (receiptValueSugar) receiptValueSugar.style.display = 'none';
                 if (receiptValuePressure) receiptValuePressure.style.display = 'block';
             }
@@ -1022,7 +1569,6 @@
             }
         }
 
-        // This function is no longer triggered by a button, but can be called internally if needed
         function applyStatusToRadios() {
             const type = document.querySelector('input[name="measurement"]:checked').value;
             let value;
@@ -1049,6 +1595,10 @@
             if (status === 'low' && lowRadio) lowRadio.checked = true;
             else if (status === 'normal' && normalRadio) normalRadio.checked = true;
             else if (status === 'high' && highRadio) highRadio.checked = true;
+            else if (status === 'unknown') {
+                // If status is unknown (e.g., empty input), ensure no radio is checked
+                document.querySelectorAll('input[name="status"]').forEach(radio => radio.checked = false);
+            }
 
             updateDisplayValues(); // Call to update receipt after status selection
         }
@@ -1061,7 +1611,7 @@
             
             // Handle notes section content
             if (notesInput.value.trim() === '') {
-                if (notesOutput) notesOutput.textContent = 'لا توجد ملاحظات'; // Set default text
+                if (notesOutput) notesOutput.textContent = translations[currentLanguage].noNotes; // Set default text
             } else {
                 if (notesOutput) notesOutput.textContent = notesInput.value;
             }
@@ -1074,36 +1624,57 @@
             let statusText = '';
             let statusIcon = '';
             const currentMeasurementType = document.querySelector('input[name="measurement"]:checked').value;
-            const measurementLabel = currentMeasurementType === 'sugar' ? 'السكر' : 'الضغط';
+            const measurementLabel = translations[currentLanguage][`${currentMeasurementType}Measurement`];
 
             if (selectedStatusRadio) {
                 const statusValue = selectedStatusRadio.id.replace('status-', ''); // e.g., 'high', 'normal', 'low'
                 if (statusValue === 'high') {
-                    statusText = `حالة قياس ${measurementLabel}: مرتفعة`;
-                    statusIcon = `<svg class="inline-block w-5 h-5 mr-1 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusText = translations[currentLanguage].statusHighFull.replace('{measurementLabel}', measurementLabel);
+                    statusIcon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>`;
                 } else if (statusValue === 'normal') {
-                    statusText = `حالة قياس ${measurementLabel}: طبيعية`;
-                    statusIcon = `<svg class="inline-block w-5 h-5 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    statusText = translations[currentLanguage].statusNormalFull.replace('{measurementLabel}', measurementLabel);
+                    statusIcon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
                 } else if (statusValue === 'low') {
-                    statusText = `حالة قياس ${measurementLabel}: منخفضة`;
-                    statusIcon = `<svg class="inline-block w-5 h-5 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusText = translations[currentLanguage].statusLowFull.replace('{measurementLabel}', measurementLabel);
+                    statusIcon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
                 }
+            } else {
+                statusText = translations[currentLanguage].statusUnknown;
+                statusIcon = '';
             }
             if (displayStatus) displayStatus.innerHTML = statusText + ' ' + statusIcon;
         }
 
-        function clearAllNotes() {
+        window.clearAllNotes = function() {
             notesInput.value = '';
             updateDisplayValues();
         }
 
-        // Function to print content (receipt only, ID card print is disabled)
-        function printContent(contentElementId) { 
+        /**
+         * Prints the content of a specified HTML element.
+         * @param {string} contentElementId - The ID of the element to print.
+         * @param {boolean} isCopy - True if this is a reprint (adds "نسخة" text).
+         */
+        function printContent(contentElementId, isCopy = false) { 
             const contentToPrint = document.getElementById(contentElementId).cloneNode(true);
             
             // Remove any interactive elements or buttons from the cloned content before printing
             const buttons = contentToPrint.querySelectorAll('button, input[type="radio"], input[type="checkbox"]');
             buttons.forEach(button => button.remove());
+
+            // Add "نسخة" text if it's a copy
+            if (isCopy) {
+                const copyTextDiv = contentToPrint.querySelector('#copyText');
+                if (copyTextDiv) {
+                    copyTextDiv.classList.remove('hidden');
+                }
+            } else {
+                // Ensure "نسخة" is hidden for original prints
+                const copyTextDiv = contentToPrint.querySelector('#copyText');
+                if (copyTextDiv) {
+                    copyTextDiv.classList.add('hidden');
+                }
+            }
 
             const printFrame = document.createElement('iframe');
             printFrame.style.display = 'none';
@@ -1113,11 +1684,11 @@
             printDocument.open();
             printDocument.write(`
                 <!DOCTYPE html>
-                <html lang="ar" dir="rtl">
+                <html lang="${currentLanguage}" dir="${currentLanguage === 'ar' ? 'rtl' : 'ltr'}">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>طباعة</title>
+                    <title>${translations[currentLanguage].printReceiptBtn}</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
@@ -1131,6 +1702,19 @@
                         .id-card-content { display: none !important; }
                         /* Ensure print log modal is not printable */
                         #receiptLogModal { display: none !important; }
+                        /* Hide loading screen if it somehow appears in print */
+                        #loading-screen { display: none !important; }
+                        /* Hide app logo placeholder in print */
+                        #appLogoPlaceholder { display: none !important; }
+                        /* Hide chart in print */
+                        #statusPieChart { display: none !important; }
+
+
+                        /* Ensure language specific font and direction for print */
+                        body {
+                            font-family: 'Cairo', sans-serif !important;
+                            direction: ${currentLanguage === 'ar' ? 'rtl' : 'ltr'} !important;
+                        }
                     </style>
                 </head>
                 <body>
@@ -1145,21 +1729,19 @@
             document.body.removeChild(printFrame); // Clean up the iframe
         }
 
-        function printModalReceipt() {
+        window.printModalReceipt = function() {
             // Call saveReceiptToLog before printing the modal content
             saveReceiptToLog();
-            printContent('modalReceiptContent');
+            printContent('modalReceiptContent', false); // Original print, not a copy
         }
 
-        // Removed printSpecificReceipt function as per user request.
-
-        function printIdCard() {
+        window.printIdCard = function() {
             // Show message that ID card cannot be printed
-            window.openMessageModal('غير متاح', 'لا يمكن طباعة بطاقة التعريف مباشرة. يرجى تنزيلها كصورة أولاً.');
+            window.openMessageModal(translations[currentLanguage].idCardPrintUnavailable, translations[currentLanguage].idCardPrintMessage);
         }
 
         // Function to download ID card as image
-        async function downloadIdCardAsImage() {
+        window.downloadIdCardAsImage = async function() {
             const element = document.getElementById('idCardContent');
             if (!element) {
                 console.error(`Element with ID idCardContent not found.`);
@@ -1198,7 +1780,7 @@
                 document.body.removeChild(link);
             } catch (error) {
                 console.error("Error generating ID card image:", error);
-                window.openMessageModal('خطأ', 'حدث خطأ أثناء إنشاء الصورة: ' + error.message);
+                window.openMessageModal(translations[currentLanguage].error, translations[currentLanguage].errorMessage + error.message);
             } finally {
                 document.body.removeChild(tempContainer); // Clean up
             }
@@ -1215,12 +1797,12 @@
             } else if (logoUrlInput.value.trim() !== '') {
                 // Prioritize URL input if provided
                 logoUrlToSave = logoUrlInput.value.trim();
-                logoUploadStatus.textContent = 'تم استخدام رابط الشعار المدخل.';
+                logoUploadStatus.textContent = translations[currentLanguage].logoUrlUsed;
                 logoUploadStatus.className = 'mt-1 text-xs text-blue-600';
             } else if (logoFileInput.files.length > 0) {
                 // Read file as Data URL if no URL input and a file is selected
                 const file = logoFileInput.files[0];
-                logoUploadStatus.innerHTML = '<span class="loading-spinner"></span> جاري معالجة الشعار...';
+                logoUploadStatus.innerHTML = `<span class="loading-spinner"></span> ${translations[currentLanguage].processingLogo}`;
                 logoUploadStatus.className = 'mt-1 text-blue-600';
 
                 try {
@@ -1230,11 +1812,11 @@
                         reader.onerror = (e) => reject(e);
                         reader.readAsDataURL(file);
                     });
-                    logoUploadStatus.textContent = 'تم معالجة الشعار بنجاح!';
+                    logoUploadStatus.textContent = translations[currentLanguage].logoProcessedSuccess;
                     logoUploadStatus.className = 'mt-1 text-green-600';
                 } catch (error) {
                     console.error("Error reading logo file: ", error);
-                    logoUploadStatus.textContent = 'خطأ في معالجة الشعار: ' + error.message;
+                    logoUploadStatus.textContent = translations[currentLanguage].logoProcessingError + error.message;
                     logoUploadStatus.className = 'mt-1 text-red-600';
                     logoUrlToSave = ''; // Clear logo if processing fails
                 }
@@ -1243,29 +1825,34 @@
                 logoUrlToSave = receiptLogo.src.includes('placehold.co') ? '' : receiptLogo.src;
             }
 
+            // Get the currently selected ID card palette from the ID card modal
+            const selectedPalette = document.querySelector('#idCardModal input[name="idCardPalette"]:checked');
+            const paletteId = selectedPalette ? selectedPalette.value : 'blue'; // Default to blue
+
             const pharmacyData = {
                 name: pharmacyNameInput.value || '',
                 slogan: sloganInput.value || '',
                 address: addressInput.value || '',
                 phone: phoneInput.value || '',
-                logoUrl: logoUrlToSave // Save the URL (either from input or Data URL from file)
+                logoUrl: logoUrlToSave, // Save the URL (either from input or Data URL from file)
+                idCardPalette: paletteId // Save the selected palette ID
             };
 
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(pharmacyData));
-                saveStatusMessage.textContent = 'تم حفظ البيانات بنجاح!';
+                saveStatusMessage.textContent = translations[currentLanguage].saveSuccess;
                 saveStatusMessage.className = 'mt-2 text-center text-sm font-semibold text-green-600';
                 
                 // Collapse pharmacy details section after successful save
                 pharmacyDetailsContent.classList.add('hidden');
-                togglePharmacyDetailsBtn.textContent = 'تعديل بيانات الصيدلية';
+                togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnCollapsed;
 
                 // Reload data to update all displays immediately
                 loadPharmacyDetails();
 
             } catch (error) {
                 console.error("Error saving pharmacy details to localStorage: ", error);
-                saveStatusMessage.textContent = 'خطأ في الحفظ: ' + error.message;
+                saveStatusMessage.textContent = translations[currentLanguage].saveError + error.message;
                 saveStatusMessage.className = 'mt-2 text-center text-sm font-semibold text-red-600';
             }
         }
@@ -1292,7 +1879,7 @@
                     removeLogoCheckbox.disabled = false; // Enable the checkbox so user can choose to remove it
                     logoFileInput.disabled = true; // Disable file input if URL is present
                     logoFileInput.value = ''; // Clear file input value
-                    logoUploadStatus.textContent = 'الشعار الحالي من رابط أو ملف محفوظ.';
+                    logoUploadStatus.textContent = translations[currentLanguage].logoCurrent;
                     logoUploadStatus.className = 'mt-1 text-xs text-gray-500';
 
                     receiptLogo.src = data.logoUrl;
@@ -1306,7 +1893,7 @@
                     removeLogoCheckbox.disabled = false; // Enable the checkbox
                     logoFileInput.disabled = false; // Enable file input
                     logoFileInput.value = ''; // Clear file input value
-                    logoUploadStatus.textContent = 'سيتم حفظ الشعار في متصفحك.';
+                    logoUploadStatus.textContent = translations[currentLanguage].logoDefault;
                     logoUploadStatus.className = 'mt-1 text-xs text-gray-500';
 
                     receiptLogo.src = 'https://placehold.co/150x150/d1d5db/9ca3af?text=مساحة+الشعار';
@@ -1323,9 +1910,9 @@
                 
                 // Update welcome message
                 if (data.name) {
-                    welcomeMessageElement.textContent = `مرحباً، ${data.name}`;
+                    welcomeMessageElement.textContent = `${translations[currentLanguage].welcomeMessage}، ${data.name}`;
                 } else {
-                    welcomeMessageElement.textContent = 'مرحباً';
+                    welcomeMessageElement.textContent = translations[currentLanguage].welcomeMessage;
                 }
 
                 // Update ID card display
@@ -1333,54 +1920,107 @@
                 cardSlogan.textContent = data.slogan || '';
                 cardAddress.textContent = data.address || '';
                 cardPhone.textContent = data.phone || '';
+
+                // Apply ID card colors
+                const savedPaletteId = data.idCardPalette || 'blue'; // Default to blue
+                applyIdCardColors(savedPaletteId);
+                const selectedPaletteRadio = document.querySelector(`#idCardModal input[name="idCardPalette"][value="${savedPaletteId}"]`);
+                if (selectedPaletteRadio) {
+                    selectedPaletteRadio.checked = true;
+                }
                 
             } catch (error) {
                 console.error("Error loading pharmacy details from localStorage: ", error);
-                saveStatusMessage.textContent = 'خطأ في تحميل البيانات: ' + error.message;
+                saveStatusMessage.textContent = translations[currentLanguage].loadError + error.message;
                 saveStatusMessage.className = 'mt-2 text-center text-sm font-semibold text-red-600';
             }
         }
 
+        // Apply ID card colors based on selected palette
+        function applyIdCardColors(paletteId) {
+            const palette = ID_CARD_PALETTES[paletteId];
+            if (!palette) return;
+
+            const root = document.documentElement;
+            const isDarkMode = document.body.classList.contains('dark-mode');
+
+            // Apply to the ID card itself
+            const idCardElement = document.getElementById('idCardContent');
+            if (idCardElement) {
+                if (isDarkMode) {
+                    idCardElement.style.background = `linear-gradient(135deg, ${palette.dark.bgLight}, ${palette.dark.bgDark})`;
+                    idCardElement.style.setProperty('--bubble-color', palette.dark.bubble); // Use --bubble-color for both modes, set based on current mode
+                } else {
+                    idCardElement.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
+                    idCardElement.style.setProperty('--bubble-color', palette.light.bubble);
+                }
+            }
+        }
+
+
         // --- Modal Functions ---
-        function openPreviewModal() {
+        function openModal(modalElement) {
+            modalElement.classList.remove('hidden');
+            // Force reflow to ensure transition plays
+            void modalElement.offsetWidth; 
+            modalElement.classList.add('visible');
+        }
+
+        function closeModal(modalElement) {
+            modalElement.classList.remove('visible');
+            modalElement.addEventListener('transitionend', function handler() {
+                modalElement.classList.add('hidden');
+                modalElement.removeEventListener('transitionend', handler);
+            });
+        }
+
+        window.openPreviewModal = function() {
             updateDisplayValues(); // Ensure latest values are in receipt
             updateDateTime(); // Update date/time for preview
             // Clone the receipt content and append to modal
             const receiptToClone = document.getElementById('receipt').cloneNode(true);
             receiptToClone.classList.remove('hidden'); // Make it visible in the modal
+            // Ensure "نسخة" text is hidden in the preview modal
+            const copyTextInPreview = receiptToClone.querySelector('#copyText');
+            if (copyTextInPreview) {
+                copyTextInPreview.classList.add('hidden');
+            }
             modalReceiptContent.innerHTML = ''; // Clear previous content
             modalReceiptContent.appendChild(receiptToClone);
-            previewModal.classList.remove('hidden');
+            openModal(previewModal);
         }
 
-        function closePreviewModal() {
-            previewModal.classList.add('hidden');
+        window.closePreviewModal = function() {
+            closeModal(previewModal);
             modalReceiptContent.innerHTML = ''; // Clear content when closing
         }
 
-        function openIdCardModal() {
+        window.openIdCardModal = function() {
             updateDateTime(); // Update clock on ID card
-            idCardModal.classList.remove('hidden');
+            openModal(idCardModal);
+            // Ensure ID card colors are applied when opening the modal
+            const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            const data = storedData ? JSON.parse(storedData) : {};
+            const savedPaletteId = data.idCardPalette || 'blue'; // Default to blue
+            applyIdCardColors(savedPaletteId);
+            const selectedPaletteRadio = document.querySelector(`#idCardModal input[name="idCardPalette"][value="${savedPaletteId}"]`);
+            if (selectedPaletteRadio) {
+                selectedPaletteRadio.checked = true;
+            }
         }
 
-        function closeIdCardModal() {
-            idCardModal.classList.add('hidden');
+        window.closeIdCardModal = function() {
+            closeModal(idCardModal);
         }
 
-        function openHelpModal() {
+        window.openHelpModal = function() {
             // Set text content for help
-            helpTextPlaceholder.textContent = `
-                تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة.
-                عند الطباعة، تأكد من ملائمة المحتوى للصفحة (مقاس الورق 72 مم).
-                في حالة عدم حدوث ذلك، يرجى تعديلها يدويًا من إعدادات الطباعة في المتصفح (مثل "المزيد من الإعدادات" ثم "رسومات الخلفية" و "مقاس الورق").
-                للحصول على أفضل نتيجة، يفضل استخدام طابعات الإيصالات الحرارية.
-                تأكد من تفعيل خيار "رسومات الخلفية" أو "طباعة ألوان وخلفيات الخلفية" في إعدادات الطباعة الخاصة بمتصفحك لضمان ظهور الألوان والخطوط الفاصلة.
-            `;
+            helpTextPlaceholder.innerHTML = translations[currentLanguage].helpContent;
             // Hide the image
             if (helpImagePlaceholder) {
                 helpImagePlaceholder.style.display = 'none';
             }
-            helpModal.classList.remove('hidden');
+            openModal(helpModal);
             
             // Adjust text color based on dark mode status
             const isDarkMode = document.body.classList.contains('dark-mode');
@@ -1391,8 +2031,8 @@
             }
         }
 
-        function closeHelpModal() {
-            helpModal.classList.add('hidden');
+        window.closeHelpModal = function() {
+            closeModal(helpModal);
         }
 
         // Generic Message Modal Functions
@@ -1402,81 +2042,43 @@
             
             const confirmButton = document.createElement('button');
             confirmButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg';
-            confirmButton.textContent = 'حسناً';
+            confirmButton.textContent = translations[currentLanguage].okBtn;
             confirmButton.onclick = () => {
-                closeMessageModal();
+                window.closeMessageModal();
                 if (onConfirmCallback) {
                     onConfirmCallback();
                 }
             };
 
-            const modalPrintButtonContainer = messageModal.querySelector('.text-center'); // Changed to target the div directly
-            if (modalPrintButtonContainer) {
-                modalPrintButtonContainer.innerHTML = ''; // Clear previous buttons
-                modalPrintButtonContainer.appendChild(confirmButton);
+            const modalButtonContainer = messageModal.querySelector('.text-center'); // Target the div directly
+            if (modalButtonContainer) {
+                modalButtonContainer.innerHTML = ''; // Clear previous buttons
+                modalButtonContainer.appendChild(confirmButton);
 
                 if (isConfirm) {
                     const cancelButton = document.createElement('button');
-                    cancelButton.className = 'bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg mr-2';
-                    cancelButton.textContent = 'إلغاء';
-                    cancelButton.onclick = closeMessageModal;
-                    modalPrintButtonContainer.insertBefore(cancelButton, confirmButton);
+                    cancelButton.className = 'bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg ml-2'; // Added ml-2 for spacing
+                    cancelButton.textContent = translations[currentLanguage].cancelBtn;
+                    cancelButton.onclick = window.closeMessageModal;
+                    modalButtonContainer.insertBefore(cancelButton, confirmButton);
                 }
             }
             
-            messageModal.classList.remove('hidden');
+            openModal(messageModal);
         };
 
-        function closeMessageModal() {
-            messageModal.classList.add('hidden');
+        window.closeMessageModal = function() {
+            closeModal(messageModal);
         }
 
         // Dark Mode Toggle Function
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
+        function updateDarkModeButtonText() {
+            if (!darkModeToggleBtn) return;
             const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode); // Save preference
-
-            // Update button text and icon
-            if (darkModeToggleBtn) {
-                darkModeToggleBtn.innerHTML = ''; // Clear existing content
-                const spanText = document.createElement('span');
-                const svgIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                svgIcon.setAttribute('class', 'h-5 w-5 inline-block mr-2'); // Tailwind classes for size and margin
-                svgIcon.setAttribute('fill', 'none');
-                svgIcon.setAttribute('viewBox', '0 0 24 24');
-                svgIcon.setAttribute('stroke', 'currentColor');
-                svgIcon.setAttribute('stroke-width', '2');
-
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute('stroke-linecap', 'round');
-                path.setAttribute('stroke-linejoin', 'round');
-
-                if (isDarkMode) {
-                    spanText.textContent = 'الوضع الفاتح';
-                    path.setAttribute('d', 'M12 3v1m0 16v1m9-9h1M3 12H2m15.325-7.757l-.707-.707M6.343 17.657l-.707-.707M16.95 16.95l.707.707M7.05 7.05l-.707-.707M8 12a4 4 0 118 0 4 4 0 01-8 0z'); // Sun icon path
-                } else {
-                    spanText.textContent = 'الوضع الليلي';
-                    path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z'); // Moon icon path
-                }
-                svgIcon.appendChild(path);
-                darkModeToggleBtn.appendChild(svgIcon); // Append icon first (for RTL, icon on right)
-                darkModeToggleBtn.appendChild(spanText);
-            }
-            // Update help modal text color after toggling dark mode
-            if (!helpModal.classList.contains('hidden')) { // Only update if modal is open
-                openHelpModal(); // Re-call to apply correct text color
-            }
-        }
-
-        // View Mode Toggle Functions
-        function updateViewModeButtonText() {
-            if (!viewModeToggleBtn) return;
-            const isDesktopMode = document.body.classList.contains('desktop-mode');
-            viewModeToggleBtn.innerHTML = ''; // Clear existing content
+            darkModeToggleBtn.innerHTML = ''; // Clear existing content
             const spanText = document.createElement('span');
             const svgIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svgIcon.setAttribute('class', 'h-5 w-5 inline-block mr-2');
+            svgIcon.setAttribute('class', 'h-5 w-5 inline-block ml-2'); // Tailwind classes for size and margin
             svgIcon.setAttribute('fill', 'none');
             svgIcon.setAttribute('viewBox', '0 0 24 24');
             svgIcon.setAttribute('stroke', 'currentColor');
@@ -1486,28 +2088,63 @@
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
 
-            if (isDesktopMode) {
-                spanText.textContent = 'وضع الهاتف';
-                path.setAttribute('d', 'M10 18a8 8 0 100-16 8 8 0 000 16zm1.5-12.5a.5.5 0 00-1 0v5a.5.5 0 001 0V5.5zM12 2a10 10 0 100 20 10 10 0 000-20z'); // Mobile icon (simplified)
+            if (isDarkMode) {
+                spanText.textContent = translations[currentLanguage].lightMode;
+                path.setAttribute('d', 'M12 3v1m0 16v1m9-9h1M3 12H2m15.325-7.757l-.707-.707M6.343 17.657l-.707-.707M16.95 16.95l.707.707M7.05 7.05l-.707-.707M8 12a4 4 0 118 0 4 4 0 01-8 0z'); // Sun icon path
             } else {
-                spanText.textContent = 'وضع سطح المكتب';
-                path.setAttribute('d', 'M9.75 17L9 20l-1.5-1.5M15.75 17L16.5 20l1.5-1.5M12 18.75V21M12 3v.375M4.5 5.625h15M4.5 9h15m-12.75-1.5h.008v.008H6.75V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM7.5 7.5h.008v.008H7.5V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM10.5 7.5h.008v.008h-.008V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM13.5 7.5h.008v.008h-.008V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM16.5 7.5h.008v.008h-.008V7.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM12 10.5h.008v.008H12V10.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM12 13.5h.008v.008H12V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM12 16.5h.008v.008H12V16.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM4.5 13.5h.008v.008H4.5V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM19.5 13.5h.008v.008H19.5V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM4.5 16.5h.008v.008H4.5V16.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM19.5 16.5h.008v.008H19.5V16.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM12 19.5h.008v.008H12V19.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'); // Desktop icon (simplified)
+                spanText.textContent = translations[currentLanguage].darkMode;
+                path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z'); // Moon icon path
             }
             svgIcon.appendChild(path);
-            viewModeToggleBtn.appendChild(svgIcon);
-            viewModeToggleBtn.appendChild(spanText);
+            darkModeToggleBtn.appendChild(svgIcon); // Append icon first (for RTL, icon on right)
+            darkModeToggleBtn.appendChild(spanText);
         }
 
-        function toggleViewMode() {
-            const isDesktopMode = document.body.classList.contains('desktop-mode');
-            if (isDesktopMode) {
-                document.body.classList.remove('desktop-mode');
-                localStorage.setItem('viewMode', 'mobile');
-            } else {
-                document.body.classList.add('desktop-mode');
-                localStorage.setItem('viewMode', 'desktop');
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode); // Save preference
+
+            updateDarkModeButtonText();
+            // Update help modal text color after toggling dark mode
+            if (!helpModal.classList.contains('hidden')) { // Only update if modal is open
+                window.openHelpModal(); // Re-call to apply correct text color
             }
-            updateViewModeButtonText();
+            // Reapply ID card colors based on new dark mode state
+            const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            const data = storedData ? JSON.parse(storedData) : {};
+            const savedPaletteId = data.idCardPalette || 'blue';
+            applyIdCardColors(savedPaletteId);
+            // Re-render chart to update colors
+            displayReceiptLog();
+        }
+
+        // Language Toggle Function
+        function updateLanguageButtonText() {
+            if (!languageToggleBtn) return;
+            languageToggleBtn.innerHTML = ''; // Clear existing content
+            const spanText = document.createElement('span');
+            const svgIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svgIcon.setAttribute('class', 'h-5 w-5 inline-block ml-2');
+            svgIcon.setAttribute('fill', 'none');
+            svgIcon.setAttribute('viewBox', '0 0 24 24');
+            svgIcon.setAttribute('stroke', 'currentColor');
+            svgIcon.setAttribute('stroke-width', '2');
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+
+            if (currentLanguage === 'ar') {
+                spanText.textContent = 'English';
+                path.setAttribute('d', 'M3 5h12M3 9h12m-9 4h9m-9 4h9m5-10v.01M16 16v.01M19 12v.01M16 8v.01M16 20v.01M19 8v.01M19 16v.01M16 4v.01M19 4v.01M19 20v.01M12 2a10 10 0 100 20 10 10 0 000-20z'); // Globe icon
+            } else {
+                spanText.textContent = 'العربية';
+                path.setAttribute('d', 'M3 5h12M3 9h12m-9 4h9m-9 4h9m5-10v.01M16 16v.01M19 12v.01M16 8v.01M16 20v.01M19 8v.01M19 16v.01M16 4v.01M19 4v.01M19 20v.01M12 2a10 10 0 100 20 10 10 0 000-20z'); // Globe icon
+            }
+            svgIcon.appendChild(path);
+            languageToggleBtn.appendChild(svgIcon);
+            languageToggleBtn.appendChild(spanText);
         }
 
         // --- Receipt Log Functions ---
@@ -1526,7 +2163,7 @@
                 localStorage.setItem(RECEIPT_LOG_KEY, JSON.stringify(log));
             } catch (error) {
                 console.error("Error saving receipt log to localStorage:", error);
-                window.openMessageModal('خطأ في الحفظ', 'حدث خطأ أثناء حفظ سجل الإيصالات.');
+                window.openMessageModal(translations[currentLanguage].error, translations[currentLanguage].saveError);
             }
         }
 
@@ -1554,20 +2191,27 @@
             }
 
             const selectedStatusRadio = document.querySelector('input[name="status"]:checked');
-            let statusData = { text: '', icon: '' };
+            let statusData = { text: '', icon: '', shortText: '' }; // Added shortText
             if (selectedStatusRadio) {
                 const statusValue = selectedStatusRadio.id.replace('status-', '');
-                const measurementLabel = measurementType === 'sugar' ? 'السكر' : 'الضغط';
+                const measurementLabel = translations[currentLanguage][`${measurementType}Measurement`];
                 if (statusValue === 'high') {
-                    statusData.text = `حالة قياس ${measurementLabel}: مرتفعة`;
-                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusData.text = translations[currentLanguage].statusHighFull.replace('{measurementLabel}', measurementLabel);
+                    statusData.icon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-red-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusData.shortText = translations[currentLanguage].statusHighShort;
                 } else if (statusValue === 'normal') {
-                    statusData.text = `حالة قياس ${measurementLabel}: طبيعية`;
-                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    statusData.text = translations[currentLanguage].statusNormalFull.replace('{measurementLabel}', measurementLabel);
+                    statusData.icon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    statusData.shortText = translations[currentLanguage].statusNormalShort;
                 } else if (statusValue === 'low') {
-                    statusData.text = `حالة قياس ${measurementLabel}: منخفضة`;
-                    statusData.icon = `<svg class="inline-block w-5 h-5 mr-1 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusData.text = translations[currentLanguage].statusLowFull.replace('{measurementLabel}', measurementLabel);
+                    statusData.icon = `<svg class="inline-block w-5 h-5 ${currentLanguage === 'ar' ? 'mr-1' : 'ml-1'} text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
+                    statusData.shortText = translations[currentLanguage].statusLowShort;
                 }
+            } else {
+                statusData.text = translations[currentLanguage].statusUnknown;
+                statusData.icon = '';
+                statusData.shortText = translations[currentLanguage].statusUnknownShort;
             }
 
             const newReceipt = {
@@ -1583,6 +2227,124 @@
             saveReceiptLog(currentLog);
         }
 
+        window.reprintReceipt = function(id) {
+            const log = loadReceiptLog();
+            const receiptToReprint = log.find(receipt => receipt.id === id);
+
+            if (!receiptToReprint) {
+                window.openMessageModal(translations[currentLanguage].error, translations[currentLanguage].reprintError);
+                return;
+            }
+
+            // Temporarily populate the main receipt elements with the data from the log
+            // This is a workaround to use the existing printContent function
+            const originalPharmacyName = pharmacyNameInput.value;
+            const originalSlogan = sloganInput.value;
+            const originalAddress = addressInput.value;
+            const originalPhone = phoneInput.value;
+            const originalLogoSrc = receiptLogo.src;
+            const originalSugarValue = sugarValueInput.value;
+            const originalPressureHigh = pressureValueHighInput.value;
+            const originalPressureLow = pressureValueLowInput.value;
+            const originalNotes = notesInput.value;
+            const originalMeasurementType = document.querySelector('input[name="measurement"]:checked').value;
+            const originalStatus = document.querySelector('input[name="status"]:checked') ? document.querySelector('input[name="status"]:checked').id : '';
+
+            pharmacyNameInput.value = receiptToReprint.pharmacy.name;
+            sloganInput.value = receiptToReprint.pharmacy.slogan;
+            addressInput.value = receiptToReprint.pharmacy.address;
+            phoneInput.value = receiptToReprint.pharmacy.phone;
+            receiptLogo.src = receiptToReprint.pharmacy.logoUrl || 'https://placehold.co/150x150/d1d5db/9ca3af?text=مساحة+الشعار';
+            
+            if (receiptToReprint.measurement.type === 'sugar') {
+                document.getElementById('sugar').checked = true;
+                sugarValueInput.value = receiptToReprint.measurement.sugarValue;
+                pressureValueHighInput.value = '';
+                pressureValueLowInput.value = '';
+            } else {
+                document.getElementById('pressure').checked = true;
+                pressureValueHighInput.value = receiptToReprint.measurement.pressureHigh;
+                pressureValueLowInput.value = receiptToReprint.measurement.pressureLow;
+                sugarValueInput.value = '';
+            }
+            notesInput.value = receiptToReprint.notes;
+
+            // Set the status radio button
+            const statusId = receiptToReprint.status.text.includes('مرتفعة') || receiptToReprint.status.text.includes('High') ? 'status-high' :
+                             receiptToReprint.status.text.includes('طبيعية') || receiptToReprint.status.text.includes('Normal') ? 'status-normal' :
+                             receiptToReprint.status.text.includes('منخفضة') || receiptToReprint.status.text.includes('Low') ? 'status-low' : '';
+            if (statusId) {
+                const radio = document.getElementById(statusId);
+                if (radio) radio.checked = true;
+            } else {
+                document.querySelectorAll('input[name="status"]').forEach(radio => radio.checked = false);
+            }
+
+            toggleMeasurementView(receiptToReprint.measurement.type); // Update UI based on measurement type
+            updateDisplayValues(); // Update receipt content
+
+            // Now print the receipt as a copy
+            printContent('receipt', true);
+
+            // Restore original values after printing
+            pharmacyNameInput.value = originalPharmacyName;
+            sloganInput.value = originalSlogan;
+            addressInput.value = originalAddress;
+            phoneInput.value = originalPhone;
+            receiptLogo.src = originalLogoSrc;
+            sugarValueInput.value = originalSugarValue;
+            pressureValueHighInput.value = originalPressureHigh;
+            pressureValueLowInput.value = originalPressureLow;
+            notesInput.value = originalNotes;
+            document.getElementById(originalMeasurementType).checked = true;
+            if (originalStatus) {
+                const radio = document.getElementById(originalStatus);
+                if (radio) radio.checked = true;
+            } else {
+                document.querySelectorAll('input[name="status"]').forEach(radio => radio.checked = false);
+            }
+            toggleMeasurementView(originalMeasurementType); // Restore original UI state
+            updateDisplayValues(); // Restore original receipt content
+        }
+
+        window.deleteReceiptFromLog = function(id) {
+            window.openMessageModal(translations[currentLanguage].confirmClearLogTitle, translations[currentLanguage].confirmClearLogMessage, true, () => {
+                let currentLog = loadReceiptLog();
+                const initialLength = currentLog.length;
+                currentLog = currentLog.filter(receipt => receipt.id !== id);
+                if (currentLog.length < initialLength) {
+                    saveReceiptLog(currentLog);
+                    displayReceiptLog(); // Refresh without search query
+                    window.openMessageModal(translations[currentLanguage].deleteSuccess, translations[currentLanguage].deleteSuccessMessage);
+                } else {
+                    window.openMessageModal(translations[currentLanguage].error, translations[currentLanguage].error);
+                }
+            });
+        }
+
+        window.clearAllReceipts = function() {
+            // Replaced confirm with custom modal
+            window.openMessageModal(translations[currentLanguage].confirmClearLogTitle, translations[currentLanguage].confirmClearLogMessage, true, () => {
+                localStorage.removeItem(RECEIPT_LOG_KEY);
+                displayReceiptLog(); // Clear and display empty log
+                window.openMessageModal(translations[currentLanguage].clearSuccess, translations[currentLanguage].clearSuccessMessage);
+            });
+        }
+
+        window.openReceiptLogModal = function() {
+            openModal(receiptLogModal);
+            displayReceiptLog(); // Load and display all receipts initially
+            renderStatusPieChart(); // Render the chart when opening the log modal
+        }
+
+        window.closeReceiptLogModal = function() {
+            closeModal(receiptLogModal);
+            if (statusPieChartInstance) {
+                statusPieChartInstance.destroy(); // Destroy chart instance when closing modal
+                statusPieChartInstance = null;
+            }
+        }
+
         function displayReceiptLog() { // Removed filterQuery parameter
             const log = loadReceiptLog();
             receiptLogList.innerHTML = ''; // Clear current list
@@ -1591,75 +2353,172 @@
             const sortedLog = [...log].sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Sort by timestamp descending
 
             if (sortedLog.length === 0) {
-                receiptLogList.innerHTML = '<p class="text-center text-gray-600 dark:text-gray-400">لا توجد إيصالات مطبوعة.</p>';
+                receiptLogList.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">${translations[currentLanguage].noReceipts}</p>`;
                 return;
             }
 
             sortedLog.forEach(receipt => {
                 const receiptItem = document.createElement('div');
-                receiptItem.className = 'receipt-log-item bg-gray-100 p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4';
+                // Apply white background for log items in dark mode
+                const itemBgClass = document.body.classList.contains('dark-mode') ? 'bg-white text-gray-800' : 'bg-gray-100';
+                const itemTextColorClass = document.body.classList.contains('dark-mode') ? 'text-gray-800' : 'text-gray-700';
+
+                receiptItem.className = `receipt-log-item ${itemBgClass} p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4`;
                 receiptItem.innerHTML = `
                     <div class="flex-grow text-right">
-                        <p class="font-bold text-lg">${receipt.pharmacy.name || 'صيدلية غير معروفة'}</p>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                            ${new Date(receipt.timestamp).toLocaleString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
+                        <p class="font-bold text-lg">${receipt.pharmacy.name || translations[currentLanguage].unknownPharmacy}</p>
+                        <p class="text-sm ${itemTextColorClass}">
+                            ${new Date(receipt.timestamp).toLocaleString(currentLanguage === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                         </p>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                            القياس: ${receipt.measurement.type === 'sugar' ? `سكر ${receipt.measurement.sugarValue} mg/dL` : `ضغط ${receipt.measurement.pressureHigh}/${receipt.measurement.pressureLow} mmHg`}
+                        <p class="text-sm ${itemTextColorClass}">
+                            ${translations[currentLanguage].measurement}: ${receipt.measurement.type === 'sugar' ? `${translations[currentLanguage].sugarOption} ${receipt.measurement.sugarValue} mg/dL` : `${translations[currentLanguage].pressureOption} ${receipt.measurement.pressureHigh}/${receipt.measurement.pressureLow} mmHg`}
                         </p>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                            الحالة: ${receipt.status.text.replace(`حالة قياس ${receipt.measurement.type === 'sugar' ? 'السكر' : 'الضغط'}: `, '')}
+                        <p class="text-sm ${itemTextColorClass}">
+                            ${translations[currentLanguage].status}: ${receipt.status.shortText || translations[currentLanguage].statusUnknownShort}
                         </p>
-                        <p class="text-sm text-gray-700 dark:text-gray-300">
-                            ملاحظات: ${receipt.notes || 'لا توجد ملاحظات'}
+                        <p class="text-sm ${itemTextColorClass}">
+                            ${receipt.notes ? `${translations[currentLanguage].notes}: ${receipt.notes}` : translations[currentLanguage].noNotes}
                         </p>
                     </div>
                     <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-3 md:mt-0">
-                        <!-- تم إزالة زر الطباعة الفردي -->
-                        <button onclick="deleteReceiptFromLog(${receipt.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm">حذف</button>
+                        <button onclick="window.reprintReceipt(${receipt.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            <span>${translations[currentLanguage].reprintBtn}</span>
+                        </button>
+                        <button onclick="window.deleteReceiptFromLog(${receipt.id})" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>${translations[currentLanguage].deleteBtn}</span>
+                        </button>
                     </div>
                 `;
                 receiptLogList.appendChild(receiptItem);
             });
         }
 
-        function deleteReceiptFromLog(id) {
-            let currentLog = loadReceiptLog();
-            const initialLength = currentLog.length;
-            currentLog = currentLog.filter(receipt => receipt.id !== id);
-            if (currentLog.length < initialLength) {
-                saveReceiptLog(currentLog);
-                displayReceiptLog(); // Refresh without search query
-                window.openMessageModal('تم الحذف', 'تم حذف الإيصال بنجاح.');
-            } else {
-                window.openMessageModal('خطأ', 'لم يتم العثور على الإيصال للحذف.');
-            }
-        }
+        function renderStatusPieChart() {
+            const log = loadReceiptLog();
+            const statusCounts = {
+                high: 0,
+                normal: 0,
+                low: 0,
+                unknown: 0
+            };
 
-        function clearAllReceipts() {
-            // Replaced confirm with custom modal
-            window.openMessageModal('تأكيد المسح', 'هل أنت متأكد أنك تريد حذف جميع الإيصالات من السجل؟ لا يمكن التراجع عن هذا الإجراء.', true, () => {
-                localStorage.removeItem(RECEIPT_LOG_KEY);
-                displayReceiptLog(); // Clear and display empty log
-                window.openMessageModal('تم المسح', 'تم مسح سجل الإيصالات بالكامل.');
+            log.forEach(receipt => {
+                const status = receipt.status.shortText;
+                if (status === translations.ar.statusHighShort || status === translations.en.statusHighShort) {
+                    statusCounts.high++;
+                } else if (status === translations.ar.statusNormalShort || status === translations.en.statusNormalShort) {
+                    statusCounts.normal++;
+                } else if (status === translations.ar.statusLowShort || status === translations.en.statusLowShort) {
+                    statusCounts.low++;
+                } else {
+                    statusCounts.unknown++;
+                }
+            });
+
+            const data = {
+                labels: [
+                    translations[currentLanguage].statusHighShort,
+                    translations[currentLanguage].statusNormalShort,
+                    translations[currentLanguage].statusLowShort,
+                    translations[currentLanguage].statusUnknownShort
+                ],
+                datasets: [{
+                    data: [statusCounts.high, statusCounts.normal, statusCounts.low, statusCounts.unknown],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',   // Red for High
+                        'rgba(34, 197, 94, 0.8)',   // Green for Normal
+                        'rgba(59, 130, 246, 0.8)',  // Blue for Low
+                        'rgba(156, 163, 175, 0.8)'  // Gray for Unknown
+                    ],
+                    borderColor: [
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(156, 163, 175, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333', // Adjust legend color for dark mode
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: translations[currentLanguage].receiptLogModalTitle, // Use translated title
+                        color: document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333', // Adjust title color for dark mode
+                    }
+                }
+            };
+
+            if (statusPieChartInstance) {
+                statusPieChartInstance.destroy(); // Destroy existing chart instance
+            }
+
+            statusPieChartInstance = new Chart(statusPieChartCanvas, {
+                type: 'pie',
+                data: data,
+                options: options
             });
         }
 
-        function openReceiptLogModal() {
-            receiptLogModal.classList.remove('hidden');
-            displayReceiptLog(); // Load and display all receipts initially
-            // Removed logSearchInput.value = '';
+
+        // --- Loading Screen Logic ---
+        function startLoadingAnimation() {
+            let progress = 0;
+            const duration = 2000; // 2 seconds
+            const interval = 50; // Update every 50ms
+            const steps = duration / interval;
+            const increment = 100 / steps;
+
+            const loadingInterval = setInterval(() => {
+                progress += increment;
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    hideLoadingScreen();
+                }
+            }, interval);
         }
 
-        function closeReceiptLogModal() {
-            receiptLogModal.classList.add('hidden');
+        function hideLoadingScreen() {
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                // Allow overflow after loading screen is gone
+                document.body.style.overflow = 'auto';
+            }
+            if (document.getElementById('main-content')) {
+                document.getElementById('main-content').style.display = 'flex'; // Show main content
+            }
         }
 
         // --- التهيئة الأولية ---
         window.onload = async function() {
             console.log("Window loaded, starting app initialization.");
 
-            // Assign all elements here to ensure they are found after DOM is ready
+            // Assign loading screen elements first
+            loadingScreen = document.getElementById('loading-screen');
+            progressBar = document.getElementById('progress-bar');
+            
+            // Start loading animation immediately
+            startLoadingAnimation();
+
+            // Assign all other elements after loading screen starts
             measurementTypeRadios = document.querySelectorAll('input[name="measurement"]');
             sugarInputContainer = document.getElementById('sugar-input-container');
             pressureInputContainer = document.getElementById('pressure-input-container');
@@ -1670,6 +2529,7 @@
             notesOutput = document.getElementById('notes-output');
             notesSection = document.getElementById('notes-section'); // Get notes section
             liveClockElement = document.getElementById('live-clock');
+            copyTextElement = document.getElementById('copyText'); // Get the copy text element
             
             receiptTitle = document.getElementById('receipt-title');
             receiptValueSugar = document.getElementById('receipt-value-sugar');
@@ -1692,6 +2552,8 @@
             saveStatusMessage = document.getElementById('saveStatusMessage');
             pharmacyDetailsContent = document.getElementById('pharmacyDetailsContent');
             togglePharmacyDetailsBtn = document.getElementById('togglePharmacyDetailsBtn');
+            // idCardColorOptions is now inside idCardModal
+            idCardColorOptions = document.getElementById('idCardColorOptions'); 
 
             receiptPharmacyName = document.getElementById('receiptPharmacyName');
             receiptSlogan = document.getElementById('receiptSlogan');
@@ -1719,22 +2581,24 @@
 
             welcomeMessageElement = document.getElementById('welcomeMessage');
             welcomeLogo = document.getElementById('welcomeLogo');
+            appLogoPlaceholder = document.getElementById('appLogoPlaceholder'); // Assign app logo placeholder
 
             messageModal = document.getElementById('messageModal');
             messageModalTitle = document.getElementById('messageModalTitle');
             messageModalText = document.getElementById('messageModalText');
 
-            darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); // Get the new dark mode toggle button
-            viewModeToggleBtn = document.getElementById('viewModeToggleBtn'); // Get the new view mode toggle button
+            darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); 
+            languageToggleBtn = document.getElementById('languageToggleBtn');
             
-            showPrintLogBtn = document.getElementById('showPrintLogBtn'); // Get new print log button
-            receiptLogModal = document.getElementById('receiptLogModal'); // Get new print log modal
-            receiptLogList = document.getElementById('receiptLogList'); // Get new print log list container
-            // logSearchInput = document.getElementById('logSearchInput'); // Removed
-            clearLogBtn = document.getElementById('clearLogBtn'); // Get new clear log button
+            showPrintLogBtn = document.getElementById('showPrintLogBtn'); 
+            receiptLogModal = document.getElementById('receiptLogModal'); 
+            receiptLogList = document.getElementById('receiptLogList'); 
+            clearLogBtn = document.getElementById('clearLogBtn'); 
+            statusPieChartCanvas = document.getElementById('statusPieChart'); // Assign chart canvas
+            
             // Ensure the generic modal's button container exists for `openMessageModal`
-            const modalPrintButtonContainer = document.querySelector('#messageModal .text-center'); // Target the div
-            if (!modalPrintButtonContainer) {
+            const modalButtonContainer = messageModal.querySelector('.text-center');
+            if (!modalButtonContainer) {
                 const newContainer = document.createElement('div');
                 newContainer.className = 'text-center mt-4 flex justify-center space-x-4';
                 messageModal.querySelector('.modal-content').appendChild(newContainer);
@@ -1742,6 +2606,51 @@
 
 
             console.log("All DOM elements assigned.");
+
+            // Set initial language based on localStorage or default
+            const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
+            if (savedLanguage) {
+                setLanguage(savedLanguage);
+            } else {
+                setLanguage('ar'); // Default to Arabic
+            }
+
+            // Populate ID card color options (now inside idCardModal)
+            for (const key in ID_CARD_PALETTES) {
+                const palette = ID_CARD_PALETTES[key];
+                const radioContainer = document.createElement('div');
+                radioContainer.className = 'flex items-center space-x-2';
+                const radioInput = document.createElement('input');
+                radioInput.type = 'radio';
+                radioInput.id = `palette-${key}`;
+                radioInput.name = 'idCardPalette';
+                radioInput.value = key;
+                radioInput.className = 'form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out';
+                radioInput.addEventListener('change', () => {
+                    applyIdCardColors(key);
+                    // Also save the selected palette when it changes
+                    const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    let data = storedData ? JSON.parse(storedData) : {};
+                    data.idCardPalette = key;
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+                });
+
+                const radioLabel = document.createElement('label');
+                radioLabel.htmlFor = `palette-${key}`;
+                radioLabel.className = 'ml-2 text-gray-700 cursor-pointer';
+                radioLabel.textContent = palette.name[currentLanguage]; // Set initial label text based on current language
+
+                // Add a small color swatch
+                const colorSwatch = document.createElement('div');
+                colorSwatch.className = 'w-6 h-6 rounded-full border border-gray-300 shadow-sm';
+                colorSwatch.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
+                colorSwatch.title = palette.name[currentLanguage];
+
+                radioContainer.appendChild(radioInput);
+                radioContainer.appendChild(colorSwatch);
+                radioContainer.appendChild(radioLabel);
+                idCardColorOptions.appendChild(radioContainer);
+            }
 
 
             // Load dark mode preference from localStorage
@@ -1751,19 +2660,10 @@
             }
             // Call toggleDarkMode once to set initial button state (text and icon)
             if (darkModeToggleBtn) { // Ensure button exists before calling
-                toggleDarkMode();
+                updateDarkModeButtonText(); // Use new function for button text/icon
             }
-
-            // Load view mode preference from localStorage
-            const savedViewMode = localStorage.getItem('viewMode');
-            if (savedViewMode === 'mobile') {
-                document.body.classList.remove('desktop-mode');
-            } else { // Default to desktop if not explicitly mobile or no preference saved
-                document.body.classList.add('desktop-mode');
-            }
-            // Update button text and icon based on loaded mode
-            if (viewModeToggleBtn) {
-                updateViewModeButtonText();
+            if (languageToggleBtn) {
+                updateLanguageButtonText();
             }
 
             // Load pharmacy details (now from localStorage)
@@ -1787,9 +2687,10 @@
                 });
             }
 
-            if (sugarValueInput) sugarValueInput.addEventListener('input', () => { console.log("Sugar value input changed."); updateDisplayValues(); });
-            if (pressureValueHighInput) pressureValueHighInput.addEventListener('input', () => { console.log("Pressure high input changed."); updateDisplayValues(); });
-            if (pressureValueLowInput) pressureValueLowInput.addEventListener('input', () => { console.log("Pressure low input changed."); updateDisplayValues(); });
+            // Automatically apply status on input change for sugar and pressure
+            if (sugarValueInput) sugarValueInput.addEventListener('input', () => { console.log("Sugar value input changed."); applyStatusToRadios(); });
+            if (pressureValueHighInput) pressureValueHighInput.addEventListener('input', () => { console.log("Pressure high input changed."); applyStatusToRadios(); });
+            if (pressureValueLowInput) pressureValueLowInput.addEventListener('input', () => { console.log("Pressure low input changed."); applyStatusToRadios(); });
             if (notesInput) notesInput.addEventListener('input', () => { console.log("Notes input changed."); updateDisplayValues(); });
             
             // New event listener for logo URL input
@@ -1799,11 +2700,11 @@
                     if (logoUrlInput.value.trim() !== '') {
                         removeLogoCheckbox.checked = false;
                         logoFileInput.disabled = true; // Disable file input if URL is provided
-                        logoUploadStatus.textContent = 'تم استخدام رابط الشعار المدخل.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoUrlUsed;
                         logoUploadStatus.className = 'mt-1 text-xs text-blue-600';
                     } else {
                         logoFileInput.disabled = removeLogoCheckbox.checked; // Re-enable if URL cleared and checkbox not checked
-                        logoUploadStatus.textContent = 'سيتم حفظ الشعار في متصفحك.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoDefault;
                         logoUploadStatus.className = 'mt-1 text-xs text-gray-500';
                     }
                 });
@@ -1817,11 +2718,11 @@
                         removeLogoCheckbox.checked = false;
                         logoUrlInput.disabled = true; // Disable URL input if file is selected
                         logoUrlInput.value = ''; // Clear URL input
-                        logoUploadStatus.textContent = 'سيتم حفظ الشعار من الملف في متصفحك.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoFileSaved;
                         logoUploadStatus.className = 'mt-1 text-xs text-blue-600';
                     } else {
                         logoUrlInput.disabled = removeLogoCheckbox.checked; // Re-enable if file cleared and checkbox not checked
-                        logoUploadStatus.textContent = 'سيتم حفظ الشعار في متصفحك.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoDefault;
                         logoUploadStatus.className = 'mt-1 text-xs text-gray-500';
                     }
                 });
@@ -1836,10 +2737,10 @@
                     if (removeLogoCheckbox.checked) {
                         logoFileInput.value = ''; // Clear selected file if checkbox is checked
                         if (logoUrlInput) logoUrlInput.value = ''; // Clear URL input if checkbox is checked
-                        logoUploadStatus.textContent = 'سيتم إزالة الشعار عند الحفظ.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoRemovedOnSave;
                         logoUploadStatus.className = 'mt-1 text-xs text-orange-600';
                     } else {
-                        logoUploadStatus.textContent = 'سيتم حفظ الشعار في متصفحك.';
+                        logoUploadStatus.textContent = translations[currentLanguage].logoDefault;
                         logoUploadStatus.className = 'mt-1 text-xs text-gray-500';
                     }
                 });
@@ -1851,22 +2752,24 @@
                     console.log("Toggle Pharmacy Details button clicked.");
                     if (pharmacyDetailsContent) pharmacyDetailsContent.classList.toggle('hidden');
                     if (pharmacyDetailsContent && pharmacyDetailsContent.classList.contains('hidden')) {
-                        togglePharmacyDetailsBtn.textContent = 'تعديل بيانات الصيدلية';
+                        togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnCollapsed;
                     } else {
-                        togglePharmacyDetailsBtn.textContent = 'إخفاء بيانات الصيدلية';
+                        togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnExpanded;
                     }
                 });
             }
-            if (previewAndPrintBtn) previewAndPrintBtn.addEventListener('click', () => { console.log("Preview and Print button clicked."); openPreviewModal(); });
-            if (showHelpBtn) showHelpBtn.addEventListener('click', () => { console.log("Show Help button clicked."); openHelpModal(); });
-            if (createIdCardBtn) createIdCardBtn.addEventListener('click', () => { console.log("Create ID Card button clicked."); openIdCardModal(); });
+            if (previewAndPrintBtn) previewAndPrintBtn.addEventListener('click', () => { console.log("Preview and Print button clicked."); window.openPreviewModal(); });
+            if (showHelpBtn) showHelpBtn.addEventListener('click', () => { console.log("Show Help button clicked."); window.openHelpModal(); });
+            if (createIdCardBtn) createIdCardBtn.addEventListener('click', () => { console.log("Create ID Card button clicked."); window.openIdCardModal(); });
             if (darkModeToggleBtn) darkModeToggleBtn.addEventListener('click', () => { console.log("Dark Mode Toggle button clicked."); toggleDarkMode(); }); // Add event listener for dark mode
-            if (viewModeToggleBtn) viewModeToggleBtn.addEventListener('click', () => { console.log("View Mode Toggle button clicked."); toggleViewMode(); }); // Add event listener for view mode
+            if (languageToggleBtn) languageToggleBtn.addEventListener('click', () => { 
+                console.log("Language Toggle button clicked."); 
+                setLanguage(currentLanguage === 'ar' ? 'en' : 'ar'); 
+            });
             
             // New event listeners for print log
-            if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); openReceiptLogModal(); });
-            // Removed logSearchInput event listener
-            if (clearLogBtn) clearLogBtn.addEventListener('click', () => { console.log("Clear Log button clicked."); clearAllReceipts(); });
+            if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); window.openReceiptLogModal(); });
+            if (clearLogBtn) clearLogBtn.addEventListener('click', () => { console.log("Clear Log button clicked."); window.clearAllReceipts(); });
 
             console.log("All event listeners attached.");
 
