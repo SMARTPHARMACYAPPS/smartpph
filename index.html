@@ -727,16 +727,21 @@
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+<!-- Palestinian Flag and Save Gaza Section -->
+<a href="https://mekeg.org/ar/causes/support-gaza">
+    <div class="palestine-flag-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Flag_of_Palestine.svg/1200px-Flag_of_Palestine.svg.png" alt="علم فلسطين" class="palestine-flag-icon">
+        <span class="save-gaza-text">#save-gaza</span>
+    </div>
+</a>
 
-  
 
     <!-- Main Content  -->
     <div id="main-content" class="w-full flex flex-col items-center">
         <!-- مربع الترحيب الجديد -->
         <div class="welcome-box">
-        <h1 data-key="appName">
+       <h1 data-key="appName">
     SMART PPH
-    <img src="pphicon.png" alt="App Logo" class="app-logo mr-2"> <!-- تم تبديل الترتيب وإضافة mr-2 -->
 </h1>
             <p id="welcomeMessage" class="welcome-message" data-key="welcomeMessage">مرحباً</p>
             <img id="welcomeLogo" src="https://placehold.co/60x60/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="pharmacy-logo-small hidden" onerror="this.classList.add('hidden');">
@@ -1125,8 +1130,7 @@
 
         let welcomeMessageElement; // New element for welcome message
         let welcomeLogo; // New element for logo in welcome box
-        let appLogoPlaceholder; // New: App Logo Placeholder
-
+    
         let messageModal; // Generic message modal
         let messageModalTitle;
         let messageModalText;
@@ -1578,6 +1582,55 @@
                             font-family: 'Cairo', sans-serif !important;
                             direction: ${currentLanguage === 'ar' ? 'rtl' : 'ltr'} !important;
                         }
+                        /* Palestinian Flag and Save Gaza Styling */
+.palestine-support-link {
+    position: fixed; /* يجعله ثابتًا في الشاشة حتى عند التمرير */
+    top: 15px; /* المسافة من الأعلى */
+    left: 15px; /* المسافة من اليسار */
+    z-index: 2000; /* يضمن ظهوره فوق معظم العناصر الأخرى */
+    display: flex;
+    flex-direction: column; /* لجعل النص تحت العلم */
+    align-items: center; /* توسيط العلم والنص أفقياً */
+    text-decoration: none; /* إزالة خط التسطير من الرابط */
+    background-color: transparent; /* تم التعديل هنا ليصبح شفافاً */
+
+    padding: 8px 12px; /* مسافة داخلية */
+    border-radius: 12px; /* حواف مستديرة */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* ظل خفيف */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.palestine-support-link:hover {
+    transform: translateY(-2px); /* تأثير رفع بسيط عند التحويم */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* ظل أكبر عند التحويم */
+}
+
+.palestine-flag-icon {
+    width: 40px; /* حجم العلم */
+    height: auto;
+    border-radius: 4px; /* حواف مستديرة للعلم */
+    border: 1px solid #ccc; /* حدود خفيفة للعلم */
+}
+
+.save-gaza-text {
+    color: #333; /* لون النص */
+    font-size: 0.85rem; /* حجم النص */
+    font-weight: bold;
+    margin-top: 5px; /* مسافة بين العلم والنص */
+    text-align: center;
+    white-space: nowrap; /* منع النص من الالتفاف */
+}
+
+/* Dark Mode adjustments */
+body.dark-mode .palestine-support-link {
+    background-color: transparent; /* اجعلها شفافة تماماً في الوضع الداكن أيضاً */
+
+    color: #e2e8f0; /* نص فاتح */
+}
+
+body.dark-mode .save-gaza-text {
+    color: #e2e8f0; /* نص فاتح في الوضع الداكن */
+}
                     </style>
                 </head>
                 <body>
@@ -2408,8 +2461,6 @@
 
             welcomeMessageElement = document.getElementById('welcomeMessage');
             welcomeLogo = document.getElementById('welcomeLogo');
-            appLogoPlaceholder = document.getElementById('appLogoPlaceholder'); // Assign app logo placeholder
-
             messageModal = document.getElementById('messageModal');
             messageModalTitle = document.getElementById('messageModalTitle');
             messageModalText = document.getElementById('messageModalText');
