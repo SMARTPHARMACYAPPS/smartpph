@@ -284,14 +284,13 @@
             border-radius: 8px; /* Slightly rounded corners */
             border: 1px solid #cbd5e0; /* Light border */
         }
-        /* App Logo Placeholder */
-        #appLogoPlaceholder {
-            width: 24px; /* Visible size for placeholder */
-            height: 24px;
-            object-fit: contain;
-            margin-right: 8px; /* Space from text */
-        }
-
+      /* App Logo Styling */
+.app-logo { /* تم تغيير #appLogoPlaceholder إلى .app-logo */
+    width: 40px; /* حجم مناسب ليكون بجانب النص */
+    height: 40px;
+    object-fit: contain;
+    margin-left: 10px; /* مسافة على اليسار في RTL */
+}
         /* ID Card Modal Styling */
         .id-card-content {
             width: 85.6mm; /* Standard credit card width */
@@ -735,16 +734,10 @@
     <div id="main-content" class="w-full flex flex-col items-center">
         <!-- مربع الترحيب الجديد -->
         <div class="welcome-box">
-            <h1 data-key="appName">
-                <!-- App Logo Placeholder: Points to pphicon.png -->
-        <img src="pphicon.png" alt="App Logo" class="app-logo"> SMART PPH
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3-.895-3-2 1.343-2 3-2z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 12c-3.314 0-6 2.239-6 5s2.686 5 6 5 6-2.239 6-5-2.686-5-6-5z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
-                </svg>
-            </h1>
+        <h1 data-key="appName">
+    SMART PPH
+    <img src="pphicon.png" alt="App Logo" class="app-logo mr-2"> <!-- تم تبديل الترتيب وإضافة mr-2 -->
+</h1>
             <p id="welcomeMessage" class="welcome-message" data-key="welcomeMessage">مرحباً</p>
             <img id="welcomeLogo" src="https://placehold.co/60x60/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="pharmacy-logo-small hidden" onerror="this.classList.add('hidden');">
             <div id="live-clock" class="clock-container text-lg font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg"></div>
@@ -1264,7 +1257,7 @@
                     * **سجل الطباعة:** تتبع جميع الإيصالات المطبوعة، مع إمكانية إعادة طباعة أي إيصال كنسخة.
                     * **بطاقة تعريف الصيدلية:** أنشئ بطاقة تعريف أنيقة لصيدليتك بألوان قابلة للتخصيص.
                     * **الوضع الليلي:** قم بتبديل الوضع بين الفاتح والداكن لتجربة بصرية مريحة.
-                    * **دعم اللغات:** يمكنك التبديل بين اللغتين العربية والإنجليزية.
+                    * **ميزة صفحة الخصومات:** يمكنك انشاء بطاقات خصم صالحة للاستخدام مرة واحدة.
 
                     **كيفية الطباعة:**
                     تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة.
@@ -1328,59 +1321,7 @@
             },
    
             
-                backBtn: 'Back',
-                receiptLogModalTitle: 'Print Log',
-                clearLogBtn: 'Clear All',
-                reprintBtn: 'Reprint',
-                deleteBtn: 'Delete',
-                noReceipts: 'No receipts printed yet.',
-                unknownPharmacy: 'Unknown Pharmacy',
-                measurement: 'Measurement',
-                status: 'Status',
-                notes: 'Notes',
-                noNotes: 'No notes',
-                confirmClearLogTitle: 'Confirm Clear',
-                confirmClearLogMessage: 'Are you sure you want to delete all receipts from the log? This action cannot be undone.',
-                clearSuccess: 'Cleared',
-                clearSuccessMessage: 'All receipts have been cleared from the log.',
-                deleteSuccess: 'Deleted',
-                deleteSuccessMessage: 'Receipt deleted successfully.',
-                error: 'Error',
-                errorMessage: 'An error occurred while generating the image: ',
-                reprintError: 'Receipt not found for reprinting.',
-                saveError: 'Save error: ',
-                loadError: 'Load error: ',
-                processingLogo: 'جاري معالجة الشعار...',
-                logoProcessedSuccess: 'Logo processed successfully!',
-                logoProcessingError: 'Error processing logo: ',
-                logoUrlUsed: 'Using provided logo URL.',
-                logoFileSaved: 'Logo from file will be saved in your browser.',
-                logoRemovedOnSave: 'Logo will be removed on save.',
-                logoCurrent: 'Current logo from URL or saved file.',
-                logoDefault: 'Logo will be saved in your browser.',
-                saveSuccess: 'Data saved successfully!',
-                togglePharmacyDetailsBtnCollapsed: 'Edit Pharmacy Details',
-                togglePharmacyDetailsBtnExpanded: 'Hide Pharmacy Details',
-                idCardPrintUnavailable: 'Unavailable',
-                idCardPrintMessage: 'ID card cannot be printed directly. Please download it as an image first.',
-                copyrightText: 'All rights reserved',
-                contactText: 'Contact smartpharmacy:',
-                lightMode: 'Light Mode',
-                darkMode: 'Dark Mode',
-                switchLanguage: 'Switch Language',
-                sugarMeasurement: 'Sugar',
-                pressureMeasurement: 'Blood Pressure',
-                statusHighFull: 'Measurement Status ({measurementLabel}): High',
-                statusNormalFull: 'Measurement Status ({measurementLabel}): Normal',
-                statusLowFull: 'Measurement Status ({measurementLabel}): Low',
-                statusUnknown: 'Measurement Status: Unknown',
-                okBtn: 'OK',
-                cancelBtn: 'Cancel',
-                statusHighShort: 'High',
-                statusNormalShort: 'Normal',
-                statusLowShort: 'Low',
-                statusUnknownShort: 'Unknown',
-            }
+               
         };
 
         let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ar'; // Default to Arabic
