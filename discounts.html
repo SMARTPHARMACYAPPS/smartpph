@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART PPH - إدارة الخصومات</title>
+    <link rel="manifest" href="manifest.json"> <!-- PWA Manifest Link, adjust if path changes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include html2pdf.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Include html2canvas library for image generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Base styles for body and font, consistent with pph.txt */
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #ffffff; /* White background */
+            color: #333;
+            direction: rtl;
+        }
+        /* Dark mode styles, consistent with pph.txt */
+        body.dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0; /* White text for general body content */
+        }
+        /* Modal styles, consistent with pph.txt */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            width: 500px; /* Default width for modal */
+        }
+        .modal.visible .modal-content {
+            transform: translateY(0);
+        }
+        body.dark-mode .modal-content {
+            background-color: #2d3748;
+            color: #e2e8f0; /* Ensure all text inside modal is white */
+            border: 1px solid #e2e8f0; /* White border in dark mode */
+        }
+        body.dark-mode .modal-content .modal-title {
+            color: #e2e8f0; /* Ensure title is visible in dark mode */
+        }
+        body.dark-mode .modal-content label {
+            color: #e2e8f0; /* Ensure labels are visible in dark mode */
+        }
+        body.dark-mode .modal-content input {
+            background-color: #4a5568;
+            border-color: #667e9c;
+            color: #e2e8f0;
+        }
+        body.dark-mode .modal-content input::placeholder {
+            color: #a0aec0;
+        }
+        /* Ensure all text elements within modal content are white in dark mode */
+        body.dark-mode .modal-content p,
+        body.dark-mode .modal-content span,
+        body.dark-mode .modal-content select {
+            color: #e2e8f0;
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+            transition: transform 0.2s ease-in-out;
+        }
+        body.dark-mode .modal-close-button {
+            color: #e2e8f0;
+        }
+        /* ID Card content styling, adapted for discount card visual */
+        .id-card-content {
+            width: 85.6mm; /* Standard credit card width */
+            height: 53.98mm; /* Standard credit card height */
+            background-color: #ffffff; /* White background */
+            border: 1px solid #000; /* Black border */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            color: #000; /* Ensure black text for printing */
+            font-family: 'Cairo', sans-serif;
+            position: relative;
+            overflow: hidden;
+            margin: 20px auto;
+            flex-shrink: 0; /* Prevent shrinking in flex container */
+        }
+        .card-header {
+            display: flex;
+            align-items: flex-start; /* Align items to the start (top) */
+            width: 100%;
+            justify-content: space-between; /* Space between card-info and top-right-details */
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #ccc;
+            position: relative; /* For absolute positioning of terms */
+        }
+        .card-info {
+            text-align: right;
+            flex-grow: 1;
+        }
+        .card-info p {
+            font-size: 1rem; /* Increased */
+            margin: 0;
+            line-height: 1.2;
+            color: #000; /* Ensure black text for printing */
+        }
+        .top-right-details {
+            text-align: left; /* Align to left for RTL */
+            margin-right: 10px; /* Space from right edge */
+        }
+        .expiry-label {
+            font-size: 1.1rem; /* Increased */
+            color: #000;
+            margin-bottom: 0; /* No margin below label */
+            line-height: 1.2;
+        }
+        .expiry-value {
+            font-size: 1.1rem; /* Increased */
+            color: #000;
+            margin-top: 0; /* No margin above value */
+            line-height: 1.2;
+        }
+        .card-number-top {
+            font-size: 0.9rem; /* Slightly smaller */
+            font-weight: 700;
+            color: #000;
+            margin-top: 5px; /* Space from expiry date */
+        }
+        .top-center-messages {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px; /* Space from header */
+            margin-bottom: 10px; /* Space before discount code */
+        }
+        .one-time-use-message, .terms-center {
+            font-size: 0.9rem; /* Slightly increased */
+            color: #000;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .discount-code {
+            font-size: 1.6rem; /* Slightly smaller from 1.8rem */
+            font-weight: 900;
+            color: #000; /* Ensure black text for printing */
+            margin: auto 0; /* Center vertically in remaining space */
+            word-break: break-all;
+        }
+
+        /* Styles for individual discount card items in the stored list */
+        .discount-card-item {
+            background-color: #f9f9f9;
+            border: 1px solid #000; /* Default black border for stored cards */
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align content to the right in RTL */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        body.dark-mode .discount-card-item {
+            background-color: #3a475a;
+            border-color: #555;
+            color: #e2e8f0;
+        }
+        /* Styles for cards based on their state */
+        .discount-card-item.active-usage { /* Blue frame for active usage */
+            border-color: #2563eb; /* Blue border */
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+        .discount-card-item.used { /* Brown frame for used */
+            background-color: #fbeed2; /* Light brown background */
+            border-color: #d4a762; /* Brown border */
+        }
+        body.dark-mode .discount-card-item.used {
+            background-color: #5a4b3d; /* Darker brown background */
+            border-color: #8c735d;
+        }
+        .discount-card-item.expired { /* Red frame for expired */
+            background-color: #ffebeb; /* Light red background */
+            border-color: #ffbaba; /* Red border */
+        }
+        body.dark-mode .discount-card-item.expired {
+            background-color: #723f3f; /* Darker red background */
+            border-color: #a36f6f;
+        }
+        /* Countdown timer style */
+        .countdown {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            color: #555;
+            direction: ltr; /* Ensure countdown displays LTR */
+        }
+        .countdown.imminent {
+            color: #ff0000; /* Red for imminent expiry */
+            font-weight: bold;
+        }
+        /* Styles for card action buttons */
+        .card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: flex-end; /* Align buttons to the right in RTL */
+        }
+        .card-actions button {
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #2563eb;
+            color: white;
+            font-size: 0.85rem;
+            transition: background-color 0.2s;
+        }
+        .card-actions button:hover {
+            background-color: #1d4ed8;
+        }
+        .card-actions .copy-btn { background-color: #10b981; }
+        .card-actions .copy-btn:hover { background-color: #059669; }
+        .card-actions .mark-used-btn { background-color: #f59e0b; } /* Orange for Mark Used */
+        .card-actions .mark-used-btn:hover { background-color: #d97706; }
+        .card-actions .disabled-btn { /* Style for disabled buttons */
+            background-color: #a0aec0; /* Gray out disabled buttons */
+            cursor: not-allowed;
+        }
+
+
+        /* Search bar container styling */
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            position: relative; /* For icon positioning */
+        }
+        .search-container input {
+            padding-right: 40px; /* Space for icon */
+        }
+        .search-container .search-icon {
+            position: absolute;
+            left: 10px; /* Position icon on the left in RTL */
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            cursor: pointer; /* Make icon clickable */
+        }
+        body.dark-mode .search-container .search-icon {
+            color: #cbd5e0;
+        }
+
+        /* Styles for generated card preview */
+        #generatedCardsPreviewContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            max-height: 400px; /* Limit height for scroll */
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+        }
+        body.dark-mode #generatedCardsPreviewContainer {
+            background-color: #333;
+            border-color: #555;
+        }
+        /* Specific style for individual action buttons within generated cards preview */
+        .generated-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: center;
+            width: 100%;
+        }
+        .generated-card-actions button {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+        }
+
+
+        /* Loading/Export Progress Modal */
+        #progressModal .modal-content {
+            width: 400px;
+            text-align: center;
+        }
+        #progressModal .progress-bar-container {
+            width: 80%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        #progressModal .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #2563eb;
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+        body.dark-mode #progressModal .progress-bar-container {
+            background-color: #4a5568;
+        }
+        body.dark-mode #progressModal .progress-bar {
+            background-color: #60a5fa;
+        }
+
+        /* Print styles for the discount card - Reverted to original behavior */
+        @media print {
+            body * {
+                visibility: hidden; /* Hide everything by default */
+            }
+            .printable-card-container, .printable-card-container * {
+                visibility: visible; /* Make only the printable card visible */
+            }
+            .printable-card-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh; /* Use viewport height to center */
+            }
+            .id-card-content { /* Use the same class as preview for print */
+                width: 85.6mm;
+                height: 53.98mm;
+                background-color: #ffffff !important; /* Force white background */
+                border: 1px solid #000 !important; /* Force black border */
+                border-radius: 10px;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: center;
+                text-align: center;
+                color: #000 !important; /* Force black text */
+                font-family: 'Cairo', sans-serif;
+                box-shadow: none !important; /* Remove shadow for print */
+                margin: 0 !important; /* Remove any margins from the card itself */
+            }
+            .id-card-content .card-header,
+            .id-card-content .card-info p,
+            .id-card-content .discount-code,
+            .id-card-content .card-number,
+            .id-card-content .card-footer,
+            .id-card-content .card-footer.expiry-visible .terms,
+            .id-card-content .card-footer.expiry-visible .expiry-date {
+                color: #000 !important; /* Force black text for all card elements */
+            }
+            /* Specific print overrides for increased sizes */
+            .card-info p {
+                font-size: 1rem !important; /* Matched with display size */
+            }
+            .top-right-details {
+                text-align: left !important;
+            }
+            .expiry-label, .expiry-value {
+                font-size: 1.1rem !important; /* Matched with display size */
+            }
+            .card-number-top {
+                font-size: 0.9rem !important; /* Matched with display size */
+            }
+            .top-center-messages {
+                margin-top: 10px !important;
+                margin-bottom: 10px !important;
+            }
+            .one-time-use-message, .terms-center {
+                font-size: 0.9rem !important; /* Matched with display size */
+            }
+            .discount-code {
+                font-size: 1.6rem !important; /* Matched with display size */
+            }
+        }
+
+        /* Accordion styles for stored cards section */
+        .accordion-header {
+            background-color: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            transition: background-color 0.2s ease-in-out;
+        }
+        body.dark-mode .accordion-header {
+            background-color: #3a475a;
+            color: #e2e8f0;
+        }
+        .accordion-header:hover {
+            background-color: #e2e8e7;
+        }
+        body.dark-mode .accordion-header:hover {
+            background-color: #4a5568;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+            padding: 0 15px; /* Add padding here, not on the list itself */
+        }
+        .accordion-content.expanded {
+            max-height: 1000px; /* Adjust as needed for content height */
+            padding-bottom: 15px;
+        }
+        .accordion-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .accordion-icon.rotated {
+            transform: rotate(90deg); /* Rotate for expanded state */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen p-4">
+
+    <!-- Back Button -->
+    <div class="w-full max-w-4xl flex justify-end mb-4">
+        <button onclick="window.history.back()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor" style="transform: scaleX(-1);">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H16a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            العودة للصفحة الرئيسية
+        </button>
+    </div>
+
+    <div class="w-full max-w-4xl bg-white p-8 rounded-lg shadow-md mb-8 text-right dark:bg-gray-800 dark:text-gray-200">
+        <h1 class="text-3xl font-bold mb-6 text-center">إدارة بطاقات الخصم</h1>
+
+        <!-- Main Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <button id="createDiscountCardBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg">
+                إنشاء بطاقة خصم
+            </button>
+        </div>
+
+        <!-- Stored Cards Accordion Section -->
+        <div class="accordion-header" id="storedCardsAccordionHeader">
+            البطاقات المخزنة
+            <svg class="accordion-icon h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </div>
+        <div class="accordion-content expanded" id="storedCardsAccordionContent">
+            <!-- Search Bar moved here -->
+            <div class="search-container mx-auto">
+                <input type="text" id="storedCardsSearchInput" placeholder="ابحث برقم كود الخصم..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-right dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                <svg class="search-icon h-5 w-5" id="searchIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <!-- Sorting Dropdown -->
+            <div class="mb-4 text-right">
+                <label for="sortOrder" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ترتيب حسب:</label>
+                <select id="sortOrder" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <option value="code_desc">الكود (تنازلي)</option>
+                    <option value="expiry_asc">تاريخ الانتهاء (الأقرب أولاً)</option>
+                    <option value="used_status">الحالة (المستخدمة أولاً)</option>
+                    <option value="expired_status">الحالة (منتهية الصلاحية أولاً)</option>
+                </select>
+            </div>
+            <div id="storedCardsList" class="grid grid-cols-1 gap-4">
+                <!-- Stored discount cards will be loaded here -->
+                <p id="noCardsMessage" class="text-center text-gray-500 dark:text-gray-400">لا توجد بطاقات مخزنة حالياً.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Discount Card Modal -->
+    <div id="createDiscountModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="closeModal('createDiscountModal')">&times;</button>
+            <h2 class="modal-title">إنشاء بطاقة خصم جديدة</h2>
+
+            <div class="mb-4">
+                <label for="numCards" class="block text-sm font-medium text-gray-700 dark:text-gray-300">عدد البطاقات (بطاقة واحدة فقط):</label>
+                <input type="number" id="numCards" value="1" min="1" max="1" readonly class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 cursor-not-allowed">
+            </div>
+            <div class="mb-4 flex gap-4">
+                <div class="w-1/3">
+                    <label for="expiryHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ساعات الانتهاء:</label>
+                    <input type="number" id="expiryHours" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                </div>
+                <div class="w-1/3">
+                    <label for="expiryDays" class="block text-sm font-medium text-gray-700 dark:text-gray-300">أيام الانتهاء:</label>
+                    <input type="number" id="expiryDays" value="7" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                </div>
+                <div class="w-1/3">
+                    <label for="expiryMonths" class="block text-sm font-medium text-gray-700 dark:text-gray-300">شهور الانتهاء:</label>
+                    <input type="number" id="expiryMonths" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                </div>
+            </div>
+            <div class="mb-4 flex items-center">
+                <input type="checkbox" id="noExpiryCheckbox" class="ml-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                <label for="noExpiryCheckbox" class="text-sm font-medium text-gray-700 dark:text-gray-300">البطاقة ليس لها تاريخ صلاحية</label>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
+                ملاحظة: تاريخ الانتهاء يبدأ احتسابه عند تخزين البطاقة.
+            </p>
+
+            <button id="generateCardBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg w-full mb-4">توليد البطاقة</button>
+
+            <!-- Container for generated card preview (now only one card) -->
+            <div id="generatedCardsPreviewContainer" class="flex flex-wrap gap-4 justify-center mt-4">
+                <!-- Generated card will be rendered here -->
+            </div>
+
+            <!-- New container for action buttons - Hidden by default -->
+            <div id="generatedCardActionsContainer" class="hidden flex flex-wrap gap-4 justify-center mt-4">
+                <button id="printGeneratedCardBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">طباعة</button>
+                <button id="downloadGeneratedCardBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg">تنزيل كصورة</button>
+                <button id="storeGeneratedCardBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">تخزين</button>
+                <button id="regenerateCardBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg">إعادة توليد</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Message Modal (Copied from pph.txt for consistency) -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeMessageModal()">×</button>
+            <div class="modal-title" id="messageModalTitle"></div>
+            <p id="messageModalText" class="text-gray-700 text-center mb-4"></p>
+            <div class="text-center">
+                <!-- Buttons will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="progressModalTitle">جاري تصدير الكروت...</h2>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+            <p id="progressText" class="text-gray-700 dark:text-gray-300 mt-2">0% - متبقي: 0 ثانية</p>
+        </div>
+    </div>
+
+
+    <script>
+        const STORED_CARDS_KEY = 'discountCards'; // مفتاح لتخزين بطاقات الخصم في localStorage
+        const PHARMACY_DATA_KEY = 'pharmacy_data_v1'; // مفتاح لبيانات الصيدلية (من pph.txt)
+        let nextCardNumber = parseInt(localStorage.getItem('nextDiscountCardNumber') || '0'); // عداد فريد لأرقام البطاقات
+        let generatedCardsBatch = []; // مصفوفة لحفظ البطاقات التي تم توليدها في الجلسة الحالية لإجراءات الدفعة
+
+        // Global DOM element references
+        let storedCardsListElement;
+        let noCardsMessageElement;
+        let storedCardsSearchInput;
+        let sortOrderSelect;
+
+        // تبديل الوضع الداكن (مبسط لهذه الصفحة، يفترض أن الصفحة الرئيسية تتعامل مع حالة التبديل الفعلية)
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            // هذه الصفحة لا تحفظ الوضع الداكن، بل تعكس إعداد الصفحة الرئيسية
+        }
+
+        // تطبيق الوضع الداكن عند التحميل بناءً على localStorage من التطبيق الرئيسي
+        if (localStorage.getItem('darkMode') === 'true') { // التحقق من السلسلة 'true' حيث يخزن localStorage السلاسل
+            document.body.classList.add('dark-mode');
+        }
+
+        // وظائف المودال (متوافقة مع pph.txt)
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('visible');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('visible');
+        }
+
+        // وظائف مودال الرسائل العامة (منسوخة من pph.txt للتناسق)
+        window.openMessageModal = function(title, message, isConfirm = false, onConfirmCallback = null) {
+            const messageModal = document.getElementById('messageModal');
+            const messageModalTitle = messageModal.querySelector('#messageModalTitle');
+            const messageModalText = messageModal.querySelector('#messageModalText');
+            const modalButtonContainer = messageModal.querySelector('.text-center');
+
+            if (!messageModal || !messageModalTitle || !messageModalText || !modalButtonContainer) {
+                console.error("لم يتم العثور على عنصر واحد أو أكثر من عناصر مودال الرسائل.");
+                return;
+            }
+
+            messageModalTitle.textContent = title;
+            messageModalText.textContent = message;
+            
+            modalButtonContainer.innerHTML = ''; // مسح الأزرار السابقة
+            
+            const confirmButton = document.createElement('button');
+            confirmButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg';
+            confirmButton.textContent = 'حسناً';
+            confirmButton.onclick = () => {
+                window.closeMessageModal();
+                if (onConfirmCallback) {
+                    onConfirmCallback();
+                }
+            };
+            modalButtonContainer.appendChild(confirmButton);
+
+            if (isConfirm) {
+                const cancelButton = document.createElement('button');
+                cancelButton.className = 'bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg ml-2';
+                cancelButton.textContent = 'إلغاء';
+                cancelButton.onclick = window.closeMessageModal;
+                modalButtonContainer.insertBefore(cancelButton, confirmButton);
+            }
+            
+            openModal('messageModal');
+        };
+
+        window.closeMessageModal = function() {
+            closeModal('messageModal');
+        }
+
+
+        // توليد كود عشوائي: xx-yxxyxxyyxy (x=حرف, y=رقم)
+        function generateRandomCode() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numbers = '0123456789';
+
+            function getRandomChar(type) {
+                if (type === 'x') return letters.charAt(Math.floor(Math.random() * letters.length));
+                if (type === 'y') return numbers.charAt(Math.floor(Math.random() * numbers.length));
+                return '';
+            }
+
+            let code = '';
+            code += getRandomChar('x');
+            code += getRandomChar('x');
+            code += '-';
+            code += getRandomChar('y');
+            code += getRandomChar('x');
+            code += getRandomChar('x');
+            code += getRandomChar('y');
+            code += getRandomChar('x');
+            code += getRandomChar('x');
+            code += getRandomChar('y');
+            code += getRandomChar('y');
+            code += getRandomChar('x');
+            code += getRandomChar('y');
+            return code;
+        }
+
+        // عرض بطاقة الخصم HTML
+        function renderDiscountCard(code, cardNumber, pharmacyInfo, logoUrl, expiryDate = null) {
+            const expiryDateString = expiryDate ? new Date(expiryDate).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' }) : 'لا توجد صلاحية';
+
+            // استخدام pharmacyInfo للعرض الديناميكي
+            const pharmacyName = pharmacyInfo.name || 'اسم الصيدلية';
+            const pharmacyPhone = pharmacyInfo.phone || 'رقم الهاتف'; // Only phone will be displayed
+
+            return `
+                <div class="card-header">
+                    <div class="card-info">
+                        <p class="pharmacy-name-print">${pharmacyName}</p>
+                        <p class="pharmacy-phone-print">ت: ${pharmacyPhone}</p>
+                    </div>
+                    <div class="top-right-details">
+                        <p class="expiry-label">تاريخ الانتهاء:</p>
+                        <p class="expiry-value">${expiryDateString}</p>
+                        <p class="card-number-top">رقم البطاقة: ${cardNumber.toString().padStart(6, '0')}</p>
+                    </div>
+                </div>
+                <div class="top-center-messages">
+                    <p class="one-time-use-message">البطاقة صالحة للاستعمال مرة واحدة</p>
+                    <p class="terms-center">تطبق الشروط والأحكام</p>
+                </div>
+                <div class="discount-code">${code}</div>
+            `;
+        }
+
+        // حساب تاريخ الانتهاء
+        function calculateExpiryDate(hours, days, months) {
+            const now = new Date();
+            if (hours === 0 && days === 0 && months === 0) {
+                return null; // لا يوجد تاريخ انتهاء إذا كانت جميعها أصفار
+            }
+            now.setHours(now.getHours() + parseInt(hours));
+            now.setDate(now.getDate() + parseInt(days));
+            now.setMonth(now.getMonth() + parseInt(months));
+            return now.toISOString(); // تخزين كتنسيق ISO
+        }
+
+        // تحميل تفاصيل الصيدلية من localStorage (من pph.txt)
+        function loadPharmacyDetails() {
+            try {
+                const storedData = localStorage.getItem(PHARMACY_DATA_KEY);
+                return storedData ? JSON.parse(storedData) : {};
+            } catch (error) {
+                console.error("خطأ في تحميل تفاصيل الصيدلية:", error);
+                return {};
+            }
+        }
+
+        // تحميل بطاقات الخصم من localStorage
+        function loadDiscountCards() {
+            try {
+                const storedCards = localStorage.getItem(STORED_CARDS_KEY);
+                return storedCards ? JSON.parse(storedCards) : [];
+            } catch (error) {
+                console.error("خطأ في تحميل بطاقات الخصم:", error);
+                return [];
+            }
+        }
+
+        // حفظ بطاقات الخصم في localStorage
+        function saveDiscountCards(cards) {
+            try {
+                localStorage.setItem(STORED_CARDS_KEY, JSON.stringify(cards));
+            } catch (error) {
+                console.error("خطأ في حفظ بطاقات الخصم:", error);
+                window.openMessageModal('خطأ في الحفظ', 'حدث خطأ أثناء حفظ البطاقات.');
+            }
+        }
+
+        // تحديث رقم البطاقة التالي في localStorage
+        function updateNextCardNumber() {
+            localStorage.setItem('nextDiscountCardNumber', nextCardNumber.toString());
+        }
+
+        // عرض البطاقات المخزنة في القائمة الرئيسية (الآن داخل المودال)
+        function displayStoredCards(listElement, messageElement, filter = 'all', searchQuery = '', sortOrder = 'code_desc') {
+            // إضافة تحقق من القيم الفارغة للعناصر الأساسية
+            if (!listElement || !messageElement) {
+                console.error("لم يتم العثور على عناصر DOM المطلوبة لوظيفة displayStoredCards.");
+                return;
+            }
+
+            listElement.innerHTML = ''; // مسح القائمة الحالية
+            let cards = loadDiscountCards(); // استخدام 'let' لأنه قد يتم تعديلها للفلترة/الفرز
+            
+
+            let filteredCards = cards.filter(card => {
+                // منطق البحث
+                if (searchQuery) {
+                    const normalizedSearch = searchQuery.toLowerCase();
+                    const cardNumMatch = card.cardNumber.toString().padStart(6, '0').includes(normalizedSearch); // Use 6-digit padding for search
+                    const codeMatch = card.code.toLowerCase().includes(normalizedSearch);
+                    return cardNumMatch || codeMatch;
+                }
+                return true;
+                });
+
+            // منطق الفرز بناءً على ترتيب الفرز المحدد
+            filteredCards.sort((a, b) => {
+                const aIsUsed = a.used;
+                const bIsUsed = b.used;
+                const aIsExpired = a.expiryDate && new Date(a.expiryDate) < new Date();
+                const bIsExpired = b.expiryDate && new Date(b.expiryDate) < new Date();
+
+                if (sortOrder === 'code_desc') {
+                    return b.cardNumber - a.cardNumber; // تنازلي حسب رقم البطاقة
+                } else if (sortOrder === 'expiry_asc') {
+                    // الأولوية: نشطة (غير مستخدمة، غير منتهية الصلاحية، مع تاريخ انتهاء) حسب تاريخ الانتهاء تصاعديًا
+                    // ثم: لا يوجد تاريخ انتهاء (لم يبدأ الاستخدام)
+                    // ثم: مستخدمة
+                    // ثم: منتهية الصلاحية
+                    
+                    const aIsActive = !aIsUsed && !aIsExpired && a.expiryDate;
+                    const bIsActive = !bIsUsed && !bIsExpired && b.expiryDate;
+
+                    if (aIsActive && bIsActive) {
+                        return new Date(a.expiryDate) - new Date(b.expiryDate);
+                    }
+                    if (aIsActive && !bIsActive) return -1;
+                    if (!aIsActive && bIsActive) return 1;
+
+                    const aHasNoExpiry = !a.expiryDate;
+                    const bHasNoExpiry = !b.expiryDate;
+
+                    if (aHasNoExpiry && bHasNoExpiry) return 0; // الحفاظ على الترتيب لكلاهما لا يوجد تاريخ انتهاء
+                    if (aHasNoExpiry && !bHasNoExpiry) return -1; // لا يوجد تاريخ انتهاء يأتي قبل المستخدمة/منتهية الصلاحية
+                    if (!aHasNoExpiry && bHasNoExpiry) return 1;
+
+                    if (aIsUsed && !bIsUsed) return -1;
+                    if (!aIsUsed && bIsUsed) return 1;
+
+                    if (aIsExpired && !bIsExpired) return -1;
+                    if (!aIsExpired && bIsExpired) return 1;
+                    
+                    return 0; // احتياطي لنفس الفئات
+                } else if (sortOrder === 'used_status') {
+                    // البطاقات المستخدمة أولاً
+                    if (aIsUsed && !bIsUsed) return -1;
+                    if (!aIsUsed && bIsUsed) return 1;
+                    return new Date(b.createdAt) - new Date(a.createdAt); // احتياطي لنفس الحالة
+                } else if (sortOrder === 'expired_status') {
+                    // البطاقات منتهية الصلاحية أولاً
+                    if (aIsExpired && !bIsExpired) return -1;
+                    if (!aIsExpired && bIsExpired) return 1;
+                    return new Date(b.createdAt) - new Date(a.createdAt); // احتياطي لنفس الحالة
+                }
+                return 0; // لا يوجد فرز افتراضي
+            });
+
+
+            if (filteredCards.length === 0) {
+                messageElement.classList.remove('hidden');
+                return;
+            } else {
+                messageElement.classList.add('hidden');
+            }
+
+            // عرض كل بطاقة كمعاينة كاملة
+            filteredCards.forEach(card => {
+                const cardItemContainer = document.createElement('div');
+                let cardClass = 'discount-card-item';
+                
+                // تطبيق ألوان الحدود بناءً على الحالة
+                if (card.used) {
+                    cardClass += ' used'; // حدود بنية للمستخدمة
+                } else if (card.expiryDate && new Date(card.expiryDate) < new Date()) {
+                    cardClass += ' expired'; // حدود حمراء للمنتهية الصلاحية
+                } else if (card.expiryDate) { // لديها تاريخ انتهاء وليست مستخدمة/منتهية الصلاحية، مما يعني أنها نشطة
+                    cardClass += ' active-usage'; // حدود زرقاء للاستخدام النشط
+                }
+                // إذا كان expiryDate فارغًا، فهي مجرد بطاقة مخزنة بحدود سوداء افتراضية
+
+                cardItemContainer.className = cardClass;
+                cardItemContainer.dataset.code = card.code; // للبحث
+                cardItemContainer.dataset.cardNumber = card.cardNumber; // للبحث
+
+                const pharmacyInfo = loadPharmacyDetails();
+                const expiryDisplay = card.expiryDate ?
+                    `تاريخ الانتهاء: ${new Date(card.expiryDate).toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}` :
+                    'لا توجد صلاحية (مخزن)';
+
+                // تحديد حالات الأزرار والنصوص بناءً على حالة البطاقة
+                let markUsedButtonHtml = '';
+                let printButtonHtml = `<button class="print-btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" data-code="${card.code}">طباعة</button>`;
+                let downloadButtonHtml = `<button class="download-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg" data-code="${card.code}">تنزيل كصورة</button>`;
+                let copyButtonHtml = `<button class="copy-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg" data-code="${card.code}">نسخ الكود</button>`;
+                
+                // إذا كانت البطاقة مستخدمة أو منتهية الصلاحية، قم بتعطيل جميع الأزرار باستثناء الطباعة (لإعادة الطباعة)
+                if (card.used || (card.expiryDate && new Date(card.expiryDate) < new Date())) {
+                    markUsedButtonHtml = '<button class="mark-used-btn disabled-btn text-white font-bold py-2 px-4 rounded-lg" disabled>استخدام</button>';
+                    downloadButtonHtml = `<button class="download-btn disabled-btn text-white font-bold py-2 px-4 rounded-lg" disabled>تنزيل كصورة</button>`;
+                    copyButtonHtml = `<button class="copy-btn disabled-btn text-white font-bold py-2 px-4 rounded-lg" disabled>نسخ الكود</button>`;
+                } else { // البطاقة ليست مستخدمة وليست منتهية الصلاحية
+                    markUsedButtonHtml = `<button class="mark-used-btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg" data-code="${card.code}">استخدام</button>`;
+                }
+
+
+                cardItemContainer.innerHTML = `
+                    <div class="id-card-content-wrapper">
+                        ${renderDiscountCard(card.code, card.cardNumber, pharmacyInfo, pharmacyInfo.logoUrl, card.expiryDate)}
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">حالة البطاقة: ${card.used ? 'مستخدمة' : (card.expiryDate && new Date(card.expiryDate) < new Date() ? 'منتهية الصلاحية' : (card.expiryDate ? 'نشطة' : 'لم يتم بدء الاستخدام'))}</p>
+                    <div id="countdown-${card.code}" class="countdown text-gray-500 dark:text-gray-400"></div>
+                    <div class="card-actions mt-4">
+                        ${copyButtonHtml}
+                        ${printButtonHtml}
+                        ${downloadButtonHtml}
+                        ${markUsedButtonHtml}
+                    </div>
+                `;
+                listElement.appendChild(cardItemContainer);
+
+                // بدء العد التنازلي لكل بطاقة إذا كان لديها تاريخ انتهاء وليست مستخدمة/منتهية الصلاحية
+                if (card.expiryDate && !card.used && !(new Date(card.expiryDate) < new Date())) {
+                    startCountdown(card.code, card.expiryDate);
+                } else if (card.used) {
+                    document.getElementById(`countdown-${card.code}`).textContent = 'تم استخدام البطاقة.';
+                } else if (card.expiryDate && new Date(card.expiryDate) < new Date()) {
+                     document.getElementById(`countdown-${card.code}`).textContent = 'انتهت صلاحية البطاقة.';
+                } else {
+                    document.getElementById(`countdown-${card.code}`).textContent = 'لا توجد صلاحية.'; // Updated message
+                }
+            });
+
+            attachCardActionListeners(); // إعادة إرفاق المستمعين للبطاقات التي تم عرضها حديثًا
+        }
+
+        // بدء العد التنازلي لبطاقة معينة
+        function startCountdown(code, expiryDateISO) {
+            const countdownElement = document.getElementById(`countdown-${code}`);
+            if (!countdownElement) return;
+
+            // مسح أي فاصل زمني موجود لعنصر العد التنازلي هذا لمنع فواصل زمنية متعددة
+            if (countdownElement.countdownInterval) {
+                clearInterval(countdownElement.countdownInterval);
+            }
+
+            const expiryTime = new Date(expiryDateISO).getTime();
+
+            const updateCountdown = () => {
+                const now = new Date().getTime();
+                const distance = expiryTime - now;
+
+                if (distance < 0) {
+                    countdownElement.textContent = 'انتهت صلاحية البطاقة.';
+                    countdownElement.classList.remove('imminent');
+                    // وضع علامة "منتهية الصلاحية" في localStorage إذا لم تكن كذلك بالفعل
+                    let cards = loadDiscountCards();
+                    let cardIndex = cards.findIndex(c => c.code === code);
+                    if (cardIndex !== -1 && !cards[cardIndex].used && !cards[cardIndex].expired) {
+                        cards[cardIndex].expired = true;
+                        saveDiscountCards(cards);
+                        // إعادة عرض البطاقات المخزنة لتحديث حالة البطاقة بصريًا
+                        const currentSearchQuery = storedCardsSearchInput ? storedCardsSearchInput.value : '';
+                        const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+                        displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, currentSortOrder);
+                    }
+                    clearInterval(countdownElement.countdownInterval);
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownElement.textContent = `ينتهي خلال: ${days} يوم, ${hours} ساعة, ${minutes} دقيقة, ${seconds} ثانية`;
+
+                // تمييز باللون الأحمر إذا كان أقل من 24 ساعة
+                if (distance < (24 * 60 * 60 * 1000) && distance > 0) { // فقط إذا كانت لا تزال نشطة
+                    countdownElement.classList.add('imminent');
+                    // إظهار إشعار إذا كان في غضون 24 ساعة ولم يتم الإشعار بالفعل
+                    if (!countdownElement.dataset.notified) {
+                        window.openMessageModal('تنبيه انتهاء صلاحية', `صلاحية البطاقة ${code} ستنتهي خلال 24 ساعة!`);
+                        countdownElement.dataset.notified = 'true'; // وضع علامة "تم الإشعار"
+                    }
+                } else {
+                    countdownElement.classList.remove('imminent');
+                    countdownElement.dataset.notified = ''; // إعادة تعيين علامة الإشعار
+                }
+            };
+
+            updateCountdown(); // استدعاء أولي
+            countdownElement.countdownInterval = setInterval(updateCountdown, 1000); // التحديث كل ثانية
+        }
+
+
+        // إرفاق مستمعي الأحداث لإجراءات البطاقة (نسخ، طباعة، تنزيل، استخدام)
+        function attachCardActionListeners() {
+            // Event delegation for buttons within storedCardsList
+            const storedCardsListElement = document.getElementById('storedCardsList');
+            if (storedCardsListElement) {
+                storedCardsListElement.removeEventListener('click', handleStoredCardActions); // Remove old listener to prevent duplicates
+                storedCardsListElement.addEventListener('click', handleStoredCardActions);
+            }
+        }
+
+        // Delegated event handler for stored card actions
+        async function handleStoredCardActions(e) {
+            const targetButton = e.target.closest('.copy-btn, .print-btn, .download-btn, .mark-used-btn');
+            if (!targetButton) return;
+
+            const code = targetButton.dataset.code;
+
+            if (targetButton.classList.contains('copy-btn')) {
+                navigator.clipboard.writeText(code).then(() => {
+                    window.openMessageModal('تم النسخ', 'تم نسخ كود الخصم بنجاح!');
+                }).catch(err => {
+                    console.error('فشل نسخ النص: ', err);
+                    window.openMessageModal('خطأ', 'فشل نسخ الكود.');
+                });
+            } else if (targetButton.classList.contains('print-btn')) {
+                await printDiscountCard(code);
+            } else if (targetButton.classList.contains('download-btn')) {
+                await downloadDiscountCardAsImage(code);
+            } else if (targetButton.classList.contains('mark-used-btn')) {
+                markCardAsUsed(code);
+            }
+        }
+
+
+        // طباعة بطاقة خصم - تم إعادة تعيينها إلى الحالة الأصلية للمظهر البصري
+        async function printDiscountCard(code) {
+            let cards = loadDiscountCards();
+            let card = cards.find(c => c.code === code);
+            if (!card) {
+                // Check if it's a generated card that hasn't been stored yet
+                card = generatedCardsBatch.find(c => c.code === code);
+                if (!card) {
+                    window.openMessageModal('خطأ', 'البطاقة غير موجودة للطباعة.');
+                    return;
+                }
+            }
+
+            const pharmacyInfo = loadPharmacyDetails();
+
+            // إنشاء div مؤقت لعرض البطاقة للطباعة
+            const tempPrintContainer = document.createElement('div');
+            tempPrintContainer.className = 'printable-card-container'; // استخدام فئة لاستهداف استعلام وسائط الطباعة
+            tempPrintContainer.innerHTML = `<div class="id-card-content">${renderDiscountCard(
+                card.code,
+                card.cardNumber,
+                pharmacyInfo,
+                pharmacyInfo.logoUrl,
+                card.expiryDate
+            )}</div>`;
+
+            document.body.appendChild(tempPrintContainer); // إلحاق بالجسم ليكون جزءًا من DOM للطباعة
+
+            try {
+                // استخدام html2canvas لعرض div كصورة
+                const canvas = await html2canvas(tempPrintContainer.querySelector('.id-card-content'), { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+
+                // فتح نافذة جديدة ووضع الصورة هناك للطباعة
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write('<html><head><title>طباعة بطاقة الخصم</title>');
+                printWindow.document.write('<style>');
+                // أنماط بسيطة لنافذة الطباعة لتوسيط الصورة
+                printWindow.document.write(`
+                    body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                    img { display: block; max-width: 85.6mm; max-height: 53.98mm; width: auto; height: auto; border: 1px solid black; } /* إضافة حدود سوداء هنا */
+                `);
+                printWindow.document.write('</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<img src="' + imgData + '" onload="window.print();window.close()" />');
+                printWindow.document.close();
+            } catch (error) {
+                console.error("خطأ في طباعة بطاقة الخصم:", error);
+                window.openMessageModal('خطأ في الطباعة', 'حدث خطأ أثناء طباعة البطاقة: ' + error.message);
+            } finally {
+                tempPrintContainer.remove(); // إزالة الحاوية المؤقتة
+            }
+        }
+
+        // تنزيل بطاقة خصم كصورة
+        async function downloadDiscountCardAsImage(code) {
+            let cards = loadDiscountCards();
+            let card = cards.find(c => c.code === code);
+            if (!card) {
+                // Check if it's a generated card that hasn't been stored yet
+                card = generatedCardsBatch.find(c => c.code === code);
+                if (!card) {
+                    window.openMessageModal('خطأ', 'البطاقة غير موجودة للتنزيل.');
+                    return;
+                }
+            }
+
+            const pharmacyInfo = loadPharmacyDetails();
+
+            const tempDiv = document.createElement('div');
+            tempDiv.className = 'id-card-content'; // إعادة استخدام الأنماط
+            tempDiv.innerHTML = renderDiscountCard(
+                card.code,
+                card.cardNumber,
+                pharmacyInfo,
+                pharmacyInfo.logoUrl,
+                card.expiryDate
+            );
+
+            // إلحاق مؤقتًا بالجسم لـ html2canvas
+            document.body.appendChild(tempDiv);
+
+            try {
+                const canvas = await html2canvas(tempDiv, { scale: 2 });
+                const link = document.createElement('a');
+                link.download = `discount_card_${card.cardNumber}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            } catch (error) {
+                console.error("خطأ في تنزيل بطاقة الخصم:", error);
+                window.openMessageModal('خطأ في التنزيل', 'حدث خطأ أثناء تنزيل البطاقة كصورة: ' + error.message);
+            } finally {
+                tempDiv.remove(); // إزالة div المؤقت
+            }
+        }
+
+        // التعامل مع منطق "استخدام"
+        function markCardAsUsed(code) {
+            let cards = loadDiscountCards();
+            const cardIndex = cards.findIndex(c => c.code === code);
+
+            if (cardIndex === -1) {
+                window.openMessageModal('خطأ', 'البطاقة غير موجودة.');
+                return;
+            }
+
+            let card = cards[cardIndex];
+
+            if (card.used) {
+                window.openMessageModal('ملاحظة', `البطاقة ${code} تم استخدامها بالفعل.`);
+                return;
+            }
+            
+            // وضع علامة "مستخدم"
+            card.used = true;
+            // إيقاف العد التنازلي إذا كان يعمل
+            const countdownElement = document.getElementById(`countdown-${code}`);
+            if (countdownElement && countdownElement.countdownInterval) {
+                clearInterval(countdownElement.countdownInterval);
+                countdownElement.textContent = 'تم استخدام البطاقة.';
+            }
+            saveDiscountCards(cards);
+            window.openMessageModal('تم الاستخدام', `تم وضع علامة "مستخدم" على البطاقة ${code}.`);
+            
+            // إعادة عرض البطاقات المخزنة لتحديث حالة البطاقة بصريًا والأزرار
+            const currentSearchQuery = storedCardsSearchInput ? storedCardsSearchInput.value : '';
+            const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+            displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, currentSortOrder);
+        }
+
+
+        let currentFilter = 'all'; // 'all' هو الافتراضي لقائمة البطاقات المخزنة الرئيسية
+
+        // وظائف مودال التقدم
+        let progressInterval;
+        function showProgressModal(totalItems, actionText) {
+            const progressModal = document.getElementById('progressModal');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressModalTitle = document.getElementById('progressModalTitle');
+
+            if (!progressModal || !progressBar || !progressText || !progressModalTitle) {
+                console.error("لم يتم العثور على عناصر مودال التقدم.");
+                return;
+            }
+
+            progressModalTitle.textContent = `جاري ${actionText}...`;
+            progressBar.style.width = '0%';
+            progressText.textContent = `${Math.round(0)}% - متبقي: ${totalItems} ثانية`; // Initial text for 0%
+            openModal('progressModal');
+
+            let currentProgress = 0;
+            let remainingTime = totalItems;
+
+            progressInterval = setInterval(() => {
+                currentProgress++;
+                remainingTime--;
+                const percentage = Math.min((currentProgress / totalItems) * 100, 100);
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `${Math.round(percentage)}% - متبقي: ${Math.max(0, remainingTime)} ثانية`;
+
+                if (currentProgress >= totalItems) {
+                    clearInterval(progressInterval);
+                    setTimeout(() => closeModal('progressModal'), 500); // إغلاق بعد تأخير قصير
+                }
+            }, 1000); // 1 ثانية لكل عنصر
+        }
+
+        function hideProgressModal() {
+            clearInterval(progressInterval);
+            closeModal('progressModal');
+        }
+
+
+        // مستمعو الأحداث
+        document.addEventListener('DOMContentLoaded', () => {
+            const createDiscountCardBtn = document.getElementById('createDiscountCardBtn');
+            const storedCardsAccordionHeader = document.getElementById('storedCardsAccordionHeader'); // رأس الأكورديون
+            const storedCardsAccordionContent = document.getElementById('storedCardsAccordionContent'); // محتوى الأكورديون
+            const storedCardsAccordionIcon = document.querySelector('#storedCardsAccordionHeader .accordion-icon'); // أيقونة الأكورديون
+            const generateCardBtn = document.getElementById('generateCardBtn');
+            const generatedCardsPreviewContainer = document.getElementById('generatedCardsPreviewContainer');
+            
+            // Assign global DOM element references
+            storedCardsListElement = document.getElementById('storedCardsList');
+            noCardsMessageElement = document.getElementById('noCardsMessage');
+            storedCardsSearchInput = document.getElementById('storedCardsSearchInput');
+            sortOrderSelect = document.getElementById('sortOrder');
+
+            // New button references for generated card actions
+            const printGeneratedCardBtn = document.getElementById('printGeneratedCardBtn');
+            const downloadGeneratedCardBtn = document.getElementById('downloadGeneratedCardBtn');
+            const storeGeneratedCardBtn = document.getElementById('storeGeneratedCardBtn');
+            const regenerateCardBtn = document.getElementById('regenerateCardBtn');
+            const generatedCardActionsContainer = document.getElementById('generatedCardActionsContainer');
+
+            // Expiry date input fields
+            const expiryHoursInput = document.getElementById('expiryHours');
+            const expiryDaysInput = document.getElementById('expiryDays');
+            const expiryMonthsInput = document.getElementById('expiryMonths');
+            const noExpiryCheckbox = document.getElementById('noExpiryCheckbox');
+
+
+            // العرض الأولي للبطاقات المخزنة في قسم الأكورديون
+            const initialSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+            displayStoredCards(storedCardsListElement, noCardsMessageElement, currentFilter, storedCardsSearchInput ? storedCardsSearchInput.value : '', initialSortOrder);
+
+            // تحميل تفاصيل الصيدلية لاستخدامها في توليد بطاقة الخصم
+            const pharmacyInfo = loadPharmacyDetails();
+
+            createDiscountCardBtn.addEventListener('click', () => {
+                openModal('createDiscountModal');
+                generatedCardsBatch = []; // مسح الدفعة السابقة
+                generatedCardsPreviewContainer.innerHTML = ''; // مسح منطقة المعاينة
+                generateCardBtn.classList.remove('hidden'); // Show generate button
+                generatedCardActionsContainer.classList.add('hidden'); // Hide action buttons
+                noExpiryCheckbox.checked = false; // Reset checkbox state
+                expiryHoursInput.disabled = false; // Ensure inputs are enabled on modal open
+                expiryDaysInput.disabled = false;
+                expiryMonthsInput.disabled = false;
+            });
+
+            // Event listener for noExpiryCheckbox
+            if (noExpiryCheckbox) {
+                noExpiryCheckbox.addEventListener('change', () => {
+                    const isDisabled = noExpiryCheckbox.checked;
+                    expiryHoursInput.disabled = isDisabled;
+                    expiryDaysInput.disabled = isDisabled;
+                    expiryMonthsInput.disabled = isDisabled;
+                    // Optionally clear values when disabled
+                    if (isDisabled) {
+                        expiryHoursInput.value = 0;
+                        expiryDaysInput.value = 0;
+                        expiryMonthsInput.value = 0;
+                    }
+                });
+            }
+
+
+            // تبديل الأكورديون لـ "البطاقات المخزنة"
+            storedCardsAccordionHeader.addEventListener('click', () => {
+                storedCardsAccordionContent.classList.toggle('expanded');
+                storedCardsAccordionIcon.classList.toggle('rotated');
+                // إعادة عرض البطاقات عند التوسيع لضمان تحديث البيانات والعد التنازلي
+                if (storedCardsAccordionContent.classList.contains('expanded')) {
+                    const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+                    displayStoredCards(storedCardsListElement, noCardsMessageElement, currentFilter, storedCardsSearchInput ? storedCardsSearchInput.value : '', currentSortOrder);
+                }
+            });
+
+            // جعل أيقونة البحث قابلة للنقر
+            const searchIcon = document.getElementById('searchIcon'); // Define searchIcon here
+            if (searchIcon) {
+                searchIcon.addEventListener('click', () => {
+                    const currentSearchQuery = storedCardsSearchInput ? storedCardsSearchInput.value : '';
+                    const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+                    displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, currentSortOrder);
+                });
+            }
+
+            // حدث الاستماع لحقل البحث داخل أكورديون البطاقات المخزنة
+            if (storedCardsSearchInput) {
+                storedCardsSearchInput.addEventListener('input', () => {
+                    const currentSearchQuery = storedCardsSearchInput.value;
+                    const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+                    displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, currentSortOrder);
+                });
+            }
+
+            generateCardBtn.addEventListener('click', async () => {
+                const numCards = parseInt(document.getElementById('numCards').value) || 1; // هذا الآن دائمًا 1
+                const expiryHours = parseInt(document.getElementById('expiryHours').value) || 0;
+                const expiryDays = parseInt(document.getElementById('expiryDays').value) || 0;
+                const expiryMonths = parseInt(document.getElementById('expiryMonths').value) || 0;
+                const hasNoExpiry = noExpiryCheckbox.checked;
+
+                if (numCards <= 0 || numCards > 1) { // فرض توليد بطاقة واحدة
+                    window.openMessageModal('خطأ', 'الرجاء إدخال عدد صحيح وموجب للبطاقات (بطاقة واحدة فقط).');
+                    return;
+                }
+
+                generatedCardsBatch = []; // مسح الدفعة السابقة
+                generatedCardsPreviewContainer.innerHTML = ''; // مسح منطقة المعاينة
+
+                showProgressModal(numCards, 'توليد البطاقة'); // التقدم لبطاقة واحدة
+
+                const existingCards = loadDiscountCards();
+                let newCode, newCardNumber;
+                let isDuplicate = true;
+                let currentAttempt = 0;
+                const maxAttempts = 10; // الحد الأقصى للمحاولات للعثور على كود فريد لبطاقة واحدة
+
+                while(isDuplicate && currentAttempt < maxAttempts) {
+                    newCode = generateRandomCode();
+                    newCardNumber = nextCardNumber; // استخدام nextCardNumber لهذه البطاقة الواحدة
+                    isDuplicate = existingCards.some(c => c.code === newCode || c.cardNumber === newCardNumber) ||
+                                  generatedCardsBatch.some(c => c.code === newCode || c.cardNumber === newCardNumber);
+                    currentAttempt++;
+                    if (isDuplicate && currentAttempt >= maxAttempts) {
+                        console.error("فشل في توليد بطاقة فريدة بعد عدة محاولات.");
+                        window.openMessageModal('تحذير', 'فشل توليد بطاقة فريدة بعد عدة محاولات. يرجى المحاولة مرة أخرى.');
+                        hideProgressModal();
+                        return; // الخروج إذا تعذر توليد بطاقة فريدة
+                    }
+                }
+
+                const newCard = {
+                    code: newCode,
+                    cardNumber: newCardNumber,
+                    expiryDate: hasNoExpiry ? null : calculateExpiryDate(expiryHours, expiryDays, expiryMonths), // Set expiryDate based on checkbox
+                    createdAt: new Date().toISOString(),
+                    used: false,
+                    expired: false // Add expired status
+                };
+                generatedCardsBatch.push(newCard);
+
+                // عرض البطاقة الواحدة التي تم توليدها في حاوية المعاينة بأزرار فردية
+                const cardElement = document.createElement('div');
+                cardElement.className = 'id-card-content';
+                // للمعاينة، أظهر تاريخ الانتهاء المحسوب بناءً على الإدخال، ولكن البطاقة المخزنة ستكون بتاريخ انتهاء فارغ
+                const previewExpiryDate = hasNoExpiry ? null : calculateExpiryDate(expiryHours, expiryDays, expiryMonths);
+                cardElement.innerHTML = `
+                    ${renderDiscountCard(newCard.code, newCard.cardNumber, pharmacyInfo, pharmacyInfo.logoUrl, previewExpiryDate)}
+                `;
+                generatedCardsPreviewContainer.appendChild(cardElement);
+
+                // Hide generate button and show action buttons
+                generateCardBtn.classList.add('hidden');
+                generatedCardActionsContainer.classList.remove('hidden');
+
+                // Set data-code for the action buttons
+                printGeneratedCardBtn.dataset.code = newCard.code;
+                downloadGeneratedCardBtn.dataset.code = newCard.code;
+                storeGeneratedCardBtn.dataset.code = newCard.code;
+                regenerateCardBtn.dataset.code = newCard.code; // For consistency, though not strictly needed for regenerate logic
+
+                // Ensure store button is enabled for a new card
+                storeGeneratedCardBtn.disabled = false;
+                storeGeneratedCardBtn.textContent = 'تخزين';
+                storeGeneratedCardBtn.classList.remove('bg-green-500');
+                storeGeneratedCardBtn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+
+
+                hideProgressModal();
+            });
+
+            // Add event listeners for the new action buttons in the modal
+            printGeneratedCardBtn.addEventListener('click', async () => {
+                const code = printGeneratedCardBtn.dataset.code;
+                await printDiscountCard(code);
+            });
+
+            downloadGeneratedCardBtn.addEventListener('click', async () => {
+                const code = downloadGeneratedCardBtn.dataset.code;
+                await downloadDiscountCardAsImage(code);
+            });
+
+            storeGeneratedCardBtn.addEventListener('click', async () => {
+                const code = storeGeneratedCardBtn.dataset.code;
+                let cardToProcess = generatedCardsBatch.find(c => c.code === code);
+                if (!cardToProcess) return;
+
+                let storedCards = loadDiscountCards();
+                if (storedCards.some(c => c.code === cardToProcess.code || c.cardNumber === cardToProcess.cardNumber)) {
+                    window.openMessageModal('خطأ', 'كود الخصم أو رقم البطاقة موجود بالفعل. يرجى توليد بطاقة جديدة.');
+                    return;
+                }
+
+                const expiryHours = parseInt(document.getElementById('expiryHours').value) || 0;
+                const expiryDays = parseInt(document.getElementById('expiryDays').value) || 0;
+                const expiryMonths = parseInt(document.getElementById('expiryMonths').value) || 0;
+                const hasNoExpiry = noExpiryCheckbox.checked;
+
+                cardToProcess.expiryDate = hasNoExpiry ? null : calculateExpiryDate(expiryHours, expiryDays, expiryMonths); // Set expiryDate based on checkbox
+                
+                storedCards.push(cardToProcess);
+                saveDiscountCards(storedCards);
+                window.openMessageModal('تم التخزين', `تم تخزين البطاقة ${cardToProcess.code} بنجاح!`);
+                
+                // Disable store button after storing
+                storeGeneratedCardBtn.disabled = true;
+                storeGeneratedCardBtn.textContent = 'مخزن';
+                storeGeneratedCardBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                storeGeneratedCardBtn.classList.add('bg-green-500');
+                
+                nextCardNumber++;
+                updateNextCardNumber();
+                const currentSearchQuery = storedCardsSearchInput ? storedCardsSearchInput.value : '';
+                const currentSortOrder = sortOrderSelect ? sortOrderSelect.value : 'code_desc';
+                displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, currentSortOrder);
+                // closeModal('createDiscountModal'); // Keep modal open to allow regenerate or close manually
+            });
+
+            regenerateCardBtn.addEventListener('click', () => {
+                generatedCardsBatch = [];
+                generatedCardsPreviewContainer.innerHTML = '';
+                generatedCardActionsContainer.classList.add('hidden'); // Hide action buttons
+                generateCardBtn.classList.remove('hidden'); // Show generate button
+            });
+
+
+            // حدث الاستماع لقائمة الفرز المنسدلة
+            if (sortOrderSelect) {
+                sortOrderSelect.addEventListener('change', () => {
+                    const currentSearchQuery = storedCardsSearchInput ? storedCardsSearchInput.value : '';
+                    displayStoredCards(storedCardsListElement, noCardsMessageElement, 'all', currentSearchQuery, sortOrderSelect.value);
+                });
+            }
+
+            // إعداد فاصل زمني لتحديث العد التنازلي كل ثانية
+            setInterval(() => {
+                // التأكد من أن القائمة مرئية قبل تحديث العد التنازلي لتجنب الأخطاء
+                if (storedCardsAccordionContent.classList.contains('expanded')) {
+                    document.querySelectorAll('.discount-card-item').forEach(item => {
+                        const code = item.dataset.code;
+                        const cards = loadDiscountCards();
+                        const card = cards.find(c => c.code === code);
+                        // تحديث العد التنازلي فقط إذا كان للبطاقة تاريخ انتهاء، ولم تستخدم، ولم تنته صلاحيتها بعد
+                        if (card && card.expiryDate && !card.used && !(new Date(card.expiryDate) < new Date())) {
+                            startCountdown(card.code, card.expiryDate); 
+                        }
+                    });
+                }
+            }, 1000);
+        });
+
+    </script>
+</body>
+</html>
