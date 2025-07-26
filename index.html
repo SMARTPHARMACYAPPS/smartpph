@@ -19,7 +19,7 @@
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #ffffff; /* جعل الخلفية بيضاء */
-            overflow: hidden; /* إخفاء شريط التمرير أثناء التحميل */
+          
         }
         .custom-radio input[type="radio"] { display: none; }
         .custom-radio label { transition: all 0.2s ease-in-out; }
@@ -705,10 +705,6 @@
             background-color: #60a5fa; /* Lighter blue for dark mode */
         }
 
-        /* Main content initially hidden */
-        #main-content {
-            display: none;
-        }
 
         /* Button animations */
         button {
@@ -733,15 +729,9 @@
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <!-- Loading Screen -->
-    <div id="loading-screen">
-        <div class="loading-text" data-key="loadingText">جاري التحميل...</div>
-        <div class="progress-bar-container">
-            <div id="progress-bar" class="progress-bar"></div>
-        </div>
-    </div>
+  
 
-    <!-- Main Content (initially hidden) -->
+    <!-- Main Content  -->
     <div id="main-content" class="w-full flex flex-col items-center">
         <!-- مربع الترحيب الجديد -->
         <div class="welcome-box">
@@ -1158,9 +1148,7 @@
         let statusPieChartCanvas; // New: Chart.js canvas element
         let statusPieChartInstance; // New: Chart.js instance
 
-        let loadingScreen; // New: Loading screen element
-        let progressBar; // New: Progress bar element
-
+       
         // Predefined ID card color palettes
         const ID_CARD_PALETTES = {
             blue: {
@@ -1638,8 +1626,6 @@
                         .id-card-content { display: none !important; }
                         /* Ensure print log modal is not printable */
                         #receiptLogModal { display: none !important; }
-                        /* Hide loading screen if it somehow appears in print */
-                        #loading-screen { display: none !important; }
                         /* Hide app logo placeholder in print */
                         #appLogoPlaceholder { display: none !important; }
                         /* Hide chart in print */
@@ -2412,47 +2398,11 @@
         }
 
 
-        // --- Loading Screen Logic ---
-        function startLoadingAnimation() {
-            let progress = 0;
-            const duration = 2000; // 2 seconds
-            const interval = 50; // Update every 50ms
-            const steps = duration / interval;
-            const increment = 100 / steps;
-
-            const loadingInterval = setInterval(() => {
-                progress += increment;
-                if (progressBar) {
-                    progressBar.style.width = `${progress}%`;
-                }
-                if (progress >= 100) {
-                    clearInterval(loadingInterval);
-                    hideLoadingScreen();
-                }
-            }, interval);
-        }
-
-        function hideLoadingScreen() {
-            if (loadingScreen) {
-                loadingScreen.classList.add('hidden');
-                // Allow overflow after loading screen is gone
-                document.body.style.overflow = 'auto';
-            }
-            if (document.getElementById('main-content')) {
-                document.getElementById('main-content').style.display = 'flex'; // Show main content
-            }
-        }
-
+      
         // --- التهيئة الأولية ---
         window.onload = async function() {
             console.log("Window loaded, starting app initialization.");
 
-            // Assign loading screen elements first
-            loadingScreen = document.getElementById('loading-screen');
-            progressBar = document.getElementById('progress-bar');
-            
-            // Start loading animation immediately
-            startLoadingAnimation();
 
             // Assign all other elements after loading screen starts
             measurementTypeRadios = document.querySelectorAll('input[name="measurement"]');
