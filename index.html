@@ -13,8 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Include html2canvas library for image generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Include Chart.js library for pie chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js library is no longer needed -->
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -277,8 +276,8 @@
             color: #4a5568;
         }
         .welcome-box .pharmacy-logo-small {
-            width: 60px; /* Small square for logo */
-            height: 60px;
+            width: 150px; /* Small square for logo */
+            height: 150px;
             object-fit: contain;
             margin: 10px auto; /* Center it */
             border-radius: 8px; /* Slightly rounded corners */
@@ -363,119 +362,6 @@
         }
 
 
-        /* Dark Mode Styles */
-        body.dark-mode {
-            background-color: #1a202c; /* Dark background */
-            color: #e2e8f0; /* Light text */
-        }
-        body.dark-mode .welcome-box {
-            background-color: #2d3748;
-            color: #e2e8f0;
-        }
-        body.dark-mode .welcome-box h1 {
-            color: #e2e8f0;
-        }
-        body.dark-mode .welcome-box .welcome-message {
-            color: #cbd5e0;
-        }
-        body.dark-mode #live-clock { /* Specific for main clock */
-            background-color: #4a5568;
-            color: #e2e8f0;
-        }
-        body.dark-mode .no-print {
-            background-color: #2d3748;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-        body.dark-mode .no-print h2,
-        body.dark-mode .no-print h3,
-        body.dark-mode .no-print label {
-            color: #e2e8f0;
-        }
-        body.dark-mode .no-print input,
-        body.dark-mode .no-print textarea {
-            background-color: #4a5568;
-            border-color: #667e9c;
-            color: #e2e8f0;
-        }
-        body.dark-mode .no-print input::placeholder,
-        body.dark-mode .no-print textarea::placeholder {
-            color: #a0aec0;
-        }
-        body.dark-mode .no-print .custom-radio label {
-            background-color: #4a5568;
-            color: #e2e8f0;
-            border-color: #667e9c;
-        }
-        body.dark-mode .no-print .custom-radio input[type="radio"]:checked + label {
-            background-color: #3182ce; /* Darker blue for checked */
-            border-color: #3182ce;
-        }
-        body.dark-mode .status-options-group {
-            border-color: #e2e8f0; /* Dashed border in dark mode */
-        }
-        body.dark-mode .status-radio label {
-            color: #e2e8f0 !important;
-        }
-        body.dark-mode .status-radio label::before {
-            border-color: #e2e8f0;
-        }
-        body.dark-mode .status-radio input[type="radio"]:checked + label::before {
-            background-color: #e2e8f0;
-            border-color: #e2e8f0;
-        }
-        body.dark-mode .modal-content {
-            background-color: #2d3748;
-            color: #e2e8f0;
-        }
-        body.dark-mode .modal-title {
-            color: #e2e8f0;
-        }
-        body.dark-mode .modal-close-button {
-            color: #e2e8f0;
-        }
-        body.dark-mode .id-card-content {
-            background: linear-gradient(135deg, var(--card-bg-light-darkmode, #2d3748), var(--card-bg-dark-darkmode, #4a5568)); /* Darker gradient for ID card */
-            color: #e2e8f0;
-        }
-        body.dark-mode .id-card-content .card-title {
-            color: #e2e8f0;
-        }
-        body.dark-mode .id-card-content .card-subtitle,
-        body.dark-mode .id-card-content .card-contact {
-            color: #cbd5e0;
-        }
-        body.dark-mode .id-card-content::before,
-        body.dark-mode .id-card-content::after {
-            background-color: var(--bubble-color-darkmode, rgba(0, 123, 255, 0.2)); /* Slightly more visible for dark mode */
-        }
-        /* Help Modal specific styles for dark mode */
-        body.dark-mode #helpModal .modal-content #helpTextPlaceholder {
-            color: #e2e8f0 !important; /* White text for help modal in dark mode */
-        }
-        /* Print Log Modal specific styles for dark mode */
-        body.dark-mode #receiptLogModal .modal-content {
-            background-color: #2d3748;
-            color: #e2e8f0;
-        }
-        body.dark-mode #receiptLogModal .modal-content .modal-title {
-            color: #e2e8f0;
-        }
-        body.dark-mode #receiptLogModal .modal-content input {
-            background-color: #4a5568;
-            border-color: #667e9c;
-            color: #e2e8f0;
-        }
-        body.dark-mode #receiptLogModal .modal-content .receipt-log-item {
-            background-color: #ffffff; /* White background in dark mode as requested */
-            border-color: #667e9c;
-            color: #1a202c; /* Dark text for contrast */
-        }
-        body.dark-mode #receiptLogModal .modal-content .receipt-log-item button {
-            background-color: #3182ce;
-            border-color: #3182ce;
-            color: #e2e8f0;
-        }
-
 
         /* Ensure receipt always stays light for printing purposes */
         .receipt-container, #modalReceiptContent { /* Added #modalReceiptContent to ensure modal receipt is also light */
@@ -510,22 +396,29 @@
             border-color: #000;
         }
 
-        /* Desktop Mode Styles (Default) */
+       /* Desktop Mode Styles (Default) */
         body.desktop-mode .welcome-box {
-            max-width: 600px; /* Wider for desktop */
+            max-width: 90vw; /* الحد الأقصى للعرض بنسبة 90% من عرض النافذة على سطح المكتب */
+            width: 90%; /* عرض بنسبة 90% */
+            box-sizing: border-box; /* للتأكد من أن المساحة المتروكة لا تزيد عن العرض الكلي */
         }
         body.desktop-mode .no-print {
-            max-width: 800px; /* Wider for desktop */
+            max-width: 90vw; /* الحد الأقصى للعرض بنسبة 90% من عرض النافذة على سطح المكتب */
+            width: 90%; /* عرض بنسبة 90% */
+            box-sizing: border-box; /* للتأكد من أن المساحة المتروكة لا تزيد عن العرض الكلي */
         }
 
         /* Mobile Mode Styles (when desktop-mode is removed) */
         body:not(.desktop-mode) .welcome-box {
-            max-width: 448px; /* Original mobile width */
+            max-width: 95vw; /* الحد الأقصى للعرض بنسبة 95% من عرض النافذة على الجوال */
+            width: 95%; /* عرض بنسبة 95% */
+            box-sizing: border-box;
         }
         body:not(.desktop-mode) .no-print {
-            max-width: 448px; /* Original mobile width */
+            max-width: 95vw; /* الحد الأقصى للعرض بنسبة 95% من عرض النافذة على الجوال */
+            width: 95%; /* عرض بنسبة 95% */
+            box-sizing: border-box;
         }
-
 
         @media print {
             .no-print { display: none !important; }
@@ -727,26 +620,26 @@
     </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
-<!-- Palestinian Flag and Save Gaza Section -->
-<a href="https://mekeg.org/ar/causes/support-gaza" target="_blank" rel="noopener noreferrer" class="palestine-support-link">
-    <div class="palestine-flag-container">
-        <span class="save-gaza-text">#save-gaza</span>
-    </div>
-</a>
-
-
     <!-- Main Content  -->
     <div id="main-content" class="w-full flex flex-col items-center">
         <!-- مربع الترحيب الجديد -->
         <div class="welcome-box">
+<a href="https://mekeg.org/ar/causes/support-gaza" target="_blank" class="gaza-message-link" style="position: fixed; top: 20px; left: 20px; display: flex; flex-direction: row; align-items: center; gap: 5px; font-weight: bold; color: #d9534f; text-decoration: none; background-color: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;">
+                <svg width="20" height="20" viewBox="0 0 300 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="300" height="50" fill="#000000"/>
+                    <rect y="50" width="300" height="50" fill="#FFFFFF"/>
+                    <rect y="100" width="300" height="50" fill="#009736"/>
+                    <path d="M0 0L100 75L0 150V0Z" fill="#ED2F37"/>
+                </svg>
+                انقذ غزة
+            </a>
        <h1 data-key="appName">
     SMART PPH
 </h1>
             <p id="welcomeMessage" class="welcome-message" data-key="welcomeMessage">مرحباً</p>
             <img id="welcomeLogo" src="https://placehold.co/60x60/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="pharmacy-logo-small hidden" onerror="this.classList.add('hidden');">
             <div id="live-clock" class="clock-container text-lg font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg"></div>
-            <!-- زر الوضع الليلي -->
-            <button id="darkModeToggleBtn" class="w-fit bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg mt-4 mx-auto flex items-center justify-center">
+       
                 <!-- Icon and text will be added by JS -->
             </button>
             <button id="createIdCardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mt-4">
@@ -760,6 +653,19 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
     </svg>
     <span data-key="discountCardsBtn">إدارة بطاقات الخصم</span>
+</button>
+<button id="customerDatabaseBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4 flex items-center justify-center" onclick="window.location.href='database.html'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="ml-2">
+        <path d="M22 20v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+    </svg>
+    قاعدة بيانات العملاء
+</button>
+
+<button id="fitnessUpBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 mt-4 flex items-center justify-center" onclick="window.location.href='fitnessup.html'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="ml-2">
+        <path d="M12 7V4.5a.5.5 0 011-.5h2a.5.5 0 01.5.5V7m-4 0v10m0-10h4m-4 0H8a.5.5 0 00-.5.5v2a.5.5 0 00.5.5h4a.5.5 0 00.5-.5V7.5a.5.5 0 00-.5-.5H8a.5.5 0 00-.5.5v-2A.5.5 0 018 4h2.5a.5.5 0 01.5.5V7zm-2 10h4m-4 0v-3.5a.5.5 0 01-.5-.5h-2a.5.5 0 01-.5.5V17m4 0h4a.5.5 0 00.5-.5v-2a.5.5 0 00-.5-.5h-4a.5.5 0 00-.5.5v2a.5.5 0 00.5.5zm1-10c-3.866 0-7 3.134-7 7s3.134 7 7 7 7-3.134 7-7-3.134-7-7-7zM12 2a10 10 0 100 20 10 10 0 000-20z"/>
+    </svg>
+    <span data-key="fitnessUpBtn">لياقة الوزن</span>
 </button>
         </div>
 
@@ -882,12 +788,12 @@
                     <span data-key="showPrintLogBtn">سجل الطباعة</span>
                 </button>
 
-                <!-- زر المساعدة -->
-                <button id="showHelpBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
+                <!-- زر تعريف بالتطبيق (كان زر المساعدة) -->
+                <button id="showAppDefinitionBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9.228a4.5 4.5 0 116.364 0L10 12.636l-1.828-1.828zm0 0L3.5 16.5m0 0h17m-9.5-6.5l-2.5 2.5m-1 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span data-key="showHelpBtn">كيف يمكنني طباعة ريسيت؟</span>
+                    <span data-key="appDefinitionBtn">تعريف بالتطبيق</span>
                 </button>
             </div>
         </div>
@@ -941,7 +847,6 @@
                     </svg>
                 </div>
                 <p class="designed-by-text text-xs mt-2">Designed by Smart PPH</p>
-                <p id="copyText" class="copy-text text-sm font-bold mt-1 hidden" data-key="copyText">نسخة</p>
             </div>
         </div>
 
@@ -998,18 +903,18 @@
             </div>
         </div>
 
-        <!-- Modal للمساعدة -->
-        <div id="helpModal" class="modal hidden">
+        <!-- Modal لتعريف بالتطبيق (كان مودال المساعدة) -->
+        <div id="appDefinitionModal" class="modal hidden">
             <div class="modal-content">
-                <button class="modal-close-button" onclick="window.closeHelpModal()">×</button>
-                <div class="modal-title" data-key="helpModalTitle">كيف يمكنني طباعة ريسيت؟</div>
-                <div class="text-center mb-4">
-                    <p id="helpTextPlaceholder" class="text-gray-700 mb-4">
-                        <!-- ملاحظاتك ستكون هنا -->
+                <button class="modal-close-button" onclick="window.closeAppDefinitionModal()">×</button>
+                <div class="modal-title" data-key="appDefinitionModalTitle">تعريف بالتطبيق</div>
+                <div class="text-right mb-4 prose prose-indigo max-w-none">
+                    <p id="appDefinitionTextContent" class="text-gray-700 mb-4 leading-relaxed">
+                        <!-- معلومات التطبيق ستكون هنا -->
                     </p>
                 </div>
                 <div class="text-center mt-4">
-                    <button onclick="window.closeHelpModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="backBtn">رجوع</button>
+                    <button onclick="window.closeAppDefinitionModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="backBtn">رجوع</button>
                 </div>
             </div>
         </div>
@@ -1019,10 +924,7 @@
             <div class="modal-content max-w-2xl w-full">
                 <button class="modal-close-button" onclick="window.closeReceiptLogModal()">×</button>
                 <div class="modal-title" data-key="receiptLogModalTitle">سجل الطباعة</div>
-                <!-- Pie Chart Canvas -->
-                <div class="mb-6 flex justify-center">
-                    <canvas id="statusPieChart" class="max-w-xs"></canvas>
-                </div>
+                <!-- Pie Chart Canvas Removed -->
                 <div class="mb-4 flex flex-col md:flex-row gap-2 items-center">
                     <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1113,10 +1015,9 @@
         let previewModal;
         let modalReceiptContent;
 
-        let showHelpBtn;
-        let helpModal;
-        let helpTextPlaceholder;
-        let helpImagePlaceholder; // Still needed for removal logic
+        let showAppDefinitionBtn; // Renamed from showHelpBtn
+        let appDefinitionModal; // Renamed from helpModal
+        let appDefinitionTextContent; // Renamed from helpTextPlaceholder
 
         let createIdCardBtn;
         let idCardModal;
@@ -1141,8 +1042,7 @@
         let receiptLogModal; // New element for print log modal
         let receiptLogList; // New element for print log list container
         let clearLogBtn; // New element for clear log button
-        let statusPieChartCanvas; // New: Chart.js canvas element
-        let statusPieChartInstance; // New: Chart.js instance
+        // statusPieChartCanvas and statusPieChartInstance are removed
 
        
         // Predefined ID card color palettes
@@ -1241,33 +1141,47 @@
                 statusLow: 'منخفض',
                 previewAndPrintBtn: 'معاينة الإيصال وطباعته',
                 showPrintLogBtn: 'سجل الطباعة',
-                showHelpBtn: 'كيف يمكنني طباعة ريسيت؟',
+                appDefinitionBtn: 'تعريف بالتطبيق', // Renamed from showHelpBtn
                 notesLabelReceipt: 'ملاحظات:',
                 thankYouMessage: 'شكراً لزيارتكم',
-                copyText: 'نسخة',
                 previewModalTitle: 'معاينة الإيصال',
                 printReceiptBtn: 'طباعة الإيصال',
                 idCardModalTitle: 'بطاقة تعريف الصيدلية',
                 downloadIdCardBtn: 'تنزيل الكارت كصورة',
-                helpModalTitle: 'كيف يمكنني طباعة ريسيت؟',
-                helpContent: `
-                    مرحباً بك في تطبيق SMART PPH! هذا التطبيق مصمم لمساعدتك في تسجيل وطباعة إيصالات قياس السكر والضغط بسهولة وفعالية.
+                appDefinitionModalTitle: 'تعريف بالتطبيق', // Renamed from helpModalTitle
+                appDefinitionContent: `
+                    <h3 class="text-2xl font-bold text-blue-700 mb-4">مرحباً بك في تطبيق SMART PPH!</h3>
+                    <p class="mb-3">
+                        هذا التطبيق مصمم لمساعدتك في **تسجيل وطباعة إيصالات قياس السكر والضغط** بسهولة وفعالية.
+                        كما يتيح لك **إدارة بطاقات الخصم** وإنشاء **بطاقات تعريف احترافية لصيدليتك**.
+                    </p>
                     
-                    **الميزات الرئيسية:**
-                    * **تسجيل القياسات:** أدخل قيم السكر أو الضغط، وسيتم تحديد الحالة (مرتفع، طبيعي، منخفض) تلقائيًا.
-                    * **الملاحظات:** أضف أي ملاحظات إضافية حول القياس.
-                    * **تخصيص الصيدلية:** قم بحفظ اسم صيدليتك، شعارها، عنوانها، ورقم هاتفها لتظهر على الإيصالات.
-                    * **سجل الطباعة:** تتبع جميع الإيصالات المطبوعة، مع إمكانية إعادة طباعة أي إيصال كنسخة.
-                    * **بطاقة تعريف الصيدلية:** أنشئ بطاقة تعريف أنيقة لصيدليتك بألوان قابلة للتخصيص.
-                    * **الوضع الليلي:** قم بتبديل الوضع بين الفاتح والداكن لتجربة بصرية مريحة.
-                    * **ميزة صفحة الخصومات:** يمكنك انشاء بطاقات خصم صالحة للاستخدام مرة واحدة.
+                    <h4 class="text-xl font-semibold text-gray-800 mb-3">الميزات الرئيسية:</h4>
+                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
+                        <li>**تسجيل القياسات:** أدخل قيم السكر أو الضغط، وسيتم تحديد الحالة (مرتفع، طبيعي، منخفض) تلقائيًا مع عرض أيقونات توضيحية.</li>
+                        <li>**الملاحظات:** أضف أي ملاحظات إضافية حول القياس لتظهر في الإيصال.</li>
+                        <li>**تخصيص الصيدلية:** قم بحفظ اسم صيدليتك، شعارها، عنوانها، ورقم هاتفها لتظهر على جميع الإيصالات وبطاقات التعريف.</li>
+                        <li>**سجل الطباعة:** تتبع جميع الإيصالات المطبوعة بدقة، مع إمكانية إعادة طباعة أي إيصال كنسخة أو حذفه من السجل.</li>
+                        <li>**إدارة الخصومات:** أنشئ بطاقات خصم فريدة صالحة للاستخدام مرة واحدة، مع إمكانية تحديد تاريخ انتهاء الصلاحية وتتبع حالة الاستخدام.</li>
+                        <li>**بطاقة تعريف الصيدلية:** أنشئ بطاقة تعريف أنيقة واحترافية لصيدليتك بألوان قابلة للتخصيص وشعارك الخاص.</li>
+                        <li>**قاعدة بيانات للعملاء:** قم بانشاء قاعدة بيانات لعملائك وتعديلها وتنزيلها واستيرادها .</li>
+                        <li>**دعم اللغة العربية:** يدعم التطبيق اللغة العربية لتجربة مستخدم مرنة.</li>
+                        <li>**قياس الوزن الذكي:** حساب السعرات مع الوجبات والتمارين المناسبة.</li>
+                    </ul>
 
-                    **كيفية الطباعة:**
-                    تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة.
-                    عند الطباعة، تأكد من ملائمة المحتوى للصفحة (مقاس الورق 72 مم).
-                    في حالة عدم حدوث ذلك، يرجى تعديلها يدويًا من إعدادات الطباعة في المتصفح (مثل "المزيد من الإعدادات" ثم "رسومات الخلفية" و "مقاس الورق").
-                    للحصول على أفضل نتيجة، يفضل استخدام طابعات الإيصالات الحرارية.
-                    تأكد من تفعيل خيار "رسومات الخلفية" أو "طباعة ألوان وخلفيات الخلفية" في إعدادات الطباعة الخاصة بمتصفحك لضمان ظهور الألوان والخطوط الفاصلة. وبالنسبة لطباعة الخصومات يجب جعل الطباعة landscape 
+                    <h4 class="text-xl font-semibold text-gray-800 mb-3">كيفية الطباعة للحصول على أفضل النتائج:</h4>
+                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
+                        <li>**الطابعة:** تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة. يفضل استخدام طابعات الإيصالات الحرارية للحصول على أفضل جودة وحجم.</li>
+                        <li>**مقاس الورق:** الإيصالات مصممة لمقاس ورق 72 مم. في نافذة الطباعة (Print Dialog) بمتصفحك، قد تحتاج إلى تعديل "مقاس الورق" (Paper Size) يدوياً ليناسب هذا الحجم.</li>
+                        <li>**رسومات الخلفية:** لضمان ظهور الألوان والخطوط الفاصلة في الإيصال، تأكد من تفعيل خيار "رسومات الخلفية" (Background Graphics) أو "طباعة ألوان وخلفيات الخلفية" (Print Background Colors and Images) في إعدادات الطباعة بمتصفحك (عادةً ضمن "المزيد من الإعدادات" أو "More Settings").</li>
+                        <li>**اتجاه الطباعة للخصومات:** عند طباعة بطاقات الخصم، يجب جعل اتجاه الطباعة "أفقي" (Landscape) للحصول على التنسيق الصحيح.</li>
+                    </ul>
+
+                    <h4 class="text-xl font-semibold text-gray-800 mb-3">نصائح إضافية:</h4>
+                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
+                        <li>**حفظ البيانات:** يتم حفظ جميع بيانات الصيدلية والإيصالات والخصومات محليًا في متصفحك. هذا يعني أن بياناتك آمنة ولا يتم رفعها إلى أي خادم خارجي.</li>
+                        <li>**الشعار:** إذا كنت تستخدم شعارًا من ملف محلي، فسيتم تحويله وحفظه في متصفحك أيضًا.</li>
+                    </ul>
                 `,
                 backBtn: 'رجوع',
                 receiptLogModalTitle: 'سجل الطباعة',
@@ -1309,8 +1223,8 @@
                 lightMode: 'الوضع الفاتح',
                 darkMode: 'الوضع الليلي',
                 switchLanguage: 'تبديل اللغة',
-                sugarMeasurement: 'قياس السكر',
-                pressureMeasurement: 'قياس الضغط',
+                sugarMeasurement: 'السكر',
+                pressureMeasurement: 'الضغط',
                 statusHighFull: 'حالة قياس {measurementLabel}: مرتفعة',
                 statusNormalFull: 'حالة قياس {measurementLabel}: طبيعية',
                 statusLowFull: 'حالة قياس {measurementLabel}: منخفضة',
@@ -1351,24 +1265,25 @@
             if (togglePharmacyDetailsBtn) {
                 togglePharmacyDetailsBtn.querySelector('span').textContent = pharmacyDetailsContent.classList.contains('hidden') ? translations[lang].togglePharmacyDetailsBtnCollapsed : translations[lang].togglePharmacyDetailsBtnExpanded;
             }
-            if (darkModeToggleBtn) {
-                updateDarkModeButtonText();
-            }
+            // Dark mode toggle button is now removed from index.html, so no need to update its text here
+            // if (darkModeToggleBtn) {
+            //     updateDarkModeButtonText();
+            // }
             if (languageToggleBtn) {
                 updateLanguageButtonText();
             }
 
             // Update dynamic content
             updateDisplayValues(); // To update status text on receipt
-            displayReceiptLog(); // To update log entries and chart
-            if (!helpModal.classList.contains('hidden')) { // If help modal is open, update its content
-                window.openHelpModal();
+            displayReceiptLog(); // To update log entries
+            if (appDefinitionModal && !appDefinitionModal.classList.contains('hidden')) { // If app definition modal is open, update its content
+                window.openAppDefinitionModal();
             }
             // Update ID card palette names
             for (const key in ID_CARD_PALETTES) {
                 const label = document.querySelector(`label[for="palette-${key}"]`);
                 if (label) {
-                    label.textContent = palette.name[lang]; // Use palette.name[lang]
+                    label.textContent = ID_CARD_PALETTES[key].name[lang]; // Use palette.name[lang]
                 }
             }
         }
@@ -1572,8 +1487,8 @@
                         #receiptLogModal { display: none !important; }
                         /* Hide app logo placeholder in print */
                         #appLogoPlaceholder { display: none !important; }
-                        /* Hide chart in print */
-                        #statusPieChart { display: none !important; }
+                        /* Hide chart in print - no longer needed as chart is removed */
+                        /* #statusPieChart { display: none !important; } */
 
 
                         /* Ensure language specific font and direction for print */
@@ -1668,8 +1583,9 @@ body.dark-mode .save-gaza-text {
             clonedElement.classList.remove('hidden'); // Ensure it's visible for capture
 
             // Hide decorative elements for cleaner image
-            const decorativeElements = clonedElement.querySelectorAll('.id-card-content::before, .id-card-content::after');
-            decorativeElements.forEach(el => el.style.display = 'none');
+            // Note: These are CSS pseudo-elements, direct removal here is not possible with querySelectorAll
+            // Instead, we ensure their styles are overridden or they are not rendered during html2canvas capture
+            // For now, assume they are handled by print styles or not affecting the image capture negatively.
             
             // Temporarily append to body to ensure it's rendered for html2canvas
             const tempContainer = document.createElement('div');
@@ -1857,18 +1773,15 @@ body.dark-mode .save-gaza-text {
             if (!palette) return;
 
             const root = document.documentElement;
-            const isDarkMode = document.body.classList.contains('dark-mode');
+            // Removed dark mode logic for ID card colors as dark mode feature is being removed from index.html
+            // const isDarkMode = document.body.classList.contains('dark-mode');
 
             // Apply to the ID card itself
             const idCardElement = document.getElementById('idCardContent');
             if (idCardElement) {
-                if (isDarkMode) {
-                    idCardElement.style.background = `linear-gradient(135deg, ${palette.dark.bgLight}, ${palette.dark.bgDark})`;
-                    idCardElement.style.setProperty('--bubble-color', palette.dark.bubble); // Use --bubble-color for both modes, set based on current mode
-                } else {
-                    idCardElement.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
-                    idCardElement.style.setProperty('--bubble-color', palette.light.bubble);
-                }
+                // Always apply light mode colors for ID card, as dark mode is being removed
+                idCardElement.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
+                idCardElement.style.setProperty('--bubble-color', palette.light.bubble);
             }
         }
 
@@ -1928,26 +1841,19 @@ body.dark-mode .save-gaza-text {
             closeModal(idCardModal);
         }
 
-        window.openHelpModal = function() {
-            // Set text content for help
-            helpTextPlaceholder.innerHTML = translations[currentLanguage].helpContent;
-            // Hide the image
-            if (helpImagePlaceholder) {
-                helpImagePlaceholder.style.display = 'none';
-            }
-            openModal(helpModal);
+        // Renamed from openHelpModal
+        window.openAppDefinitionModal = function() {
+            // Set text content for app definition
+            appDefinitionTextContent.innerHTML = translations[currentLanguage].appDefinitionContent;
+            openModal(appDefinitionModal);
             
-            // Adjust text color based on dark mode status
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            if (isDarkMode) {
-                helpTextPlaceholder.style.color = '#e2e8f0'; // White for dark mode
-            } else {
-                helpTextPlaceholder.style.color = '#333'; // Dark for light mode
-            }
+            // Adjust text color based on dark mode status (removed dark mode, so always light)
+            appDefinitionTextContent.style.color = '#333'; // Dark for light mode
         }
 
-        window.closeHelpModal = function() {
-            closeModal(helpModal);
+        // Renamed from closeHelpModal
+        window.closeAppDefinitionModal = function() {
+            closeModal(appDefinitionModal);
         }
 
         // Generic Message Modal Functions
@@ -1986,53 +1892,9 @@ body.dark-mode .save-gaza-text {
             closeModal(messageModal);
         }
 
-        // Dark Mode Toggle Function
-        function updateDarkModeButtonText() {
-            if (!darkModeToggleBtn) return;
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            darkModeToggleBtn.innerHTML = ''; // Clear existing content
-            const spanText = document.createElement('span');
-            const svgIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svgIcon.setAttribute('class', 'h-5 w-5 inline-block ml-2'); // Tailwind classes for size and margin
-            svgIcon.setAttribute('fill', 'none');
-            svgIcon.setAttribute('viewBox', '0 0 24 24');
-            svgIcon.setAttribute('stroke', 'currentColor');
-            svgIcon.setAttribute('stroke-width', '2');
+        // Dark Mode Toggle Function (Removed from index.html)
+        // function updateDarkModeButtonText() { ... }
 
-            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute('stroke-linecap', 'round');
-            path.setAttribute('stroke-linejoin', 'round');
-
-            if (isDarkMode) {
-                spanText.textContent = translations[currentLanguage].lightMode;
-                path.setAttribute('d', 'M12 3v1m0 16v1m9-9h1M3 12H2m15.325-7.757l-.707-.707M6.343 17.657l-.707-.707M16.95 16.95l.707.707M7.05 7.05l-.707-.707M8 12a4 4 0 118 0 4 4 0 01-8 0z'); // Sun icon path
-            } else {
-                spanText.textContent = translations[currentLanguage].darkMode;
-                path.setAttribute('d', 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9 9 0 008.354-5.646z'); // Moon icon path
-            }
-            svgIcon.appendChild(path);
-            darkModeToggleBtn.appendChild(svgIcon); // Append icon first (for RTL, icon on right)
-            darkModeToggleBtn.appendChild(spanText);
-        }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode); // Save preference
-
-            updateDarkModeButtonText();
-            // Update help modal text color after toggling dark mode
-            if (!helpModal.classList.contains('hidden')) { // Only update if modal is open
-                window.openHelpModal(); // Re-call to apply correct text color
-            }
-            // Reapply ID card colors based on new dark mode state
-            const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-            const data = storedData ? JSON.parse(storedData) : {};
-            const savedPaletteId = data.idCardPalette || 'blue';
-            applyIdCardColors(savedPaletteId);
-            // Re-render chart to update colors
-            displayReceiptLog();
-        }
 
         // Language Toggle Function
         function updateLanguageButtonText() {
@@ -2249,15 +2111,15 @@ body.dark-mode .save-gaza-text {
         window.openReceiptLogModal = function() {
             openModal(receiptLogModal);
             displayReceiptLog(); // Load and display all receipts initially
-            renderStatusPieChart(); // Render the chart when opening the log modal
+            // renderStatusPieChart(); // Removed call to render the chart
         }
 
         window.closeReceiptLogModal = function() {
             closeModal(receiptLogModal);
-            if (statusPieChartInstance) {
-                statusPieChartInstance.destroy(); // Destroy chart instance when closing modal
-                statusPieChartInstance = null;
-            }
+            // if (statusPieChartInstance) { // Removed chart instance destruction
+            //     statusPieChartInstance.destroy(); 
+            //     statusPieChartInstance = null;
+            // }
         }
 
         function displayReceiptLog() { // Removed filterQuery parameter
@@ -2268,15 +2130,15 @@ body.dark-mode .save-gaza-text {
             const sortedLog = [...log].sort((a, b) => b.timestamp.localeCompare(a.timestamp)); // Sort by timestamp descending
 
             if (sortedLog.length === 0) {
-                receiptLogList.innerHTML = `<p class="text-center text-gray-600 dark:text-gray-400">${translations[currentLanguage].noReceipts}</p>`;
+                receiptLogList.innerHTML = `<p class="text-center text-gray-600">${translations[currentLanguage].noReceipts}</p>`;
                 return;
             }
 
             sortedLog.forEach(receipt => {
                 const receiptItem = document.createElement('div');
-                // Apply white background for log items in dark mode
-                const itemBgClass = document.body.classList.contains('dark-mode') ? 'bg-white text-gray-800' : 'bg-gray-100';
-                const itemTextColorClass = document.body.classList.contains('dark-mode') ? 'text-gray-800' : 'text-gray-700';
+                // Removed dark mode classes as dark mode is being removed from index.html
+                const itemBgClass = 'bg-gray-100';
+                const itemTextColorClass = 'text-gray-700';
 
                 receiptItem.className = `receipt-log-item ${itemBgClass} p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4`;
                 receiptItem.innerHTML = `
@@ -2314,81 +2176,7 @@ body.dark-mode .save-gaza-text {
             });
         }
 
-        function renderStatusPieChart() {
-            const log = loadReceiptLog();
-            const statusCounts = {
-                high: 0,
-                normal: 0,
-                low: 0,
-                unknown: 0
-            };
-
-            log.forEach(receipt => {
-                const status = receipt.status.shortText;
-                if (status === translations.ar.statusHighShort || status === translations.en.statusHighShort) {
-                    statusCounts.high++;
-                } else if (status === translations.ar.statusNormalShort || status === translations.en.statusNormalShort) {
-                    statusCounts.normal++;
-                } else if (status === translations.ar.statusLowShort || status === translations.en.statusLowShort) {
-                    statusCounts.low++;
-                } else {
-                    statusCounts.unknown++;
-                }
-            });
-
-            const data = {
-                labels: [
-                    translations[currentLanguage].statusHighShort,
-                    translations[currentLanguage].statusNormalShort,
-                    translations[currentLanguage].statusLowShort,
-                    translations[currentLanguage].statusUnknownShort
-                ],
-                datasets: [{
-                    data: [statusCounts.high, statusCounts.normal, statusCounts.low, statusCounts.unknown],
-                    backgroundColor: [
-                        'rgba(239, 68, 68, 0.8)',   // Red for High
-                        'rgba(34, 197, 94, 0.8)',   // Green for Normal
-                        'rgba(59, 130, 246, 0.8)',  // Blue for Low
-                        'rgba(156, 163, 175, 0.8)'  // Gray for Unknown
-                    ],
-                    borderColor: [
-                        'rgba(239, 68, 68, 1)',
-                        'rgba(34, 197, 94, 1)',
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(156, 163, 175, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            };
-
-            const options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333', // Adjust legend color for dark mode
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: translations[currentLanguage].receiptLogModalTitle, // Use translated title
-                        color: document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333', // Adjust title color for dark mode
-                    }
-                }
-            };
-
-            if (statusPieChartInstance) {
-                statusPieChartInstance.destroy(); // Destroy existing chart instance
-            }
-
-            statusPieChartInstance = new Chart(statusPieChartCanvas, {
-                type: 'pie',
-                data: data,
-                options: options
-            });
-        }
+        // renderStatusPieChart function is removed
 
 
       
@@ -2444,10 +2232,9 @@ body.dark-mode .save-gaza-text {
             previewModal = document.getElementById('previewModal');
             modalReceiptContent = document.getElementById('modalReceiptContent');
 
-            showHelpBtn = document.getElementById('showHelpBtn');
-            helpModal = document.getElementById('helpModal');
-            helpTextPlaceholder = document.getElementById('helpTextPlaceholder');
-            helpImagePlaceholder = document.getElementById('helpImagePlaceholder');
+            showAppDefinitionBtn = document.getElementById('showAppDefinitionBtn'); // Renamed
+            appDefinitionModal = document.getElementById('appDefinitionModal'); // Renamed
+            appDefinitionTextContent = document.getElementById('appDefinitionTextContent'); // Renamed
 
             createIdCardBtn = document.getElementById('createIdCardBtn');
             idCardModal = document.getElementById('idCardModal');
@@ -2464,14 +2251,15 @@ body.dark-mode .save-gaza-text {
             messageModalTitle = document.getElementById('messageModalTitle');
             messageModalText = document.getElementById('messageModalText');
 
-            darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); 
+            // darkModeToggleBtn is removed from index.html
+            // darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); 
             languageToggleBtn = document.getElementById('languageToggleBtn');
             
             showPrintLogBtn = document.getElementById('showPrintLogBtn'); 
             receiptLogModal = document.getElementById('receiptLogModal'); 
             receiptLogList = document.getElementById('receiptLogList'); 
             clearLogBtn = document.getElementById('clearLogBtn'); 
-            statusPieChartCanvas = document.getElementById('statusPieChart'); // Assign chart canvas
+            // statusPieChartCanvas is removed
             
             // Ensure the generic modal's button container exists for `openMessageModal`
             const modalButtonContainer = messageModal.querySelector('.text-center');
@@ -2530,15 +2318,14 @@ body.dark-mode .save-gaza-text {
             }
 
 
-            // Load dark mode preference from localStorage
-            const savedDarkMode = localStorage.getItem('darkMode');
-            if (savedDarkMode === 'true') {
-                document.body.classList.add('dark-mode');
-            }
-            // Call toggleDarkMode once to set initial button state (text and icon)
-            if (darkModeToggleBtn) { // Ensure button exists before calling
-                updateDarkModeButtonText(); // Use new function for button text/icon
-            }
+            // Dark mode preference is no longer handled in index.html
+            // const savedDarkMode = localStorage.getItem('darkMode');
+            // if (savedDarkMode === 'true') {
+            //     document.body.classList.add('dark-mode');
+            // }
+            // if (darkModeToggleBtn) { 
+            //     updateDarkModeButtonText(); 
+            // }
             if (languageToggleBtn) {
                 updateLanguageButtonText();
             }
@@ -2636,13 +2423,17 @@ body.dark-mode .save-gaza-text {
                 });
             }
             if (previewAndPrintBtn) previewAndPrintBtn.addEventListener('click', () => { console.log("Preview and Print button clicked."); window.openPreviewModal(); });
-            if (showHelpBtn) showHelpBtn.addEventListener('click', () => { console.log("Show Help button clicked."); window.openHelpModal(); });
+            if (showAppDefinitionBtn) showAppDefinitionBtn.addEventListener('click', () => { console.log("Show App Definition button clicked."); window.openAppDefinitionModal(); }); // Renamed
             if (createIdCardBtn) createIdCardBtn.addEventListener('click', () => { console.log("Create ID Card button clicked."); window.openIdCardModal(); });
-            if (darkModeToggleBtn) darkModeToggleBtn.addEventListener('click', () => { console.log("Dark Mode Toggle button clicked."); toggleDarkMode(); }); // Add event listener for dark mode
-            if (languageToggleBtn) languageToggleBtn.addEventListener('click', () => { 
-                console.log("Language Toggle button clicked."); 
-                setLanguage(currentLanguage === 'ar' ? 'en' : 'ar'); 
-            });
+            // Removed dark mode toggle button event listener
+            // if (darkModeToggleBtn) darkModeToggleBtn.addEventListener('click', () => { console.log("Dark Mode Toggle button clicked."); toggleDarkMode(); }); 
+            if (languageToggleBtn) {
+                console.log("Language Toggle button found.");
+                languageToggleBtn.addEventListener('click', () => { 
+                    console.log("Language Toggle button clicked."); 
+                    setLanguage(currentLanguage === 'ar' ? 'en' : 'ar'); 
+                });
+            }
             
             // New event listeners for print log
             if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); window.openReceiptLogModal(); });
