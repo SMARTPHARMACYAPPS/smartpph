@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Include html2canvas library for image generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Chart.js library is no longer needed -->
+    <!-- Chart.js library is no longer needed, so it's removed -->
     <style>
         body {
             font-family: 'Cairo', sans-serif;
@@ -289,6 +289,15 @@
     height: 40px;
     object-fit: contain;
     margin-left: 10px; /* مسافة على اليسار في RTL */
+}
+/* New style for the main app logo next to the title */
+.app-logo-main {
+    width: 60px; /* Adjust size as needed */
+    height: 60px;
+    object-fit: cover; /* Crop to fit circle */
+    border-radius: 50%; /* Make it circular */
+    border: 2px solid #2563eb; /* Blue border */
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.5); /* Subtle glow */
 }
         /* ID Card Modal Styling */
         .id-card-content {
@@ -633,9 +642,10 @@
                 </svg>
                 انقذ غزة
             </a>
-       <h1 data-key="appName">
-    SMART PPH
-</h1>
+       <h1 data-key="appName" class="flex items-center justify-center">
+            <img id="appLogo" src="pphicon.png" alt="App Logo" class="app-logo-main rounded-full mr-2 hidden" onerror="this.classList.add('hidden');">
+            SMART PPH
+        </h1>
             <p id="welcomeMessage" class="welcome-message" data-key="welcomeMessage">مرحباً</p>
             <img id="welcomeLogo" src="https://placehold.co/60x60/d1d5db/9ca3af?text=شعار" alt="Pharmacy Logo" class="pharmacy-logo-small hidden" onerror="this.classList.add('hidden');">
             <div id="live-clock" class="clock-container text-lg font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg"></div>
@@ -678,54 +688,15 @@
             <!-- معلومات الصيدلية -->
             <div class="mb-6 border-b border-gray-200 pb-4">
                 <h3 class="text-xl font-bold text-gray-800 mb-3" data-key="pharmacyDataTitle">بيانات الصيدلية</h3>
-                <!-- زر طي/فك طي القائمة -->
-                <button id="togglePharmacyDetailsBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg mb-3">
+                <!-- زر فتح نافذة تعديل بيانات الصيدلية -->
+                <button id="openPharmacyDetailsModalBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg mb-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     <span data-key="togglePharmacyDetailsBtn">تعديل بيانات الصيدلية</span>
                 </button>
                 
-                <div id="pharmacyDetailsContent" class="hidden">
-                    <div class="mb-3">
-                        <label for="pharmacyNameInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="pharmacyNameLabel">اسم الصيدلية:</label>
-                        <input type="text" id="pharmacyNameInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: صيدليات الأمل" data-key="pharmacyNamePlaceholder">
-                    </div>
-                    <div class="mb-3">
-                        <label for="sloganInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="sloganLabel">الشعار/الرسالة:</label>
-                        <input type="text" id="sloganInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: اختيارك الأفضل - فرع كذا" data-key="sloganPlaceholder">
-                    </div>
-                    <div class="mb-3">
-                        <label for="addressInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="addressLabel">العنوان:</label>
-                        <input type="text" id="addressInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: شارع رئيسي، مبنى رقم 10" data-key="addressPlaceholder">
-                    </div>
-                    <div class="mb-3">
-                        <label for="phoneInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="phoneLabel">رقم الهاتف:</label>
-                        <input type="tel" id="phoneInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 01012345678" data-key="phonePlaceholder">
-                    </div>
-                    <!-- حقل جديد لرابط الشعار -->
-                    <div class="mb-3">
-                        <label for="logoUrlInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoUrlLabel">رابط الشعار (URL):</label>
-                        <input type="url" id="logoUrlInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: https://example.com/logo.png" data-key="logoUrlPlaceholder">
-                    </div>
-                    <div class="mb-4">
-                        <label for="logoFileInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoFileLabel">رفع الشعار من جهازك (سيتم حفظه محليًا):</label>
-                        <input type="file" id="logoFileInput" accept="image/*" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <p id="logoUploadStatus" class="mt-1 text-xs text-gray-500" data-key="logoUploadStatus">سيتم حفظ الشعار في متصفحك.</p>
-                        <div class="mt-2">
-                            <input type="checkbox" id="removeLogoCheckbox" class="ml-2">
-                            <label for="removeLogoCheckbox" class="text-gray-700 text-sm" data-key="removeLogoCheckboxLabel">لا أريد استخدام لوجو</label>
-                        </div>
-                    </div>
-
-                    <button id="savePharmacyDetailsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
-                        <span data-key="savePharmacyDetailsBtn">حفظ بيانات الصيدلية</span>
-                    </button>
-                    <div id="saveStatusMessage" class="mt-2 text-center text-sm font-semibold"></div>
-                </div>
+                <!-- تم إزالة div pharmacyDetailsContent من هنا ونقله إلى مودال جديد -->
             </div>
 
             <div class="flex justify-between items-center mb-4 mt-6">
@@ -788,12 +759,12 @@
                     <span data-key="showPrintLogBtn">سجل الطباعة</span>
                 </button>
 
-                <!-- زر تعريف بالتطبيق (كان زر المساعدة) -->
-                <button id="showAppDefinitionBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
+                <!-- زر المساعدة (تم تغيير اسمه إلى تعريف بالتطبيق) -->
+                <button id="showHelpBtn" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span data-key="appDefinitionBtn">تعريف بالتطبيق</span>
+                    <span data-key="showHelpBtn">تعريف بالتطبيق</span>
                 </button>
             </div>
         </div>
@@ -870,6 +841,54 @@
             </div>
         </div>
 
+        <!-- New Modal for Pharmacy Details -->
+        <div id="pharmacyDetailsModal" class="modal hidden">
+            <div class="modal-content">
+                <button class="modal-close-button" onclick="window.closePharmacyDetailsModal()">×</button>
+                <div class="modal-title" data-key="pharmacyDataTitle">بيانات الصيدلية</div>
+                <div id="pharmacyDetailsContentInModal">
+                    <div class="mb-3">
+                        <label for="pharmacyNameInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="pharmacyNameLabel">اسم الصيدلية:</label>
+                        <input type="text" id="pharmacyNameInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: صيدليات الأمل" data-key="pharmacyNamePlaceholder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sloganInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="sloganLabel">الشعار/الرسالة:</label>
+                        <input type="text" id="sloganInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: اختيارك الأفضل - فرع كذا" data-key="sloganPlaceholder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="addressInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="addressLabel">العنوان:</label>
+                        <input type="text" id="addressInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: شارع رئيسي، مبنى رقم 10" data-key="addressPlaceholder">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="phoneLabel">رقم الهاتف:</label>
+                        <input type="tel" id="phoneInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: 01012345678" data-key="phonePlaceholder">
+                    </div>
+                    <!-- حقل جديد لرابط الشعار -->
+                    <div class="mb-3">
+                        <label for="logoUrlInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoUrlLabel">رابط الشعار (URL):</label>
+                        <input type="url" id="logoUrlInput" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="مثال: https://example.com/logo.png" data-key="logoUrlPlaceholder">
+                    </div>
+                    <div class="mb-4">
+                        <label for="logoFileInput" class="block text-gray-700 text-sm font-bold mb-2" data-key="logoFileLabel">رفع الشعار من جهازك (سيتم حفظه محليًا):</label>
+                        <input type="file" id="logoFileInput" accept="image/*" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p id="logoUploadStatus" class="mt-1 text-xs text-gray-500" data-key="logoUploadStatus">سيتم حفظ الشعار في متصفحك.</p>
+                        <div class="mt-2">
+                            <input type="checkbox" id="removeLogoCheckbox" class="ml-2">
+                            <label for="removeLogoCheckbox" class="text-gray-700 text-sm" data-key="removeLogoCheckboxLabel">لا أريد استخدام لوجو</label>
+                        </div>
+                    </div>
+
+                    <button id="savePharmacyDetailsBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        <span data-key="savePharmacyDetailsBtn">حفظ بيانات الصيدلية</span>
+                    </button>
+                    <div id="saveStatusMessage" class="mt-2 text-center text-sm font-semibold"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal لبطاقة التعريف -->
         <div id="idCardModal" class="modal hidden">
             <div class="modal-content flex flex-col items-center"> <!-- Added flex and items-center for centering children -->
@@ -903,18 +922,18 @@
             </div>
         </div>
 
-        <!-- Modal لتعريف بالتطبيق (كان مودال المساعدة) -->
-        <div id="appDefinitionModal" class="modal hidden">
+        <!-- Modal لتعريف بالتطبيق (كان للمساعدة) -->
+        <div id="helpModal" class="modal hidden">
             <div class="modal-content">
-                <button class="modal-close-button" onclick="window.closeAppDefinitionModal()">×</button>
-                <div class="modal-title" data-key="appDefinitionModalTitle">تعريف بالتطبيق</div>
-                <div class="text-right mb-4 prose prose-indigo max-w-none">
-                    <p id="appDefinitionTextContent" class="text-gray-700 mb-4 leading-relaxed">
+                <button class="modal-close-button" onclick="window.closeHelpModal()">×</button>
+                <div class="modal-title" data-key="helpModalTitle">تعريف بالتطبيق</div>
+                <div class="text-right mb-4 prose max-w-none" style="color: #333;"> <!-- Added text-right and prose for better formatting -->
+                    <p id="helpTextPlaceholder" class="text-gray-700 mb-4 leading-relaxed">
                         <!-- معلومات التطبيق ستكون هنا -->
                     </p>
                 </div>
                 <div class="text-center mt-4">
-                    <button onclick="window.closeAppDefinitionModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="backBtn">رجوع</button>
+                    <button onclick="window.closeHelpModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg" data-key="backBtn">رجوع</button>
                 </div>
             </div>
         </div>
@@ -924,7 +943,7 @@
             <div class="modal-content max-w-2xl w-full">
                 <button class="modal-close-button" onclick="window.closeReceiptLogModal()">×</button>
                 <div class="modal-title" data-key="receiptLogModalTitle">سجل الطباعة</div>
-                <!-- Pie Chart Canvas Removed -->
+                <!-- Removed Pie Chart Canvas -->
                 <div class="mb-4 flex flex-col md:flex-row gap-2 items-center">
                     <button id="clearLogBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex-shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -970,6 +989,7 @@
         const LANGUAGE_KEY = 'app_language'; // مفتاح جديد للغة
 
         // --- عناصر الواجهة (تم نقل تعريفها إلى داخل window.onload) ---
+        // تم إزالة تعريفات المتغيرات التي ستصبح محلية داخل window.onload
         let measurementTypeRadios;
         let sugarInputContainer;
         let pressureInputContainer;
@@ -1001,8 +1021,9 @@
         let removeLogoCheckbox; // New element for remove logo checkbox
         let savePharmacyDetailsBtn;
         let saveStatusMessage;
-        let pharmacyDetailsContent;
-        let togglePharmacyDetailsBtn;
+        let pharmacyDetailsContentInModal; // Changed from pharmacyDetailsContent
+        let openPharmacyDetailsModalBtn; // New button for opening modal
+
         let idCardColorOptions; // New element for ID card color options
 
         let receiptPharmacyName;
@@ -1010,14 +1031,18 @@
         let receiptAddress;
         let receiptPhone;
         let receiptLogo;
+        let appLogo; // New variable for the main app logo
 
         let previewAndPrintBtn;
         let previewModal;
         let modalReceiptContent;
 
-        let showAppDefinitionBtn; // Renamed from showHelpBtn
-        let appDefinitionModal; // Renamed from helpModal
-        let appDefinitionTextContent; // Renamed from helpTextPlaceholder
+        let pharmacyDetailsModal; // New modal for pharmacy details
+
+        let showHelpBtn;
+        let helpModal;
+        let helpTextPlaceholder;
+        let helpImagePlaceholder; // Still needed for removal logic
 
         let createIdCardBtn;
         let idCardModal;
@@ -1038,12 +1063,8 @@
         let darkModeToggleBtn; // New element for dark mode toggle
         let languageToggleBtn; // New element for language toggle
 
-        let showPrintLogBtn; // New element for print log button
         let receiptLogModal; // New element for print log modal
         let receiptLogList; // New element for print log list container
-        let clearLogBtn; // New element for clear log button
-        // statusPieChartCanvas and statusPieChartInstance are removed
-
        
         // Predefined ID card color palettes
         const ID_CARD_PALETTES = {
@@ -1108,7 +1129,7 @@
                 createIdCardBtn: 'صناعة بطاقة تعريف للصيدلية',
                 appSettingsTitle: 'إعدادات التطبيق',
                 pharmacyDataTitle: 'بيانات الصيدلية',
-                togglePharmacyDetailsBtn: 'تعديل بيانات الصيدلية',
+                togglePharmacyDetailsBtn: 'تعديل بيانات الصيدلية', // This key is now used for the modal open button
                 pharmacyNameLabel: 'اسم الصيدلية:',
                 pharmacyNamePlaceholder: 'مثال: صيدليات الأمل',
                 sloganLabel: 'الشعار/الرسالة:',
@@ -1141,47 +1162,45 @@
                 statusLow: 'منخفض',
                 previewAndPrintBtn: 'معاينة الإيصال وطباعته',
                 showPrintLogBtn: 'سجل الطباعة',
-                appDefinitionBtn: 'تعريف بالتطبيق', // Renamed from showHelpBtn
+                showHelpBtn: 'تعريف بالتطبيق', // Changed text
                 notesLabelReceipt: 'ملاحظات:',
                 thankYouMessage: 'شكراً لزيارتكم',
                 previewModalTitle: 'معاينة الإيصال',
                 printReceiptBtn: 'طباعة الإيصال',
                 idCardModalTitle: 'بطاقة تعريف الصيدلية',
                 downloadIdCardBtn: 'تنزيل الكارت كصورة',
-                appDefinitionModalTitle: 'تعريف بالتطبيق', // Renamed from helpModalTitle
-                appDefinitionContent: `
-                    <h3 class="text-2xl font-bold text-blue-700 mb-4">مرحباً بك في تطبيق SMART PPH!</h3>
-                    <p class="mb-3">
-                        هذا التطبيق مصمم لمساعدتك في **تسجيل وطباعة إيصالات قياس السكر والضغط** بسهولة وفعالية.
-                        كما يتيح لك **إدارة بطاقات الخصم** وإنشاء **بطاقات تعريف احترافية لصيدليتك**.
-                    </p>
+                helpModalTitle: 'تعريف بالتطبيق', // Changed text
+                helpContent: `
+                    <h3 class="text-xl font-bold mb-3 text-center">مرحبًا بك في تطبيق SMART PPH!</h3>
+                    <p class="mb-4">تطبيق SMART PPH هو أداة شاملة مصممة لتبسيط إدارة صيدليتك، بدءًا من تسجيل القياسات الصحية للعملاء وحتى إدارة الخصومات وإنشاء بطاقات تعريف احترافية.</p>
                     
-                    <h4 class="text-xl font-semibold text-gray-800 mb-3">الميزات الرئيسية:</h4>
-                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
-                        <li>**تسجيل القياسات:** أدخل قيم السكر أو الضغط، وسيتم تحديد الحالة (مرتفع، طبيعي، منخفض) تلقائيًا مع عرض أيقونات توضيحية.</li>
-                        <li>**الملاحظات:** أضف أي ملاحظات إضافية حول القياس لتظهر في الإيصال.</li>
-                        <li>**تخصيص الصيدلية:** قم بحفظ اسم صيدليتك، شعارها، عنوانها، ورقم هاتفها لتظهر على جميع الإيصالات وبطاقات التعريف.</li>
-                        <li>**سجل الطباعة:** تتبع جميع الإيصالات المطبوعة بدقة، مع إمكانية إعادة طباعة أي إيصال كنسخة أو حذفه من السجل.</li>
-                        <li>**إدارة الخصومات:** أنشئ بطاقات خصم فريدة صالحة للاستخدام مرة واحدة، مع إمكانية تحديد تاريخ انتهاء الصلاحية وتتبع حالة الاستخدام.</li>
-                        <li>**بطاقة تعريف الصيدلية:** أنشئ بطاقة تعريف أنيقة واحترافية لصيدليتك بألوان قابلة للتخصيص وشعارك الخاص.</li>
-                        <li>**قاعدة بيانات للعملاء:** قم بانشاء قاعدة بيانات لعملائك وتعديلها وتنزيلها واستيرادها .</li>
-                        <li>**دعم اللغة العربية:** يدعم التطبيق اللغة العربية لتجربة مستخدم مرنة.</li>
-                        <li>**قياس الوزن الذكي:** حساب السعرات مع الوجبات والتمارين المناسبة.</li>
+                    <h4 class="text-lg font-bold mb-2">المميزات الرئيسية:</h4>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>**تسجيل القياسات الصحية:** سجل قياسات السكر والضغط بدقة، مع تحديد الحالة (مرتفع، طبيعي، منخفض) تلقائيًا.</li>
+                        <li>**طباعة الإيصالات الاحترافية:** قم بإنشاء وطباعة إيصالات قياس أنيقة تتضمن بيانات صيدليتك وشعارها والملاحظات.</li>
+                        <li>**سجل الطباعة:** تتبع جميع الإيصالات المطبوعة بسهولة، مع إمكانية إعادة طباعة أي إيصال كنسخة.</li>
+                        <li>**إدارة بطاقات الخصم:** أنشئ بطاقات خصم فريدة صالحة للاستخدام مرة واحدة، وقم بتتبع حالتها وتواريخ انتهائها.</li>
+                        <li>**قاعدة بيانات العملاء:** (قريبًا) ميزة لإدارة بيانات العملاء وتاريخهم الصحي.</li>
+                        <li>**لياقة الوزن:** (قريبًا) أداة لمساعدة العملاء في تتبع لياقتهم البدنية.</li>
+                        <li>**تخصيص كامل:** قم بتخصيص معلومات صيدليتك، بما في ذلك الاسم، الشعار، العنوان، ورقم الهاتف.</li>
+                        <li>**واجهة سهلة الاستخدام:** تصميم بديهي وواضح لتجربة مستخدم سلسة.</li>
                     </ul>
 
-                    <h4 class="text-xl font-semibold text-gray-800 mb-3">كيفية الطباعة للحصول على أفضل النتائج:</h4>
-                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
-                        <li>**الطابعة:** تأكد من أن طابعتك متصلة بالجهاز وجاهزة للطباعة. يفضل استخدام طابعات الإيصالات الحرارية للحصول على أفضل جودة وحجم.</li>
-                        <li>**مقاس الورق:** الإيصالات مصممة لمقاس ورق 72 مم. في نافذة الطباعة (Print Dialog) بمتصفحك، قد تحتاج إلى تعديل "مقاس الورق" (Paper Size) يدوياً ليناسب هذا الحجم.</li>
-                        <li>**رسومات الخلفية:** لضمان ظهور الألوان والخطوط الفاصلة في الإيصال، تأكد من تفعيل خيار "رسومات الخلفية" (Background Graphics) أو "طباعة ألوان وخلفيات الخلفية" (Print Background Colors and Images) في إعدادات الطباعة بمتصفحك (عادةً ضمن "المزيد من الإعدادات" أو "More Settings").</li>
-                        <li>**اتجاه الطباعة للخصومات:** عند طباعة بطاقات الخصم، يجب جعل اتجاه الطباعة "أفقي" (Landscape) للحصول على التنسيق الصحيح.</li>
+                    <h4 class="text-lg font-bold mb-2">تعليمات الطباعة:</h4>
+                    <p class="mb-2">للحصول على أفضل نتائج طباعة للإيصالات:</p>
+                    <ul class="list-disc list-inside mb-4 space-y-1">
+                        <li>**الطابعة:** يفضل استخدام طابعات الإيصالات الحرارية (Thermal Receipt Printers) للحصول على أفضل جودة وحجم.</li>
+                        <li>**إعدادات المتصفح:** عند ظهور نافذة الطباعة في متصفحك، تأكد من تفعيل الخيارات التالية (قد تختلف التسميات حسب المتصفح):
+                            <ul class="list-circle list-inside ml-4 mt-1">
+                                <li>"رسومات الخلفية" (Background Graphics)</li>
+                                <li>"طباعة ألوان وخلفيات الخلفية" (Print Background Colors and Images)</li>
+                            </ul>
+                        </li>
+                        <li>**مقاس الورق:** تأكد من ضبط مقاس الورق على 72 مم (أو ما يعادله لطابعتك الحرارية). إذا لم يكن متوفرًا، قد تحتاج إلى اختيار "المزيد من الإعدادات" (More Settings) وتعديل المقاس يدويًا.</li>
+                        <li>**اتجاه الطباعة للخصومات:** عند طباعة بطاقات الخصم، تأكد من ضبط اتجاه الطباعة على "أفقي" (Landscape) للحصول على التنسيق الصحيح للبطاقة.</li>
                     </ul>
 
-                    <h4 class="text-xl font-semibold text-gray-800 mb-3">نصائح إضافية:</h4>
-                    <ul class="list-disc list-inside text-right mb-4 leading-loose">
-                        <li>**حفظ البيانات:** يتم حفظ جميع بيانات الصيدلية والإيصالات والخصومات محليًا في متصفحك. هذا يعني أن بياناتك آمنة ولا يتم رفعها إلى أي خادم خارجي.</li>
-                        <li>**الشعار:** إذا كنت تستخدم شعارًا من ملف محلي، فسيتم تحويله وحفظه في متصفحك أيضًا.</li>
-                    </ul>
+                    <p class="text-center mt-4 text-sm italic">نحن نسعى دائمًا لتحسين تجربتك. لأي استفسارات أو اقتراحات، لا تتردد في التواصل معنا.</p>
                 `,
                 backBtn: 'رجوع',
                 receiptLogModalTitle: 'سجل الطباعة',
@@ -1262,22 +1281,22 @@
             });
 
             // Special handling for buttons with icons where text is inside a span
-            if (togglePharmacyDetailsBtn) {
-                togglePharmacyDetailsBtn.querySelector('span').textContent = pharmacyDetailsContent.classList.contains('hidden') ? translations[lang].togglePharmacyDetailsBtnCollapsed : translations[lang].togglePharmacyDetailsBtnExpanded;
+            // The togglePharmacyDetailsBtn is now openPharmacyDetailsModalBtn and doesn't toggle content visibility
+            if (openPharmacyDetailsModalBtn) {
+                openPharmacyDetailsModalBtn.querySelector('span').textContent = translations[lang].togglePharmacyDetailsBtn;
             }
-            // Dark mode toggle button is now removed from index.html, so no need to update its text here
-            // if (darkModeToggleBtn) {
-            //     updateDarkModeButtonText();
-            // }
+            if (darkModeToggleBtn) {
+                // updateDarkModeButtonText(); // Removed as per user request
+            }
             if (languageToggleBtn) {
                 updateLanguageButtonText();
             }
 
             // Update dynamic content
             updateDisplayValues(); // To update status text on receipt
-            displayReceiptLog(); // To update log entries
-            if (appDefinitionModal && !appDefinitionModal.classList.contains('hidden')) { // If app definition modal is open, update its content
-                window.openAppDefinitionModal();
+            displayReceiptLog(); // To update log entries (chart is removed)
+            if (!helpModal.classList.contains('hidden')) { // If help modal is open, update its content
+                window.openHelpModal();
             }
             // Update ID card palette names
             for (const key in ID_CARD_PALETTES) {
@@ -1486,9 +1505,9 @@
                         /* Ensure print log modal is not printable */
                         #receiptLogModal { display: none !important; }
                         /* Hide app logo placeholder in print */
-                        #appLogoPlaceholder { display: none !important; }
-                        /* Hide chart in print - no longer needed as chart is removed */
-                        /* #statusPieChart { display: none !important; } */
+                        .app-logo { display: none !important; }
+                        /* Hide main app logo in print */
+                        .app-logo-main { display: none !important; }
 
 
                         /* Ensure language specific font and direction for print */
@@ -1583,9 +1602,8 @@ body.dark-mode .save-gaza-text {
             clonedElement.classList.remove('hidden'); // Ensure it's visible for capture
 
             // Hide decorative elements for cleaner image
-            // Note: These are CSS pseudo-elements, direct removal here is not possible with querySelectorAll
-            // Instead, we ensure their styles are overridden or they are not rendered during html2canvas capture
-            // For now, assume they are handled by print styles or not affecting the image capture negatively.
+            const decorativeElements = clonedElement.querySelectorAll('.id-card-content::before, .id-card-content::after');
+            decorativeElements.forEach(el => el.style.display = 'none');
             
             // Temporarily append to body to ensure it's rendered for html2canvas
             const tempContainer = document.createElement('div');
@@ -1674,9 +1692,8 @@ body.dark-mode .save-gaza-text {
                 saveStatusMessage.textContent = translations[currentLanguage].saveSuccess;
                 saveStatusMessage.className = 'mt-2 text-center text-sm font-semibold text-green-600';
                 
-                // Collapse pharmacy details section after successful save
-                pharmacyDetailsContent.classList.add('hidden');
-                togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnCollapsed;
+                // Close the pharmacy details modal after successful save
+                window.closePharmacyDetailsModal();
 
                 // Reload data to update all displays immediately
                 loadPharmacyDetails();
@@ -1752,6 +1769,12 @@ body.dark-mode .save-gaza-text {
                 cardAddress.textContent = data.address || '';
                 cardPhone.textContent = data.phone || '';
 
+                // Update main app logo
+                if (appLogo) { // Check if appLogo element exists
+                    appLogo.src = "pphicon.png"; // Always use pphicon.png for the main app logo
+                    appLogo.classList.remove('hidden'); // Ensure it's visible
+                }
+
                 // Apply ID card colors
                 const savedPaletteId = data.idCardPalette || 'blue'; // Default to blue
                 applyIdCardColors(savedPaletteId);
@@ -1773,15 +1796,18 @@ body.dark-mode .save-gaza-text {
             if (!palette) return;
 
             const root = document.documentElement;
-            // Removed dark mode logic for ID card colors as dark mode feature is being removed from index.html
-            // const isDarkMode = document.body.classList.contains('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
 
             // Apply to the ID card itself
             const idCardElement = document.getElementById('idCardContent');
             if (idCardElement) {
-                // Always apply light mode colors for ID card, as dark mode is being removed
-                idCardElement.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
-                idCardElement.style.setProperty('--bubble-color', palette.light.bubble);
+                if (isDarkMode) {
+                    idCardElement.style.background = `linear-gradient(135deg, ${palette.dark.bgLight}, ${palette.dark.bgDark})`;
+                    idCardElement.style.setProperty('--bubble-color', palette.dark.bubble); // Use --bubble-color for both modes, set based on current mode
+                } else {
+                    idCardElement.style.background = `linear-gradient(135deg, ${palette.light.bgLight}, ${palette.light.bgDark})`;
+                    idCardElement.style.setProperty('--bubble-color', palette.light.bubble);
+                }
             }
         }
 
@@ -1823,6 +1849,21 @@ body.dark-mode .save-gaza-text {
             modalReceiptContent.innerHTML = ''; // Clear content when closing
         }
 
+        window.openPharmacyDetailsModal = function() {
+            // Load current pharmacy details into the modal's input fields
+            loadPharmacyDetails(); 
+            openModal(pharmacyDetailsModal);
+        }
+
+        window.closePharmacyDetailsModal = function() {
+            closeModal(pharmacyDetailsModal);
+            // Reset save status message when closing
+            if (saveStatusMessage) {
+                saveStatusMessage.textContent = '';
+                saveStatusMessage.className = 'mt-2 text-center text-sm font-semibold';
+            }
+        }
+
         window.openIdCardModal = function() {
             updateDateTime(); // Update clock on ID card
             openModal(idCardModal);
@@ -1841,19 +1882,26 @@ body.dark-mode .save-gaza-text {
             closeModal(idCardModal);
         }
 
-        // Renamed from openHelpModal
-        window.openAppDefinitionModal = function() {
-            // Set text content for app definition
-            appDefinitionTextContent.innerHTML = translations[currentLanguage].appDefinitionContent;
-            openModal(appDefinitionModal);
+        window.openHelpModal = function() {
+            // Set text content for help
+            helpTextPlaceholder.innerHTML = translations[currentLanguage].helpContent;
+            // Hide the image (if it was ever used)
+            if (helpImagePlaceholder) { // This element might not exist, so check first
+                helpImagePlaceholder.style.display = 'none';
+            }
+            openModal(helpModal);
             
-            // Adjust text color based on dark mode status (removed dark mode, so always light)
-            appDefinitionTextContent.style.color = '#333'; // Dark for light mode
+            // Adjust text color based on dark mode status (removed as dark mode is removed)
+            // const isDarkMode = document.body.classList.contains('dark-mode');
+            // if (isDarkMode) {
+            //     helpTextPlaceholder.style.color = '#e2e8f0'; // White for dark mode
+            // } else {
+            //     helpTextPlaceholder.style.color = '#333'; // Dark for light mode
+            // }
         }
 
-        // Renamed from closeHelpModal
-        window.closeAppDefinitionModal = function() {
-            closeModal(appDefinitionModal);
+        window.closeHelpModal = function() {
+            closeModal(helpModal);
         }
 
         // Generic Message Modal Functions
@@ -1892,8 +1940,8 @@ body.dark-mode .save-gaza-text {
             closeModal(messageModal);
         }
 
-        // Dark Mode Toggle Function (Removed from index.html)
-        // function updateDarkModeButtonText() { ... }
+        // Dark Mode Toggle Function (Removed as per user request)
+        // function updateDarkModeButtonText() { /* ... */ }
 
 
         // Language Toggle Function
@@ -2041,7 +2089,7 @@ body.dark-mode .save-gaza-text {
             } else {
                 document.getElementById('pressure').checked = true;
                 pressureValueHighInput.value = receiptToReprint.measurement.pressureHigh;
-                pressureValueLowInput.value = receiptToReprint.measurement.pressureLow;
+                pressureValueLowInput.value = '';
                 sugarValueInput.value = '';
             }
             notesInput.value = receiptToReprint.notes;
@@ -2111,15 +2159,12 @@ body.dark-mode .save-gaza-text {
         window.openReceiptLogModal = function() {
             openModal(receiptLogModal);
             displayReceiptLog(); // Load and display all receipts initially
-            // renderStatusPieChart(); // Removed call to render the chart
+            // Removed call to renderStatusPieChart() as the chart is removed
         }
 
         window.closeReceiptLogModal = function() {
             closeModal(receiptLogModal);
-            // if (statusPieChartInstance) { // Removed chart instance destruction
-            //     statusPieChartInstance.destroy(); 
-            //     statusPieChartInstance = null;
-            // }
+            // Removed chart instance destruction as the chart is removed
         }
 
         function displayReceiptLog() { // Removed filterQuery parameter
@@ -2136,8 +2181,8 @@ body.dark-mode .save-gaza-text {
 
             sortedLog.forEach(receipt => {
                 const receiptItem = document.createElement('div');
-                // Removed dark mode classes as dark mode is being removed from index.html
-                const itemBgClass = 'bg-gray-100';
+                // Apply white background for log items
+                const itemBgClass = 'bg-white text-gray-800'; // Always white background for receipt log items
                 const itemTextColorClass = 'text-gray-700';
 
                 receiptItem.className = `receipt-log-item ${itemBgClass} p-4 rounded-lg shadow-md flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0 md:space-x-4`;
@@ -2176,9 +2221,7 @@ body.dark-mode .save-gaza-text {
             });
         }
 
-        // renderStatusPieChart function is removed
-
-
+        // Removed renderStatusPieChart() function
       
         // --- التهيئة الأولية ---
         window.onload = async function() {
@@ -2217,9 +2260,9 @@ body.dark-mode .save-gaza-text {
             removeLogoCheckbox = document.getElementById('removeLogoCheckbox'); // Get the new checkbox
             savePharmacyDetailsBtn = document.getElementById('savePharmacyDetailsBtn');
             saveStatusMessage = document.getElementById('saveStatusMessage');
-            pharmacyDetailsContent = document.getElementById('pharmacyDetailsContent');
-            togglePharmacyDetailsBtn = document.getElementById('togglePharmacyDetailsBtn');
-            // idCardColorOptions is now inside idCardModal
+            pharmacyDetailsContentInModal = document.getElementById('pharmacyDetailsContentInModal'); // New ID for content inside modal
+            openPharmacyDetailsModalBtn = document.getElementById('openPharmacyDetailsModalBtn'); // New button variable
+
             idCardColorOptions = document.getElementById('idCardColorOptions'); 
 
             receiptPharmacyName = document.getElementById('receiptPharmacyName');
@@ -2227,14 +2270,18 @@ body.dark-mode .save-gaza-text {
             receiptAddress = document.getElementById('receiptAddress');
             receiptPhone = document.getElementById('receiptPhone');
             receiptLogo = document.getElementById('receiptLogo');
+            appLogo = document.getElementById('appLogo'); // Assign the new app logo element
 
             previewAndPrintBtn = document.getElementById('previewAndPrintBtn');
             previewModal = document.getElementById('previewModal');
             modalReceiptContent = document.getElementById('modalReceiptContent');
 
-            showAppDefinitionBtn = document.getElementById('showAppDefinitionBtn'); // Renamed
-            appDefinitionModal = document.getElementById('appDefinitionModal'); // Renamed
-            appDefinitionTextContent = document.getElementById('appDefinitionTextContent'); // Renamed
+            pharmacyDetailsModal = document.getElementById('pharmacyDetailsModal'); // Assign the new pharmacy details modal
+
+            showHelpBtn = document.getElementById('showHelpBtn');
+            helpModal = document.getElementById('helpModal');
+            helpTextPlaceholder = document.getElementById('helpTextPlaceholder');
+            helpImagePlaceholder = document.getElementById('helpImagePlaceholder'); // This element is not in HTML, but keeping for safety
 
             createIdCardBtn = document.getElementById('createIdCardBtn');
             idCardModal = document.getElementById('idCardModal');
@@ -2251,15 +2298,14 @@ body.dark-mode .save-gaza-text {
             messageModalTitle = document.getElementById('messageModalTitle');
             messageModalText = document.getElementById('messageModalText');
 
-            // darkModeToggleBtn is removed from index.html
-            // darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); 
+            darkModeToggleBtn = document.getElementById('darkModeToggleBtn'); 
             languageToggleBtn = document.getElementById('languageToggleBtn');
             
-            showPrintLogBtn = document.getElementById('showPrintLogBtn'); 
+            const showPrintLogBtn = document.getElementById('showPrintLogBtn'); 
             receiptLogModal = document.getElementById('receiptLogModal'); 
             receiptLogList = document.getElementById('receiptLogList'); 
-            clearLogBtn = document.getElementById('clearLogBtn'); 
-            // statusPieChartCanvas is removed
+            const clearLogBtn = document.getElementById('clearLogBtn'); 
+            // Removed statusPieChartCanvas as it is no longer needed
             
             // Ensure the generic modal's button container exists for `openMessageModal`
             const modalButtonContainer = messageModal.querySelector('.text-center');
@@ -2318,11 +2364,12 @@ body.dark-mode .save-gaza-text {
             }
 
 
-            // Dark mode preference is no longer handled in index.html
+            // Load dark mode preference from localStorage (Removed as per user request)
             // const savedDarkMode = localStorage.getItem('darkMode');
             // if (savedDarkMode === 'true') {
             //     document.body.classList.add('dark-mode');
             // }
+            // Call updateDarkModeButtonText once to set initial button state (text and icon) (Removed)
             // if (darkModeToggleBtn) { 
             //     updateDarkModeButtonText(); 
             // }
@@ -2411,29 +2458,18 @@ body.dark-mode .save-gaza-text {
             }
 
             if (savePharmacyDetailsBtn) savePharmacyDetailsBtn.addEventListener('click', () => { console.log("Save Pharmacy Details button clicked."); savePharmacyDetails(); });
-            if (togglePharmacyDetailsBtn) {
-                togglePharmacyDetailsBtn.addEventListener('click', () => {
-                    console.log("Toggle Pharmacy Details button clicked.");
-                    if (pharmacyDetailsContent) pharmacyDetailsContent.classList.toggle('hidden');
-                    if (pharmacyDetailsContent && pharmacyDetailsContent.classList.contains('hidden')) {
-                        togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnCollapsed;
-                    } else {
-                        togglePharmacyDetailsBtn.querySelector('span').textContent = translations[currentLanguage].togglePharmacyDetailsBtnExpanded;
-                    }
-                });
-            }
+            // Changed from togglePharmacyDetailsBtn to openPharmacyDetailsModalBtn
+            if (openPharmacyDetailsModalBtn) openPharmacyDetailsModalBtn.addEventListener('click', () => { console.log("Open Pharmacy Details Modal button clicked."); window.openPharmacyDetailsModal(); });
+            
             if (previewAndPrintBtn) previewAndPrintBtn.addEventListener('click', () => { console.log("Preview and Print button clicked."); window.openPreviewModal(); });
-            if (showAppDefinitionBtn) showAppDefinitionBtn.addEventListener('click', () => { console.log("Show App Definition button clicked."); window.openAppDefinitionModal(); }); // Renamed
+            if (showHelpBtn) showHelpBtn.addEventListener('click', () => { console.log("Show Help button clicked."); window.openHelpModal(); });
             if (createIdCardBtn) createIdCardBtn.addEventListener('click', () => { console.log("Create ID Card button clicked."); window.openIdCardModal(); });
             // Removed dark mode toggle button event listener
             // if (darkModeToggleBtn) darkModeToggleBtn.addEventListener('click', () => { console.log("Dark Mode Toggle button clicked."); toggleDarkMode(); }); 
-            if (languageToggleBtn) {
-                console.log("Language Toggle button found.");
-                languageToggleBtn.addEventListener('click', () => { 
-                    console.log("Language Toggle button clicked."); 
-                    setLanguage(currentLanguage === 'ar' ? 'en' : 'ar'); 
-                });
-            }
+            if (languageToggleBtn) languageToggleBtn.addEventListener('click', () => { 
+                console.log("Language Toggle button clicked."); 
+                setLanguage(currentLanguage === 'ar' ? 'en' : 'ar'); 
+            });
             
             // New event listeners for print log
             if (showPrintLogBtn) showPrintLogBtn.addEventListener('click', () => { console.log("Show Print Log button clicked."); window.openReceiptLogModal(); });
@@ -2447,6 +2483,19 @@ body.dark-mode .save-gaza-text {
                 currentYearElement.textContent = new Date().getFullYear();
             }
         };
+        <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then((registration) => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        });
+    }
+</script>
     </script>
 </body>
 </html>
