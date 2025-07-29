@@ -1,0 +1,1371 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قاعدة بيانات العملاء - SMART PPH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include SheetJS (xlsx) library for Excel export and import -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #333;
+        }
+        .container {
+            width: 96%; /* Make it expand with the window */
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #2c5282; /* Darker blue for title */
+        }
+        .back-button {
+            background-color: #4299e1; /* Blue */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .back-button:hover {
+            background-color: #3182ce; /* Darker blue on hover */
+        }
+        .pharmacy-info-card {
+            background-color: #e0f2fe; /* Lighter blue */
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            text-align: right; /* Ensure text aligns right in RTL */
+            border-right: 5px solid #3182ce; /* Accent border */
+        }
+        .pharmacy-info-card p {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #2d3748;
+        }
+        .pharmacy-info-card p strong {
+            color: #1a202c;
+        }
+        .live-clock {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: flex-end; /* Align buttons to the right in RTL */
+        }
+        .control-button {
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-button.add-customer {
+            background-color: #38a169; /* Darker green */
+        }
+        .control-button.add-customer:hover {
+            background-color: #2f855a;
+        }
+        .control-button.edit-customer {
+            background-color: #805ad5; /* Purple */
+        }
+        .control-button.edit-customer:hover {
+            background-color: #6b46c1;
+        }
+        .control-button.export-excel {
+            background-color: #4299e1; /* Blue */
+        }
+        .control-button.export-excel:hover {
+            background-color: #3182ce;
+        }
+        .control-button.import-excel { /* New style for import Excel button */
+            background-color: #ed8936; /* Orange */
+        }
+        .control-button.import-excel:hover {
+            background-color: #dd6b20;
+        }
+        .control-button.delete-all { /* New style for delete all button */
+            background-color: #dc2626; /* Red */
+        }
+        .control-button.delete-all:hover {
+            background-color: #b91c1c; /* Darker red */
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+            justify-content: flex-start; /* Align search to the left in RTL */
+            margin-bottom: 20px; /* Added margin for spacing */
+        }
+        .search-input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #4a5568;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            text-align: right; /* Align text to the right in RTL */
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        .search-select {
+            padding: 10px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #4a5568;
+            background-color: white;
+            cursor: pointer;
+        }
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .customer-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px; /* Ensure table is wide enough for content */
+        }
+        .customer-table th, .customer-table td {
+            padding: 12px 15px;
+            text-align: right; /* Align text to the right in RTL */
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .customer-table th {
+            background-color: #f7fafc;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.05em;
+            cursor: pointer; /* Make headers clickable for sorting */
+            user-select: none; /* Prevent text selection on click */
+        }
+        .customer-table th.serial-number-col { /* Style for serial number column header */
+            cursor: default;
+        }
+        .customer-table th.asc::after {
+            content: ' ?';
+        }
+        .customer-table th.desc::after {
+            content: ' ?';
+        }
+        .customer-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .customer-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+        .customer-table tbody tr.selected {
+            background-color: #bfdbfe; /* Light blue for selected row */
+            outline: 2px solid #3182ce; /* Stronger visual cue */
+            outline-offset: -2px; /* Keep outline inside border */
+        }
+        .customer-table tbody tr.special-customer-row {
+            background-color: #fde68a; /* Yellow for special customer */
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            position: relative;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease-in-out;
+            max-height: 90vh; /* Ensure modal is scrollable on smaller screens */
+            overflow-y: auto; /* Enable vertical scrolling for content overflow */
+        }
+        .modal.visible .modal-content {
+            transform: translateY(0);
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 15px;
+            left: 15px; /* Adjust for RTL */
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #666;
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-close-button:hover {
+            transform: scale(1.2);
+            color: #333;
+        }
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            text-align: right; /* Align label to the right in RTL */
+        }
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #4a5568;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            text-align: right; /* Align input text to the right in RTL */
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right in RTL */
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .form-action-button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-action-button.save {
+            background-color: #48bb78; /* Green */
+            color: white;
+        }
+        .form-action-button.save:hover {
+            background-color: #38a169;
+        }
+        .form-action-button.cancel {
+            background-color: #e2e8f0; /* Light gray */
+            color: #4a5568;
+        }
+        .form-action-button.cancel:hover {
+            background-color: #cbd5e0;
+        }
+        .form-action-button.delete {
+            background-color: #ef4444; /* Red */
+            color: white;
+        }
+        .form-action-button.delete:hover {
+            background-color: #dc2626;
+        }
+        .modal-checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            justify-content: flex-end; /* Align checkbox to the right in RTL */
+        }
+        .modal-checkbox-group input {
+            margin-right: 8px; /* Space between checkbox and label in RTL */
+            margin-left: 0;
+        }
+        .modal-checkbox-group label {
+            font-size: 0.9rem;
+            color: #4a5568;
+            cursor: pointer;
+        }
+        .message-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #f0f4f8;
+            border: 1px solid #cbd5e0;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #4a5568;
+            z-index: 1001; /* Above modals */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 250px;
+            direction: rtl; /* Ensure RTL for toast messages */
+        }
+        .message-box.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .message-box.success {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .message-box.error {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .instruction-note {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+                width: calc(100% - 20px); /* Adjust width for small screens */
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-end; /* Align to right in RTL */
+                gap: 10px;
+            }
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            .back-button {
+                width: 100%;
+                justify-content: center;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .control-button {
+                width: 100%;
+                justify-content: center;
+            }
+            .search-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .search-input, .search-select {
+                width: 100%;
+            }
+            .customer-table th, .customer-table td {
+                font-size: 0.85rem;
+                padding: 8px 10px;
+            }
+            .pharmacy-info-card {
+                text-align: right;
+            }
+        }
+    </style>
+</head>
+<body class="font-cairo">
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">قاعدة بيانات العملاء</h1>
+            <button id="backToHomeBtn" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="backButtonText">العودة للرئيسية</span>
+            </button>
+        </div>
+
+        <!-- Pharmacy Info Display -->
+        <div class="pharmacy-info-card">
+            <p><strong id="pharmacyNameDisplay"></strong></p>
+            <p><span id="pharmacySloganDisplay"></span></p>
+            <p><span id="pharmacyAddressDisplay"></span></p>
+            <p><span id="pharmacyPhoneDisplay"></span></p>
+        </div>
+
+        <!-- Live Clock Display -->
+        <div id="liveClockDisplay" class="live-clock"></div>
+
+        <div class="controls">
+            <button id="addCustomerBtn" class="control-button add-customer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="addCustomerButtonText">إضافة عميل</span>
+            </button>
+            <button id="editCustomerBtn" class="control-button edit-customer" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-7.694 7.694a1 1 0 01-.328.216l-4 1a1 1 0 01-1.242-1.242l1-4a1 1 0 01.216-.328l7.694-7.694zM10 17a1 1 0 100 2h8a1 1 0 100-2h-8z" />
+                </svg>
+                <span data-lang-key="editCustomerButtonText">تعديل عميل</span>
+            </button>
+            <button id="exportExcelBtn" class="control-button export-excel">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 4a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H5zm-1 9V6a1 1 0 011-1h10a1 1 0 011 1v7h-12zM5 15a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="exportExcelButtonText">تصدير Excel</span>
+            </button>
+            <input type="file" id="importExcelFile" accept=".xlsx, .xls" class="hidden">
+            <button id="importExcelBtn" class="control-button import-excel">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L6.293 6.707z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="importExcelButtonText">استيراد Excel</span>
+            </button>
+            <button id="deleteAllCustomersBtn" class="control-button delete-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 4a1 1 0 100 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                </svg>
+                <span data-lang-key="deleteAllCustomersButtonText">حذف الكل</span>
+            </button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="اكتب للبحث..." aria-label="Search input">
+            <select id="searchTypeSelect" class="search-select">
+                <option value="name" data-lang-key="searchByNameOption">الاسم</option>
+                <option value="phone" data-lang-key="searchByPhoneOption">رقم الهاتف</option>
+                <option value="special" data-lang-key="searchBySpecialOption">عميل مميز</option>
+            </select>
+        </div>
+
+        <div class="table-container mt-6">
+            <table id="customerTable" class="customer-table">
+                <thead>
+                    <tr>
+                        <th class="serial-number-col">الرقم</th> <!-- New Serial Number Column -->
+                        <th data-sort-key="name" data-lang-key="tableNameHeader">الاسم</th>
+                        <th data-sort-key="phone" data-lang-key="tablePhoneHeader">رقم الهاتف</th>
+                        <th data-sort-key="address" data-lang-key="tableAddressHeader">العنوان</th>
+                        <th data-sort-key="notes" data-lang-key="tableNotesHeader">ملاحظات</th>
+                        <th data-sort-key="isSpecial" data-lang-key="tableSpecialHeader">مميز</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody">
+                    <!-- Customer data will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+            <p id="noCustomersMessage" class="text-center py-8 text-gray-500 hidden" data-lang-key="noCustomersMessage">لا يوجد عملاء لعرضهم.</p>
+        </div>
+
+        <!-- Instruction Note -->
+        <div id="instructionNote" class="instruction-note" data-lang-key="instructionNote">
+            ملاحظة: لتعديل بيانات عميل، يرجى النقر على صف العميل في الجدول أولاً.
+        </div>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="closeCustomerModal()">×</button>
+            <h2 id="modalTitle" class="modal-title" data-lang-key="addCustomerModalTitle">إضافة عميل جديد</h2>
+            <form id="customerForm">
+                <input type="hidden" id="customerId">
+                <div class="form-group">
+                    <label for="customerName" data-lang-key="customerNameLabel">الاسم:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone" data-lang-key="customerPhoneLabel">رقم الهاتف:</label>
+                    <input type="tel" id="customerPhone"> <!-- Removed pattern and title -->
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress" data-lang-key="customerAddressLabel">العنوان:</label>
+                    <input type="text" id="customerAddress">
+                </div>
+                <div class="form-group">
+                    <label for="customerNotes" data-lang-key="customerNotesLabel">ملاحظات:</label>
+                    <textarea id="customerNotes" rows="3"></textarea>
+                </div>
+                <div class="modal-checkbox-group">
+                    <input type="checkbox" id="customerIsSpecial">
+                    <label for="customerIsSpecial" data-lang-key="customerIsSpecialLabel">عميل مميز</label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="form-action-button save" id="saveCustomerBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        <span data-lang-key="saveCustomerButtonText">حفظ</span>
+                    </button>
+                    <button type="button" class="form-action-button cancel" onclick="closeCustomerModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        <span data-lang-key="cancelButtonText">إلغاء</span>
+                    </button>
+                    <button type="button" class="form-action-button delete hidden" id="deleteCustomerBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 4a1 1 0 100 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                        </svg>
+                        <span data-lang-key="deleteCustomerButtonText">حذف</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generic Message Modal (for confirmations/alerts) -->
+    <div id="genericMessageModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="closeGenericMessageModal()">×</button>
+            <h2 id="genericMessageModalTitle" class="modal-title"></h2>
+            <p id="genericMessageModalText" class="text-gray-700 text-center mb-4"></p>
+            <div class="text-center flex justify-center gap-4">
+                <button id="genericMessageConfirmBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"></button>
+                <button id="genericMessageCancelBtn" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hidden"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-[1001] flex flex-col gap-2 items-end pointer-events-none"></div>
+
+    <script>
+        // Local Storage Keys
+        const PHARMACY_DATA_KEY = 'pharmacy_data_v1';
+        const CUSTOMERS_DATA_KEY = 'customer_database_v1';
+        const LANGUAGE_KEY = 'app_language';
+
+        // DOM Elements
+        let pharmacyNameDisplay, pharmacySloganDisplay, pharmacyAddressDisplay, pharmacyPhoneDisplay;
+        let customerTableBody;
+        let addCustomerBtn, editCustomerBtn, exportExcelBtn, importExcelBtn, importExcelFileInput, deleteAllCustomersBtn;
+        let searchInput, searchTypeSelect;
+        let customerModal, modalTitle, customerForm, customerIdInput, customerNameInput, customerPhoneInput, customerAddressInput, customerNotesInput, customerIsSpecialInput;
+        let saveCustomerBtn, deleteCustomerBtn; // Removed printCustomerBtn
+        let noCustomersMessage;
+        let genericMessageModal, genericMessageModalTitle, genericMessageModalText, genericMessageConfirmBtn, genericMessageCancelBtn;
+        let liveClockDisplay;
+        let instructionNote;
+        let toastContainer;
+
+        let currentSelectedRow = null;
+        let currentSortColumn = null;
+        let currentSortDirection = 'asc';
+
+        // Translations object (Arabic and English)
+        const translations = {
+            ar: {
+                pageTitle: 'قاعدة بيانات العملاء',
+                backButtonText: 'العودة للرئيسية',
+                pharmacyInfoTitle: 'بيانات الصيدلية',
+                addCustomerButtonText: 'إضافة عميل',
+                editCustomerButtonText: 'تعديل عميل',
+                exportExcelButtonText: 'تصدير Excel',
+                importExcelButtonText: 'استيراد Excel',
+                deleteAllCustomersButtonText: 'حذف الكل',
+                searchPlaceholder: 'اكتب للبحث...',
+                searchByNameOption: 'الاسم',
+                searchByPhoneOption: 'رقم الهاتف',
+                searchBySpecialOption: 'عميل مميز',
+                tableNameHeader: 'الاسم',
+                tablePhoneHeader: 'رقم الهاتف',
+                tableAddressHeader: 'العنوان',
+                tableNotesHeader: 'ملاحظات',
+                tableSpecialHeader: 'مميز',
+                tableSerialNumberHeader: 'الرقم', // New translation for serial number column
+                noCustomersMessage: 'لا يوجد عملاء لعرضهم.',
+                addCustomerModalTitle: 'إضافة عميل جديد',
+                editCustomerModalTitle: 'تعديل بيانات العميل',
+                customerNameLabel: 'الاسم:',
+                customerPhoneLabel: 'رقم الهاتف:',
+                customerAddressLabel: 'العنوان:',
+                customerNotesLabel: 'ملاحظات:',
+                customerIsSpecialLabel: 'عميل مميز',
+                saveCustomerButtonText: 'حفظ',
+                cancelButtonText: 'إلغاء',
+                deleteCustomerButtonText: 'حذف',
+                // Removed printCustomerButtonText
+                customerAddedSuccess: 'تم إضافة العميل بنجاح!',
+                customerUpdatedSuccess: 'تم تحديث بيانات العميل بنجاح!',
+                customerDeletedSuccess: 'تم حذف العميل بنجاح!',
+                allCustomersDeletedSuccess: 'تم حذف جميع العملاء بنجاح!',
+                customerToggleSpecialSuccess: 'تم تغيير حالة العميل المميز بنجاح!',
+                selectionRequired: 'الرجاء اختيار عميل أولاً.',
+                confirmDeleteTitle: 'تأكيد الحذف',
+                confirmDeleteMessage: 'هل أنت متأكد أنك تريد حذف هذا العميل؟ لا يمكن التراجع عن هذا الإجراء.',
+                confirmDeleteAllTitle: 'تأكيد حذف الكل',
+                confirmDeleteAllMessage: 'هل أنت متأكد أنك تريد حذف جميع العملاء؟ لا يمكن التراجع عن هذا الإجراء!',
+                exportSuccess: 'تم تصدير البيانات إلى Excel بنجاح!',
+                exportError: 'حدث خطأ أثناء تصدير البيانات إلى Excel.',
+                importSuccess: 'تم استيراد البيانات من Excel بنجاح!',
+                importError: 'حدث خطأ أثناء استيراد البيانات من Excel: ',
+                invalidExcelFormat: 'تنسيق ملف Excel غير صالح أو لا يحتوي على بيانات يمكن استيرادها. يرجى التأكد من أن الملف يحتوي على صفوف بيانات بعد الصف الأول.',
+                exportReminder: 'تذكير: احفظ بياناتك بتصديرها إلى Excel الآن!',
+                error: 'خطأ',
+                unknownPharmacy: 'صيدلية غير معروفة',
+                yes: 'نعم',
+                no: 'لا',
+                okBtn: 'حسناً',
+                cancelBtn: 'إلغاء',
+                customerNotFound: 'العميل غير موجود.',
+                nameRequired: 'الاسم مطلوب.',
+                phoneOrAddressRequired: 'رقم الهاتف أو العنوان مطلوب.', // Kept for consistency, but not enforced
+                deleteConfirmation: 'هل أنت متأكد أنك تريد حذف هذا العميل؟',
+                instructionNote: 'ملاحظة: لتعديل بيانات عميل، يرجى النقر على صف العميل في الجدول أولاً.',
+            },
+            en: {
+                pageTitle: 'Customer Database',
+                backButtonText: 'Back to Home',
+                pharmacyInfoTitle: 'Pharmacy Details',
+                addCustomerButtonText: 'Add Customer',
+                editCustomerButtonText: 'Edit Customer',
+                exportExcelButtonText: 'Export to Excel',
+                importExcelButtonText: 'Import Excel',
+                deleteAllCustomersButtonText: 'Delete All',
+                searchPlaceholder: 'Type to search...',
+                searchByNameOption: 'Name',
+                searchByPhoneOption: 'Phone Number',
+                searchBySpecialOption: 'Special Customer',
+                tableNameHeader: 'Name',
+                tablePhoneHeader: 'Phone',
+                tableAddressHeader: 'Address',
+                tableNotesHeader: 'Notes',
+                tableSpecialHeader: 'Special',
+                tableSerialNumberHeader: 'No.', // New translation for serial number column
+                noCustomersMessage: 'No customers to display.',
+                addCustomerModalTitle: 'Add New Customer',
+                editCustomerModalTitle: 'Edit Customer Details',
+                customerNameLabel: 'Name:',
+                customerPhoneLabel: 'Phone Number:',
+                customerAddressLabel: 'Address:',
+                customerNotesLabel: 'Notes:',
+                customerIsSpecialLabel: 'Special Customer',
+                saveCustomerButtonText: 'Save',
+                cancelButtonText: 'Cancel',
+                deleteCustomerButtonText: 'Delete',
+                // Removed printCustomerButtonText
+                customerAddedSuccess: 'Customer added successfully!',
+                customerUpdatedSuccess: 'Customer details updated successfully!',
+                customerDeletedSuccess: 'Customer deleted successfully!',
+                allCustomersDeletedSuccess: 'All customers deleted successfully!',
+                customerToggleSpecialSuccess: 'Customer special status toggled successfully!',
+                selectionRequired: 'Please select a customer first.',
+                confirmDeleteTitle: 'Confirm Deletion',
+                confirmDeleteMessage: 'Are you sure you want to delete this customer? This action cannot be undone.',
+                confirmDeleteAllTitle: 'Confirm Delete All',
+                confirmDeleteAllMessage: 'Are you sure you want to delete ALL customers? This action cannot be undone!',
+                exportSuccess: 'Data exported to Excel successfully!',
+                exportError: 'An error occurred while exporting data to Excel.',
+                importSuccess: 'Data imported from Excel successfully!',
+                importError: 'An error occurred during data import from Excel: ',
+                invalidExcelFormat: 'Invalid Excel file format or no importable data. Please ensure the file contains data rows after the first row.',
+                exportReminder: 'Reminder: Save your data by exporting to Excel now!',
+                error: 'Error',
+                unknownPharmacy: 'Unknown Pharmacy',
+                yes: 'Yes',
+                no: 'No',
+                okBtn: 'OK',
+                cancelBtn: 'Cancel',
+                customerNotFound: 'Customer not found.',
+                nameRequired: 'Name is required.',
+                phoneOrAddressRequired: 'Phone number or address is required.', // Kept for consistency, but not enforced
+                deleteConfirmation: 'Are you sure you want to delete this customer?',
+                instructionNote: 'Note: To edit customer data, please click on the customer row in the table first.',
+            }
+        };
+
+        let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ar'; // Default to Arabic
+
+        /**
+         * Sets the application language and updates all translatable elements.
+         * @param {string} lang - The language code ('ar' or 'en').
+         */
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+            localStorage.setItem(LANGUAGE_KEY, lang);
+
+            // Update elements with data-lang-key attributes
+            document.querySelectorAll('[data-lang-key]').forEach(element => {
+                const key = element.getAttribute('data-lang-key');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Update placeholder for search input
+            if (searchInput) searchInput.placeholder = translations[currentLanguage].searchPlaceholder;
+            
+            // Re-render table to apply 'Yes'/'No' translation for 'Special' column
+            renderCustomers();
+        }
+
+        /**
+         * Updates the live clock display.
+         */
+        function updateLiveClock() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'numeric', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: true 
+            };
+            const timeString = now.toLocaleString(currentLanguage === 'ar' ? 'ar-EG' : 'en-US', options);
+            if (liveClockDisplay) {
+                liveClockDisplay.textContent = timeString;
+            }
+        }
+
+        /**
+         * Loads pharmacy details from localStorage and displays them.
+         */
+        function loadPharmacyDetails() {
+            try {
+                const storedData = localStorage.getItem(PHARMACY_DATA_KEY);
+                const data = storedData ? JSON.parse(storedData) : {};
+
+                pharmacyNameDisplay.textContent = data.name || translations[currentLanguage].unknownPharmacy;
+                pharmacySloganDisplay.textContent = data.slogan || '';
+                pharmacyAddressDisplay.textContent = data.address || '';
+                pharmacyPhoneDisplay.textContent = data.phone || '';
+
+            } catch (error) {
+                console.error("Error loading pharmacy details from localStorage:", error);
+                showToast(translations[currentLanguage].error + ": " + error.message, 'error');
+            }
+        }
+
+        /**
+         * Loads customer data from localStorage.
+         * @returns {Array<Object>} An array of customer objects.
+         */
+        function loadCustomers() {
+            try {
+                const storedCustomers = localStorage.getItem(CUSTOMERS_DATA_KEY);
+                return storedCustomers ? JSON.parse(storedCustomers) : [];
+            } catch (error) {
+                console.error("Error loading customers from localStorage:", error);
+                showToast(translations[currentLanguage].error + ": " + error.message, 'error');
+                return [];
+            }
+        }
+
+        /**
+         * Saves customer data to localStorage.
+         * @param {Array<Object>} customers - The array of customer objects to save.
+         */
+        function saveCustomers(customers) {
+            try {
+                localStorage.setItem(CUSTOMERS_DATA_KEY, JSON.stringify(customers));
+            } catch (error) {
+                console.error("Error saving customers to localStorage:", error);
+                showToast(translations[currentLanguage].error + ": " + error.message, 'error');
+            }
+        }
+
+        /**
+         * Renders the customer table based on the current customer data and search filter.
+         */
+        function renderCustomers() {
+            let customers = loadCustomers();
+            const searchTerm = searchInput.value.toLowerCase();
+            const searchType = searchTypeSelect.value;
+            customerTableBody.innerHTML = '';
+            
+            // Reset selection and disable buttons when re-rendering
+            if (currentSelectedRow) {
+                currentSelectedRow.classList.remove('selected');
+            }
+            currentSelectedRow = null; // Always clear selection on re-render
+            editCustomerBtn.disabled = true; // Always disable on re-render, it will be re-enabled by click
+            // Removed printCustomerBtn.classList.add('hidden');
+
+            // Filter customers
+            const filteredCustomers = customers.filter(customer => {
+                if (!searchTerm && searchType !== 'special') return true; // No search term and not special filter, show all
+
+                if (searchType === 'name') {
+                    return (customer.name || '').toLowerCase().includes(searchTerm);
+                } else if (searchType === 'phone') {
+                    return (customer.phone || '').toLowerCase().includes(searchTerm);
+                } else if (searchType === 'special') {
+                    if (!searchTerm) { // If search term is empty, show all special customers
+                        return customer.isSpecial;
+                    } else if (searchTerm === translations.ar.yes.toLowerCase() || searchTerm === translations.en.yes.toLowerCase()) {
+                        return customer.isSpecial;
+                    } else if (searchTerm === translations.ar.no.toLowerCase() || searchTerm === translations.en.no.toLowerCase()) {
+                        return !customer.isSpecial;
+                    }
+                    return false;
+                }
+                return false;
+            });
+
+            // Sort customers
+            if (currentSortColumn) {
+                filteredCustomers.sort((a, b) => {
+                    let valA = a[currentSortColumn];
+                    let valB = b[currentSortColumn];
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if (filteredCustomers.length === 0) {
+                noCustomersMessage.classList.remove('hidden');
+                return;
+            } else {
+                noCustomersMessage.classList.add('hidden');
+            }
+
+            filteredCustomers.forEach((customer, index) => { // Added index for serial number
+                const row = customerTableBody.insertRow();
+                row.dataset.id = customer.id; // Store customer ID on the row
+
+                if (customer.isSpecial) {
+                    row.classList.add('special-customer-row');
+                }
+
+                row.innerHTML = `
+                    <td class="py-2 px-4 border-b border-gray-200">${index + 1}</td> <!-- Serial Number -->
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(customer.name || '')}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(customer.phone || '')}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(customer.address || '')}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${escapeHTML(customer.notes || '')}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${customer.isSpecial ? translations[currentLanguage].yes : translations[currentLanguage].no}</td>
+                `;
+
+                row.addEventListener('click', () => {
+                    if (currentSelectedRow) {
+                        currentSelectedRow.classList.remove('selected');
+                    }
+                    row.classList.add('selected');
+                    currentSelectedRow = row;
+                    editCustomerBtn.disabled = false;
+                    // Removed printCustomerBtn.classList.remove('hidden');
+                });
+            });
+        }
+
+        /**
+         * Opens the add/edit customer modal.
+         * @param {Object|null} customer - The customer object to edit, or null for a new customer.
+         */
+        function openCustomerModal(customer = null) {
+            clearForm();
+            hideToast(); // Hide any active toast
+            deleteCustomerBtn.classList.add('hidden'); // Hide delete button by default
+            // Removed printCustomerBtn.classList.add('hidden'); // Hide print button by default
+
+            if (customer) {
+                modalTitle.textContent = translations[currentLanguage].editCustomerModalTitle;
+                customerIdInput.value = customer.id;
+                customerNameInput.value = customer.name;
+                customerPhoneInput.value = customer.phone;
+                customerAddressInput.value = customer.address;
+                customerNotesInput.value = customer.notes;
+                customerIsSpecialInput.checked = customer.isSpecial;
+                deleteCustomerBtn.classList.remove('hidden'); // Show delete button for existing customer
+                // Removed printCustomerBtn.classList.remove('hidden'); // Show print button for existing customer
+            } else {
+                modalTitle.textContent = translations[currentLanguage].addCustomerModalTitle;
+                customerIdInput.value = ''; // Ensure no ID for new customer
+            }
+            openModal(customerModal);
+        }
+
+        /**
+         * Closes the add/edit customer modal.
+         */
+        function closeCustomerModal() {
+            closeModal(customerModal);
+            clearForm();
+            hideToast(); // Hide any active toast
+            // Deselect row when closing modal
+            if (currentSelectedRow) {
+                currentSelectedRow.classList.remove('selected');
+                currentSelectedRow = null;
+            }
+            editCustomerBtn.disabled = true; // Disable edit button after closing modal
+            // Removed printCustomerBtn.classList.add('hidden'); // Hide print button after closing modal
+        }
+
+        /**
+         * Clears the customer form fields.
+         */
+        function clearForm() {
+            customerIdInput.value = '';
+            customerNameInput.value = '';
+            customerPhoneInput.value = '';
+            customerAddressInput.value = '';
+            customerNotesInput.value = '';
+            customerIsSpecialInput.checked = false;
+        }
+
+        /**
+         * Handles saving a new or updated customer.
+         * @param {Event} event - The form submission event.
+         */
+        function handleSaveCustomer(event) {
+            event.preventDefault();
+
+            const id = customerIdInput.value || Date.now().toString() + Math.random().toString(36).substring(2, 8); // Use timestamp + random string as unique ID
+            const name = customerNameInput.value.trim();
+            const phone = customerPhoneInput.value.trim();
+            const address = customerAddressInput.value.trim();
+            const notes = customerNotesInput.value.trim();
+            const isSpecial = customerIsSpecialInput.checked;
+
+            if (!name) { // Only name is required
+                showToast(translations[currentLanguage].nameRequired, 'error');
+                return;
+            }
+            
+            // Removed phone and address validation
+
+            let customers = loadCustomers();
+            const existingCustomerIndex = customers.findIndex(c => c.id === id);
+
+            const newOrUpdatedCustomer = { id, name, phone, address, notes, isSpecial };
+
+            if (existingCustomerIndex > -1) {
+                // Update existing customer
+                customers[existingCustomerIndex] = newOrUpdatedCustomer;
+                showToast(translations[currentLanguage].customerUpdatedSuccess, 'success');
+            } else {
+                // Add new customer
+                customers.push(newOrUpdatedCustomer);
+                showToast(translations[currentLanguage].customerAddedSuccess, 'success');
+            }
+
+            saveCustomers(customers);
+            renderCustomers();
+            setTimeout(closeCustomerModal, 1500); // Close modal after a short delay
+            showToast(translations[currentLanguage].exportReminder, 'success'); // Reminder to export Excel
+        }
+
+        /**
+         * Handles deleting a customer.
+         */
+        function handleDeleteCustomer() {
+            const customerId = customerIdInput.value;
+            if (!customerId) return;
+
+            openGenericMessageModal(
+                translations[currentLanguage].confirmDeleteTitle,
+                translations[currentLanguage].confirmDeleteMessage,
+                true, // isConfirm = true
+                () => { // onConfirmCallback
+                    let customers = loadCustomers();
+                    customers = customers.filter(c => c.id !== customerId);
+                    saveCustomers(customers);
+                    renderCustomers();
+                    showToast(translations[currentLanguage].customerDeletedSuccess, 'success');
+                    setTimeout(closeCustomerModal, 1500); // Close modal after a short delay
+                    showToast(translations[currentLanguage].exportReminder, 'success'); // Reminder to export Excel
+                }
+            );
+        }
+
+        /**
+         * Handles deleting all customers.
+         */
+        function handleDeleteAllCustomers() {
+            openGenericMessageModal(
+                translations[currentLanguage].confirmDeleteAllTitle,
+                translations[currentLanguage].confirmDeleteAllMessage,
+                true, // isConfirm = true
+                () => { // onConfirmCallback
+                    saveCustomers([]); // Save an empty array
+                    renderCustomers();
+                    showToast(translations[currentLanguage].allCustomersDeletedSuccess, 'success');
+                    showToast(translations[currentLanguage].exportReminder, 'success'); // Reminder to export Excel
+                }
+            );
+        }
+
+        /**
+         * Exports the customer table data to an Excel file.
+         */
+        function exportTableToExcel() {
+            const customers = loadCustomers();
+            const exportHeaders = [
+                translations[currentLanguage].tableNameHeader,
+                translations[currentLanguage].tablePhoneHeader,
+                translations[currentLanguage].tableAddressHeader,
+                translations[currentLanguage].tableNotesHeader,
+                translations[currentLanguage].tableSpecialHeader
+            ];
+
+            const exportData = [exportHeaders]; // Start with headers
+            customers.forEach(customer => {
+                exportData.push([
+                    customer.name || '',
+                    customer.phone || '',
+                    customer.address || '',
+                    customer.notes || '',
+                    customer.isSpecial ? translations[currentLanguage].yes : translations[currentLanguage].no
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(exportData); // Use aoa_to_sheet for array of arrays
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Customers");
+            try {
+                XLSX.writeFile(wb, "customers_data.xlsx");
+                showToast(translations[currentLanguage].exportSuccess, 'success');
+            } catch (error) {
+                console.error("Error exporting to Excel:", error);
+                showToast(translations[currentLanguage].exportError + ": " + error.message, 'error');
+            }
+        }
+
+        /**
+         * Imports customer data from an Excel file.
+         * @param {Event} event - The file input change event.
+         */
+        function importCustomersFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+
+                    // Read data as array of arrays, skipping the first row (headers)
+                    const excelData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                    if (!excelData || excelData.length < 1) { // If only headers or empty file
+                        showToast(translations[currentLanguage].invalidExcelFormat, 'error');
+                        return;
+                    }
+
+                    const customerDataRows = excelData.slice(1); // Get data rows, skipping the first row (headers)
+
+                    const newCustomers = [];
+                    customerDataRows.forEach(row => {
+                        // Ensure row is an array and has at least one non-empty cell to be considered valid
+                        if (!Array.isArray(row) || row.every(cell => cell === null || cell === undefined || String(cell).trim() === '')) {
+                            console.warn("Skipping empty or invalid row:", row);
+                            return; // Skip empty rows
+                        }
+
+                        const customer = {
+                            id: Date.now().toString() + Math.random().toString(36).substring(2, 8), // Generate a unique ID
+                            name: '',
+                            phone: '',
+                            address: '',
+                            notes: '',
+                            isSpecial: false
+                        };
+
+                        // Directly map the first 5 columns to customer properties
+                        // Any columns beyond the 5th will be ignored.
+                        customer.name = row[0] ? String(row[0]).trim() : '';
+                        customer.phone = row[1] ? String(row[1]).trim() : '';
+                        customer.address = row[2] ? String(row[2]).trim() : '';
+                        customer.notes = row[3] ? String(row[3]).trim() : '';
+                        
+                        // For 'isSpecial', check the 5th column (index 4)
+                        if (row[4] !== undefined && row[4] !== null) {
+                            const specialValue = String(row[4]).toLowerCase().trim();
+                            customer.isSpecial = (specialValue === translations.ar.yes.toLowerCase() || specialValue === translations.en.yes.toLowerCase());
+                        }
+
+                        // Only add customer if it has at least a name (as name is now the only required field)
+                        if (customer.name) {
+                            newCustomers.push(customer);
+                        } else {
+                            console.warn("Skipping row due to missing essential data (name):", row);
+                        }
+                    });
+
+                    if (newCustomers.length > 0) {
+                        saveCustomers(newCustomers);
+                        renderCustomers();
+                        showToast(translations[currentLanguage].importSuccess, 'success');
+                        showToast(translations[currentLanguage].exportReminder, 'success'); // Reminder after import
+                    } else {
+                        showToast(translations[currentLanguage].invalidExcelFormat, 'error');
+                    }
+
+                } catch (error) {
+                    console.error("Error importing Excel:", error);
+                    showToast(translations[currentLanguage].importError + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file); // Read as ArrayBuffer for XLSX
+        }
+
+        // Removed printCustomerDetails function
+
+        /**
+         * Displays a toast notification.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error'.
+         */
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `message-box visible ${type} pointer-events-auto`;
+            toast.textContent = message;
+            
+            toastContainer.appendChild(toast);
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('visible');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        }
+
+        /**
+         * Hides any active toast notifications.
+         */
+        function hideToast() {
+            // Remove all visible toasts
+            document.querySelectorAll('#toastContainer .visible').forEach(toast => {
+                toast.classList.remove('visible');
+                toast.addEventListener('transitionend', () => toast.remove());
+            });
+        }
+
+        // Helper function to escape HTML for display
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return str;
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        // --- Generic Modal Functions ---
+        function openModal(modalElement) {
+            modalElement.classList.remove('hidden');
+            void modalElement.offsetWidth; // Trigger reflow
+            modalElement.classList.add('visible');
+        }
+
+        function closeModal(modalElement) {
+            modalElement.classList.remove('visible');
+            modalElement.addEventListener('transitionend', function handler() {
+                modalElement.classList.add('hidden');
+                modalElement.removeEventListener('transitionend', handler);
+            });
+        }
+
+        window.openGenericMessageModal = function(title, message, isConfirm = false, onConfirmCallback = null) {
+            genericMessageModalTitle.textContent = title;
+            genericMessageModalText.textContent = message;
+            
+            genericMessageConfirmBtn.textContent = translations[currentLanguage].okBtn;
+            genericMessageConfirmBtn.onclick = () => {
+                closeGenericMessageModal();
+                if (onConfirmCallback) {
+                    onConfirmCallback();
+                }
+            };
+
+            if (isConfirm) {
+                genericMessageCancelBtn.textContent = translations[currentLanguage].cancelBtn;
+                genericMessageCancelBtn.classList.remove('hidden');
+                genericMessageCancelBtn.onclick = closeGenericMessageModal;
+            } else {
+                genericMessageCancelBtn.classList.add('hidden');
+            }
+            
+            openModal(genericMessageModal);
+        };
+
+        window.closeGenericMessageModal = function() {
+            closeModal(genericMessageModal);
+        }
+
+        // Initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Assign DOM elements
+            pharmacyNameDisplay = document.getElementById('pharmacyNameDisplay');
+            pharmacySloganDisplay = document.getElementById('pharmacySloganDisplay');
+            pharmacyAddressDisplay = document.getElementById('pharmacyAddressDisplay');
+            pharmacyPhoneDisplay = document.getElementById('pharmacyPhoneDisplay');
+            customerTableBody = document.getElementById('customerTableBody');
+            addCustomerBtn = document.getElementById('addCustomerBtn');
+            editCustomerBtn = document.getElementById('editCustomerBtn');
+            exportExcelBtn = document.getElementById('exportExcelBtn');
+            importExcelBtn = document.getElementById('importExcelBtn');
+            importExcelFileInput = document.getElementById('importExcelFile');
+            deleteAllCustomersBtn = document.getElementById('deleteAllCustomersBtn');
+            searchInput = document.getElementById('searchInput');
+            searchTypeSelect = document.getElementById('searchTypeSelect');
+            customerModal = document.getElementById('customerModal');
+            modalTitle = document.getElementById('modalTitle');
+            customerForm = document.getElementById('customerForm');
+            customerIdInput = document.getElementById('customerId');
+            customerNameInput = document.getElementById('customerName');
+            customerPhoneInput = document.getElementById('customerPhone');
+            customerAddressInput = document.getElementById('customerAddress');
+            customerNotesInput = document.getElementById('customerNotes');
+            customerIsSpecialInput = document.getElementById('customerIsSpecial');
+            saveCustomerBtn = document.getElementById('saveCustomerBtn');
+            deleteCustomerBtn = document.getElementById('deleteCustomerBtn');
+            // Removed printCustomerBtn assignment
+            noCustomersMessage = document.getElementById('noCustomersMessage');
+            genericMessageModal = document.getElementById('genericMessageModal');
+            genericMessageModalTitle = document.getElementById('genericMessageModalTitle');
+            genericMessageModalText = document.getElementById('genericMessageModalText');
+            genericMessageConfirmBtn = document.getElementById('genericMessageConfirmBtn');
+            genericMessageCancelBtn = document.getElementById('genericMessageCancelBtn');
+            liveClockDisplay = document.getElementById('liveClockDisplay');
+            instructionNote = document.getElementById('instructionNote');
+            toastContainer = document.getElementById('toastContainer');
+
+            // Set initial language
+            setLanguage(currentLanguage);
+
+            // Load and display pharmacy details
+            loadPharmacyDetails();
+
+            // Render initial customer table
+            renderCustomers();
+
+            // Initialize and update live clock
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+
+            // Event Listeners
+            addCustomerBtn.addEventListener('click', () => openCustomerModal());
+            
+            editCustomerBtn.addEventListener('click', () => {
+                if (currentSelectedRow) {
+                    const customerId = currentSelectedRow.dataset.id;
+                    const customers = loadCustomers();
+                    const customerToEdit = customers.find(c => c.id === customerId);
+                    if (customerToEdit) {
+                        openCustomerModal(customerToEdit);
+                    } else {
+                        showToast(translations[currentLanguage].customerNotFound, 'error');
+                    }
+                } else {
+                    showToast(translations[currentLanguage].selectionRequired, 'error');
+                }
+            });
+            exportExcelBtn.addEventListener('click', exportTableToExcel);
+            
+            // Import Excel functionality
+            importExcelBtn.addEventListener('click', () => importExcelFileInput.click());
+            importExcelFileInput.addEventListener('change', importCustomersFromExcel);
+
+            // Delete All Customers functionality
+            deleteAllCustomersBtn.addEventListener('click', handleDeleteAllCustomers);
+
+            searchInput.addEventListener('input', renderCustomers);
+            searchTypeSelect.addEventListener('change', () => {
+                if (searchTypeSelect.value === 'special') {
+                    searchInput.value = '';
+                }
+                renderCustomers();
+            });
+            customerForm.addEventListener('submit', handleSaveCustomer);
+            deleteCustomerBtn.addEventListener('click', handleDeleteCustomer);
+            // Removed printCustomerBtn.addEventListener('click', printCustomerDetails);
+
+            document.getElementById('backToHomeBtn').addEventListener('click', () => {
+                window.location.href = 'index.html'; // Assuming main page is index.html
+            });
+
+            // Add sorting event listeners to table headers
+            // Exclude serial number column from sorting
+            document.querySelectorAll('#customerTable th[data-sort-key]').forEach(header => {
+                header.addEventListener('click', () => {
+                    const sortKey = header.dataset.sortKey;
+                    if (currentSortColumn === sortKey) {
+                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // Reset previous sort indicator
+                        if (currentSortColumn) {
+                            document.querySelector(`#customerTable th[data-sort-key="${currentSortColumn}"]`).classList.remove('asc', 'desc');
+                        }
+                        currentSortColumn = sortKey;
+                        currentSortDirection = 'asc';
+                    }
+
+                    // Update header class for visual indicator
+                    header.classList.remove('asc', 'desc'); // Remove existing
+                    header.classList.add(currentSortDirection); // Add new
+
+                    renderCustomers(); // Re-render with sorted data
+                });
+            });
+        });
+    </script>
+</body>
+</html>
