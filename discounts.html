@@ -21,7 +21,42 @@
             color: #333;
             direction: rtl;
         }
-        
+        /* Modal styles, consistent with pph.txt */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; /* يتم إخفاؤه تمامًا بشكل افتراضي */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.visible {
+            display: flex; /* يظهر كـ flex عند إضافة فئة visible */
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            width: 500px; /* Default width for modal */
+        }
+        .modal.visible .modal-content {
+            transform: translateY(0);
+        }
 
         .modal-close-button {
             position: absolute;
@@ -34,9 +69,7 @@
             color: #333;
             transition: transform 0.2s ease-in-out;
         }
-        body.dark-mode .modal-close-button {
-            color: #e2e8f0;
-        }
+
         /* ID Card content styling, adapted for discount card visual */
         .id-card-content {
             width: 85.6mm; /* Standard credit card width */
@@ -132,7 +165,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             position: relative;
         }
-       
         /* Styles for cards based on their state */
         .discount-card-item.active-usage { /* Blue frame for active usage */
             border-color: #2563eb; /* Blue border */
@@ -142,12 +174,10 @@
             background-color: #fbeed2; /* Light brown background */
             border-color: #d4a762; /* Brown border */
         }
-      
         .discount-card-item.expired { /* Red frame for expired */
             background-color: #ffebeb; /* Light red background */
             border-color: #ffbaba; /* Red border */
         }
-       
         /* Countdown timer style */
         .countdown {
             font-size: 0.85rem;
@@ -178,10 +208,10 @@
             transition: background-color 0.2s;
         }
         #storedCardsList {
-    max-height: 500px; /* يمكنك تعديل هذا الارتفاع حسب ما تراه مناسبًا */
-    overflow-y: auto;  /* هذا سيضيف شريط تمرير عمودي عند الحاجة */
-    padding-right: 15px; /* (اختياري) أضف بعض المسافة البادئة للحفاظ على المسافة من شريط التمرير */
-       }
+            max-height: 500px; /* يمكنك تعديل هذا الارتفاع حسب ما تراه مناسبًا */
+            overflow-y: auto;  /* هذا سيضيف شريط تمرير عمودي عند الحاجة */
+            padding-right: 15px; /* (اختياري) أضف بعض المسافة البادئة للحفاظ على المسافة من شريط التمرير */
+        }
         .card-actions button:hover {
             background-color: #1d4ed8;
         }
@@ -213,7 +243,6 @@
             color: #aaa;
             cursor: pointer; /* Make icon clickable */
         }
-       
 
         /* Styles for generated card preview */
         #generatedCardsPreviewContainer {
@@ -229,7 +258,6 @@
             border-radius: 8px;
             background-color: #f0f0f0;
         }
-        
         /* Specific style for individual action buttons within generated cards preview */
         .generated-card-actions {
             display: flex;
@@ -243,29 +271,6 @@
             padding: 6px 10px;
             font-size: 0.75rem;
         }
-
-
-        /* Loading/Export Progress Modal */
-        #progressModal .modal-content {
-            width: 400px;
-            text-align: center;
-        }
-        #progressModal .progress-bar-container {
-            width: 80%;
-            height: 20px;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            margin: 20px auto;
-            overflow: hidden;
-        }
-        #progressModal .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: #2563eb;
-            border-radius: 10px;
-            transition: width 0.1s linear;
-        }
-        
 
         /* Print styles for the discount card - Reverted to original behavior */
         @media print {
@@ -350,12 +355,9 @@
             margin-bottom: 10px;
             transition: background-color 0.2s ease-in-out;
         }
-       
         .accordion-header:hover {
             background-color: #e2e8e7;
         }
-        
-       
         .accordion-content {
             max-height: 0;
             overflow: hidden;
@@ -386,7 +388,7 @@
         </button>
     </div>
 
-    <div class="w-full max-w-4xl bg-white p-8 rounded-lg shadow-md mb-8 text-right dark:bg-gray-800 dark:text-gray-200">
+    <div class="w-full max-w-4xl bg-white p-8 rounded-lg shadow-md mb-8 text-right">
         <h1 class="text-3xl font-bold mb-6 text-center">إدارة بطاقات الخصم</h1>
 
         <!-- Main Buttons -->
@@ -399,22 +401,22 @@
         <!-- Stored Cards Accordion Section -->
         <div class="accordion-header" id="storedCardsAccordionHeader">
             البطاقات المخزنة
-            <svg class="accordion-icon h-6 w-6 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="accordion-icon h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
         </div>
         <div class="accordion-content expanded" id="storedCardsAccordionContent">
             <!-- Search Bar moved here -->
             <div class="search-container mx-auto">
-                <input type="text" id="storedCardsSearchInput" placeholder="ابحث برقم كود الخصم..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-right dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                <input type="text" id="storedCardsSearchInput" placeholder="ابحث برقم كود الخصم..." class="w-full p-3 border border-gray-300 rounded-lg mb-4 text-right">
                 <svg class="search-icon h-5 w-5" id="searchIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
             <!-- Sorting Dropdown -->
             <div class="mb-4 text-right">
-                <label for="sortOrder" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ترتيب حسب:</label>
-                <select id="sortOrder" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                <label for="sortOrder" class="block text-sm font-medium text-gray-700">ترتيب حسب:</label>
+                <select id="sortOrder" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     <option value="code_desc">الكود (تنازلي)</option>
                     <option value="expiry_asc">تاريخ الانتهاء (الأقرب أولاً)</option>
                     <option value="used_status">الحالة (المستخدمة أولاً)</option>
@@ -423,7 +425,7 @@
             </div>
             <div id="storedCardsList" class="grid grid-cols-1 gap-4">
                 <!-- Stored discount cards will be loaded here -->
-                <p id="noCardsMessage" class="text-center text-gray-500 dark:text-gray-400">لا توجد بطاقات مخزنة حالياً.</p>
+                <p id="noCardsMessage" class="text-center text-gray-500">لا توجد بطاقات مخزنة حالياً.</p>
             </div>
         </div>
     </div>
@@ -435,28 +437,28 @@
             <h2 class="modal-title">إنشاء بطاقة خصم جديدة</h2>
 
             <div class="mb-4">
-                <label for="numCards" class="block text-sm font-medium text-gray-700 dark:text-gray-300">عدد البطاقات (بطاقة واحدة فقط):</label>
-                <input type="number" id="numCards" value="1" min="1" max="1" readonly class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 cursor-not-allowed">
+                <label for="numCards" class="block text-sm font-medium text-gray-700">عدد البطاقات (بطاقة واحدة فقط):</label>
+                <input type="number" id="numCards" value="1" min="1" max="1" readonly class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-200 cursor-not-allowed">
             </div>
             <div class="mb-4 flex gap-4">
                 <div class="w-1/3">
-                    <label for="expiryHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300">ساعات الانتهاء:</label>
-                    <input type="number" id="expiryHours" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <label for="expiryHours" class="block text-sm font-medium text-gray-700">ساعات الانتهاء:</label>
+                    <input type="number" id="expiryHours" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div class="w-1/3">
-                    <label for="expiryDays" class="block text-sm font-medium text-gray-700 dark:text-gray-300">أيام الانتهاء:</label>
-                    <input type="number" id="expiryDays" value="7" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <label for="expiryDays" class="block text-sm font-medium text-gray-700">أيام الانتهاء:</label>
+                    <input type="number" id="expiryDays" value="7" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
                 <div class="w-1/3">
-                    <label for="expiryMonths" class="block text-sm font-medium text-gray-700 dark:text-gray-300">شهور الانتهاء:</label>
-                    <input type="number" id="expiryMonths" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+                    <label for="expiryMonths" class="block text-sm font-medium text-gray-700">شهور الانتهاء:</label>
+                    <input type="number" id="expiryMonths" value="0" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                 </div>
             </div>
             <div class="mb-4 flex items-center">
-                <input type="checkbox" id="noExpiryCheckbox" class="ml-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
-                <label for="noExpiryCheckbox" class="text-sm font-medium text-gray-700 dark:text-gray-300">البطاقة ليس لها تاريخ صلاحية</label>
+                <input type="checkbox" id="noExpiryCheckbox" class="ml-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                <label for="noExpiryCheckbox" class="text-sm font-medium text-gray-700">البطاقة ليس لها تاريخ صلاحية</label>
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
+            <p class="text-sm text-gray-600 mb-4 text-center">
                 ملاحظة: تاريخ الانتهاء يبدأ احتسابه عند تخزين البطاقة.
             </p>
 
@@ -489,18 +491,9 @@
         </div>
     </div>
 
-    <!-- Progress Modal -->
-    <div id="progressModal" class="modal">
-        <div class="modal-content">
-            <h2 class="modal-title" id="progressModalTitle">جاري تصدير الكروت...</h2>
-            <div class="progress-bar-container">
-                <div id="progressBar" class="progress-bar"></div>
-            </div>
-            <p id="progressText" class="text-gray-700 dark:text-gray-300 mt-2">0% - متبقي: 0 ثانية</p>
-        </div>
-    </div>
+    <!-- Removed Progress Modal HTML -->
 
-
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
     <script>
         const STORED_CARDS_KEY = 'discountCards'; // مفتاح لتخزين بطاقات الخصم في localStorage
         const PHARMACY_DATA_KEY = 'pharmacy_data_v1'; // مفتاح لبيانات الصيدلية (من pph.txt)
@@ -513,24 +506,27 @@
         let storedCardsSearchInput;
         let sortOrderSelect;
 
-        // تبديل الوضع الداكن (مبسط لهذه الصفحة، يفترض أن الصفحة الرئيسية تتعامل مع حالة التبديل الفعلية)
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            // هذه الصفحة لا تحفظ الوضع الداكن، بل تعكس إعداد الصفحة الرئيسية
-        }
-
-        // تطبيق الوضع الداكن عند التحميل بناءً على localStorage من التطبيق الرئيسي
-        if (localStorage.getItem('darkMode') === 'true') { // التحقق من السلسلة 'true' حيث يخزن localStorage السلاسل
-            document.body.classList.add('dark-mode');
-        }
-
         // وظائف المودال (متوافقة مع pph.txt)
         function openModal(modalId) {
-            document.getElementById(modalId).classList.add('visible');
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                modalElement.classList.remove('hidden'); // تأكد من إزالة hidden أولاً
+                // إضافة تأخير بسيط للسماح للمتصفح بتطبيق 'display: flex' قبل الانتقال
+                setTimeout(() => {
+                    modalElement.classList.add('visible');
+                }, 10);
+            }
         }
 
         function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('visible');
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                modalElement.classList.remove('visible');
+                modalElement.addEventListener('transitionend', function handler() {
+                    modalElement.classList.add('hidden'); // إضافة hidden بعد انتهاء الانتقال
+                    modalElement.removeEventListener('transitionend', handler);
+                }, { once: true }); // استخدام { once: true } لضمان تشغيل المستمع مرة واحدة فقط
+            }
         }
 
         // وظائف مودال الرسائل العامة (منسوخة من pph.txt للتناسق)
@@ -809,8 +805,8 @@
                     <div class="id-card-content-wrapper">
                         ${renderDiscountCard(card.code, card.cardNumber, pharmacyInfo, pharmacyInfo.logoUrl, card.expiryDate)}
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">حالة البطاقة: ${card.used ? 'مستخدمة' : (card.expiryDate && new Date(card.expiryDate) < new Date() ? 'منتهية الصلاحية' : (card.expiryDate ? 'نشطة' : 'لم يتم بدء الاستخدام'))}</p>
-                    <div id="countdown-${card.code}" class="countdown text-gray-500 dark:text-gray-400"></div>
+                    <p class="text-sm text-gray-600 mt-2">حالة البطاقة: ${card.used ? 'مستخدمة' : (card.expiryDate && new Date(card.expiryDate) < new Date() ? 'منتهية الصلاحية' : (card.expiryDate ? 'نشطة' : 'لم يتم بدء الاستخدام'))}</p>
+                    <div id="countdown-${card.code}" class="countdown text-gray-500"></div>
                     <div class="card-actions mt-4">
                         ${copyButtonHtml}
                         ${printButtonHtml}
@@ -1062,45 +1058,7 @@
 
         let currentFilter = 'all'; // 'all' هو الافتراضي لقائمة البطاقات المخزنة الرئيسية
 
-        // وظائف مودال التقدم
-        let progressInterval;
-        function showProgressModal(totalItems, actionText) {
-            const progressModal = document.getElementById('progressModal');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const progressModalTitle = document.getElementById('progressModalTitle');
-
-            if (!progressModal || !progressBar || !progressText || !progressModalTitle) {
-                console.error("لم يتم العثور على عناصر مودال التقدم.");
-                return;
-            }
-
-            progressModalTitle.textContent = `جاري ${actionText}...`;
-            progressBar.style.width = '0%';
-            progressText.textContent = `${Math.round(0)}% - متبقي: ${totalItems} ثانية`; // Initial text for 0%
-            openModal('progressModal');
-
-            let currentProgress = 0;
-            let remainingTime = totalItems;
-
-            progressInterval = setInterval(() => {
-                currentProgress++;
-                remainingTime--;
-                const percentage = Math.min((currentProgress / totalItems) * 100, 100);
-                progressBar.style.width = `${percentage}%`;
-                progressText.textContent = `${Math.round(percentage)}% - متبقي: ${Math.max(0, remainingTime)} ثانية`;
-
-                if (currentProgress >= totalItems) {
-                    clearInterval(progressInterval);
-                    setTimeout(() => closeModal('progressModal'), 500); // إغلاق بعد تأخير قصير
-                }
-            }, 1000); // 1 ثانية لكل عنصر
-        }
-
-        function hideProgressModal() {
-            clearInterval(progressInterval);
-            closeModal('progressModal');
-        }
+        // Removed Progress Modal functions: showProgressModal and hideProgressModal
 
 
         // مستمعو الأحداث
@@ -1213,7 +1171,7 @@
                 generatedCardsBatch = []; // مسح الدفعة السابقة
                 generatedCardsPreviewContainer.innerHTML = ''; // مسح منطقة المعاينة
 
-                showProgressModal(numCards, 'توليد البطاقة'); // التقدم لبطاقة واحدة
+                // Removed call to showProgressModal(numCards, 'توليد البطاقة');
 
                 const existingCards = loadDiscountCards();
                 let newCode, newCardNumber;
@@ -1230,7 +1188,7 @@
                     if (isDuplicate && currentAttempt >= maxAttempts) {
                         console.error("فشل في توليد بطاقة فريدة بعد عدة محاولات.");
                         window.openMessageModal('تحذير', 'فشل توليد بطاقة فريدة بعد عدة محاولات. يرجى المحاولة مرة أخرى.');
-                        hideProgressModal();
+                        // Removed call to hideProgressModal();
                         return; // الخروج إذا تعذر توليد بطاقة فريدة
                     }
                 }
@@ -1271,13 +1229,12 @@
                 storeGeneratedCardBtn.classList.remove('bg-green-500');
                 storeGeneratedCardBtn.classList.add('bg-gray-600', 'hover:bg-gray-700');
 
-
-                hideProgressModal();
+                // Removed call to hideProgressModal();
             });
 
             // Add event listeners for the new action buttons in the modal
             printGeneratedCardBtn.addEventListener('click', async () => {
-                const code = printGeneratedCardBtn.dataset.code;
+                const code = printGeneratedCardBtn.dataset.code; // Fixed variable name here
                 await printDiscountCard(code);
             });
 
