@@ -21,71 +21,7 @@
             color: #333;
             direction: rtl;
         }
-        /* Dark mode styles, consistent with pph.txt */
-        body.dark-mode {
-            background-color: #1a202c;
-            color: #e2e8f0; /* White text for general body content */
-        }
-        /* Modal styles, consistent with pph.txt */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-        .modal.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            position: relative;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease-in-out;
-            width: 500px; /* Default width for modal */
-        }
-        .modal.visible .modal-content {
-            transform: translateY(0);
-        }
-        body.dark-mode .modal-content {
-            background-color: #2d3748;
-            color: #e2e8f0; /* Ensure all text inside modal is white */
-            border: 1px solid #e2e8f0; /* White border in dark mode */
-        }
-        body.dark-mode .modal-content .modal-title {
-            color: #e2e8f0; /* Ensure title is visible in dark mode */
-        }
-        body.dark-mode .modal-content label {
-            color: #e2e8f0; /* Ensure labels are visible in dark mode */
-        }
-        body.dark-mode .modal-content input {
-            background-color: #4a5568;
-            border-color: #667e9c;
-            color: #e2e8f0;
-        }
-        body.dark-mode .modal-content input::placeholder {
-            color: #a0aec0;
-        }
-        /* Ensure all text elements within modal content are white in dark mode */
-        body.dark-mode .modal-content p,
-        body.dark-mode .modal-content span,
-        body.dark-mode .modal-content select {
-            color: #e2e8f0;
-        }
+        
 
         .modal-close-button {
             position: absolute;
@@ -196,11 +132,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             position: relative;
         }
-        body.dark-mode .discount-card-item {
-            background-color: #3a475a;
-            border-color: #555;
-            color: #e2e8f0;
-        }
+       
         /* Styles for cards based on their state */
         .discount-card-item.active-usage { /* Blue frame for active usage */
             border-color: #2563eb; /* Blue border */
@@ -210,18 +142,12 @@
             background-color: #fbeed2; /* Light brown background */
             border-color: #d4a762; /* Brown border */
         }
-        body.dark-mode .discount-card-item.used {
-            background-color: #5a4b3d; /* Darker brown background */
-            border-color: #8c735d;
-        }
+      
         .discount-card-item.expired { /* Red frame for expired */
             background-color: #ffebeb; /* Light red background */
             border-color: #ffbaba; /* Red border */
         }
-        body.dark-mode .discount-card-item.expired {
-            background-color: #723f3f; /* Darker red background */
-            border-color: #a36f6f;
-        }
+       
         /* Countdown timer style */
         .countdown {
             font-size: 0.85rem;
@@ -251,6 +177,11 @@
             font-size: 0.85rem;
             transition: background-color 0.2s;
         }
+        #storedCardsList {
+    max-height: 500px; /* يمكنك تعديل هذا الارتفاع حسب ما تراه مناسبًا */
+    overflow-y: auto;  /* هذا سيضيف شريط تمرير عمودي عند الحاجة */
+    padding-right: 15px; /* (اختياري) أضف بعض المسافة البادئة للحفاظ على المسافة من شريط التمرير */
+       }
         .card-actions button:hover {
             background-color: #1d4ed8;
         }
@@ -282,9 +213,7 @@
             color: #aaa;
             cursor: pointer; /* Make icon clickable */
         }
-        body.dark-mode .search-container .search-icon {
-            color: #cbd5e0;
-        }
+       
 
         /* Styles for generated card preview */
         #generatedCardsPreviewContainer {
@@ -300,10 +229,7 @@
             border-radius: 8px;
             background-color: #f0f0f0;
         }
-        body.dark-mode #generatedCardsPreviewContainer {
-            background-color: #333;
-            border-color: #555;
-        }
+        
         /* Specific style for individual action buttons within generated cards preview */
         .generated-card-actions {
             display: flex;
@@ -339,12 +265,7 @@
             border-radius: 10px;
             transition: width 0.1s linear;
         }
-        body.dark-mode #progressModal .progress-bar-container {
-            background-color: #4a5568;
-        }
-        body.dark-mode #progressModal .progress-bar {
-            background-color: #60a5fa;
-        }
+        
 
         /* Print styles for the discount card - Reverted to original behavior */
         @media print {
@@ -429,16 +350,12 @@
             margin-bottom: 10px;
             transition: background-color 0.2s ease-in-out;
         }
-        body.dark-mode .accordion-header {
-            background-color: #3a475a;
-            color: #e2e8f0;
-        }
+       
         .accordion-header:hover {
             background-color: #e2e8e7;
         }
-        body.dark-mode .accordion-header:hover {
-            background-color: #4a5568;
-        }
+        
+       
         .accordion-content {
             max-height: 0;
             overflow: hidden;
