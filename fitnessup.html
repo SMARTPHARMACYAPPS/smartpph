@@ -1,0 +1,1084 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART PPH - لياقة الوزن</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f3f4f6; /* خلفية رمادية فاتحة */
+            color: #333;
+            direction: rtl;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1.5rem; /* مسافة داخلية للصفحة */
+        }
+        /* أنماط مخصصة لأزرار الراديو */
+        .custom-radio input[type="radio"] {
+            display: none;
+        }
+        .custom-radio label {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.5rem; /* حواف مستديرة */
+            padding: 0.75rem 1.5rem; /* مسافة داخلية */
+            cursor: pointer;
+            border: 1px solid #d1d5db; /* حدود رمادية */
+        }
+        .custom-radio input[type="radio"]:checked + label {
+            background-color: #2563eb; /* أزرق عند الاختيار */
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3); /* ظل خفيف */
+        }
+        .custom-radio label:hover {
+            background-color: #e5e7eb; /* رمادي أفتح عند التحويم */
+        }
+        .custom-radio input[type="radio"]:checked + label:hover {
+            background-color: #1d4ed8; /* أزرق أغمق عند التحويم والاختيار */
+        }
+
+        /* أنماط عامة للعناصر التفاعلية */
+        input, select, textarea, button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.5rem;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* أنماط خاصة بالتقرير المطبوع (PDF) */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                margin: 0;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            /* Style for the receipt-like print */
+            .receipt-print-area {
+                width: 72mm; /* Thermal printer width */
+                padding: 4mm;
+                font-family: 'Cairo', sans-serif;
+                color: #000;
+                direction: rtl;
+                box-sizing: border-box;
+                margin: 0 auto; /* Center for A4 print preview */
+            }
+            .receipt-print-area h1, .receipt-print-area h2, .receipt-print-area h3 {
+                color: #000 !important;
+                font-weight: bold !important;
+            }
+            .receipt-print-area p, .receipt-print-area span, .receipt-print-area label {
+                color: #000 !important;
+            }
+            .receipt-print-area .logo-placeholder-print {
+                width: 50mm; /* Adjust logo size for receipt */
+                height: auto;
+                display: block;
+                margin: 0 auto 5mm;
+            }
+            .receipt-print-area .divider {
+                border-top: 1px dashed #000;
+                margin: 5mm 0;
+            }
+            /* In print, textarea should not have border or padding */
+            .receipt-print-area textarea {
+                border: none !important;
+                resize: none;
+                width: 100%;
+                min-height: 30mm;
+                font-family: 'Cairo', sans-serif;
+                color: #000;
+                text-align: right;
+                padding: 0 !important;
+            }
+        }
+
+        /* Modal Styles (copied from pph.txt to ensure consistency) */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0; /* Start hidden for animation */
+            visibility: hidden; /* Hide from screen readers/interaction */
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(-20px); /* Start slightly above for animation */
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.visible .modal-content {
+            transform: translateY(0); /* Slide into place */
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-close-button:hover {
+            transform: scale(1.2);
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        /* Styles for receipt in modal (from pph.txt) */
+        .receipt-container {
+            width: 72mm; /* Thermal printer width */
+            padding: 4mm;
+            font-family: 'Cairo', sans-serif;
+            color: #000;
+            direction: rtl;
+            box-sizing: border-box;
+            margin: 0 auto; /* Center for A4 print preview */
+        }
+        .receipt-container h1, .receipt-container h2, .receipt-container h3 {
+            color: #000 !important;
+            font-weight: bold !important;
+        }
+        .receipt-container p, .receipt-container span, .receipt-container label {
+            color: #000 !important;
+        }
+        .receipt-container .logo-placeholder {
+            width: 50mm; /* Adjust logo size for receipt */
+            height: auto;
+            display: block;
+            margin: 0 auto 5mm;
+        }
+        .receipt-container .divider {
+            border-top: 1px dashed #000;
+            margin: 5mm 0;
+        }
+        /* In modal, textarea should have border and padding for display */
+        .receipt-container textarea {
+            border: 1px dashed #ccc;
+            resize: none;
+            width: 100%;
+            min-height: 30mm;
+            font-family: 'Cairo', sans-serif;
+            color: #000;
+            text-align: right;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Loading Spinner Styles */
+        #loadingSpinner {
+            background-color: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
+            color: white;
+            flex-direction: column;
+        }
+        #loadingSpinner.hidden {
+            display: none;
+        }
+        #loadingSpinner svg {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- زر العودة للصفحة الرئيسية -->
+    <button id="backToHomeBtn" class="absolute top-4 right-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        العودة للرئيسية
+    </button>
+
+    <!-- حاوية رئيسية للصفحة -->
+    <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl no-print">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">حاسبة لياقة الوزن</h1>
+        <p class="text-gray-600 text-center mb-6">احسب سعراتك الحرارية اليومية واحصل على خطة مقترحة للوجبات والتمارين.</p>
+
+        <!-- قسم إدخال البيانات -->
+        <div class="mb-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">أدخل بياناتك:</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="weightInput" class="block text-gray-700 text-sm font-bold mb-2">الوزن (كجم):</label>
+                    <input type="number" id="weightInput" placeholder="مثال: 70"
+                        class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label for="heightInput" class="block text-gray-700 text-sm font-bold mb-2">الطول (سم):</label>
+                    <input type="number" id="heightInput" placeholder="مثال: 175"
+                        class="w-full p-3 border border-gray-300 rounded-lg">
+                    <div class="mt-2 flex items-center">
+                        <input type="checkbox" id="skipHeightCheckbox" class="ml-2">
+                        <label for="skipHeightCheckbox" class="text-gray-600 text-sm">لا أريد إضافة الطول (سيتم استخدام تقدير)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="ageInput" class="block text-gray-700 text-sm font-bold mb-2">العمر (سنة):</label>
+                <input type="number" id="ageInput" placeholder="مثال: 30"
+                    class="w-full p-3 border border-gray-300 rounded-lg">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">الجنس:</label>
+                <div class="flex justify-around custom-radio">
+                    <input type="radio" id="genderMale" name="gender" value="male" checked>
+                    <label for="genderMale">ذكر</label>
+                    <input type="radio" id="genderFemale" name="gender" value="female">
+                    <label for="genderFemale">أنثى</label>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="activityLevel" class="block text-gray-700 text-sm font-bold mb-2">مستوى النشاط البدني:</label>
+                <select id="activityLevel" class="w-full p-3 border border-gray-300 rounded-lg">
+                    <option value="sedentary">قليل النشاط (عمل مكتبي، لا تمارين)</option>
+                    <option value="light">نشاط خفيف (تمارين 1-3 أيام/أسبوع)</option>
+                    <option value="moderate">نشاط متوسط (تمارين 3-5 أيام/أسبوع)</option>
+                    <option value="active">نشاط عالٍ (تمارين 6-7 أيام/أسبوع)</option>
+                    <option value="very_active">نشاط مرتفع جدًا (تمارين مكثفة يومياً)</option>
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">الهدف:</label>
+                <div class="flex justify-around custom-radio">
+                    <input type="radio" id="goalLose" name="goal" value="lose" checked>
+                    <label for="goalLose" class="bg-red-100 text-red-700 hover:bg-red-200">إنقاص الوزن</label>
+                    <input type="radio" id="goalMaintain" name="goal" value="maintain">
+                    <label for="goalMaintain" class="bg-green-100 text-green-700 hover:bg-green-200">الحفاظ على الوزن</label>
+                    <input type="radio" id="goalGain" name="goal" value="gain">
+                    <label for="goalGain" class="bg-blue-100 text-blue-700 hover:bg-blue-200">زيادة الوزن</label>
+                </div>
+            </div>
+
+            <button id="calculateCaloriesBtn"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l-2 2H5V6a2 0 012-2h4l2 2h4a2 2 0 012 2v10a2 2 0 01-2 2H9z" />
+                </svg>
+                حساب السعرات الحرارية والخطة
+            </button>
+        </div>
+
+        <!-- قسم عرض النتائج (لم يعد مخفيا بشكل افتراضي) -->
+        <div id="fitnessResults" class="mt-8 p-6 border border-blue-200 rounded-lg bg-blue-50">
+            <h2 class="text-2xl font-bold text-blue-800 mb-4 text-center">نتائج خطتك الشخصية:</h2>
+
+            <p class="text-gray-700 text-lg mb-4">
+                <span class="font-bold">الوزن:</span> <span id="displayWeight" class="font-semibold text-blue-600">---</span> كجم
+            </p>
+            <p class="text-700 text-lg mb-4">
+                <span class="font-bold">الطول:</span> <span id="displayHeight" class="font-semibold text-blue-600">---</span> سم <span id="heightEstimateNote" class="text-sm text-gray-500 italic hidden">(تقديري)</span>
+            </p>
+            <p class="text-gray-700 text-lg mb-4">
+                <span class="font-bold">العمر:</span> <span id="displayAge" class="font-semibold text-blue-600">---</span> سنة
+            </p>
+            <p class="text-gray-700 text-lg mb-4">
+                <span class="font-bold">السعرات الحرارية المقترحة يومياً:</span> <span id="dailyCalories" class="font-bold text-blue-800 text-2xl">---</span> سعرة حرارية
+            </p>
+
+            <div id="dietPlan" class="mt-6 p-4 bg-white rounded-lg shadow-sm">
+                <h3 class="font-bold text-xl text-gray-800 mb-3">خطة الوجبات المقترحة:</h3>
+                <ul class="list-disc list-inside text-gray-700 text-lg leading-relaxed space-y-2">
+                    <!-- Meal suggestions will be dynamically inserted here -->
+                </ul>
+            </div>
+
+            <div id="exerciseTips" class="mt-6 p-4 bg-white rounded-lg shadow-sm">
+                <h3 class="font-bold text-xl text-gray-800 mb-3">تمارين مقترحة:</h3>
+                <ul class="list-disc list-inside text-gray-700 text-lg leading-relaxed space-y-2">
+                    <!-- Exercise suggestions will be dynamically inserted here -->
+                </ul>
+            </div>
+
+            <div id="generalTips" class="mt-6 p-4 bg-white rounded-lg shadow-sm">
+                <h3 class="font-bold text-xl text-gray-800 mb-3">نصائح إضافية لنمط حياة صحي:</h3>
+                <ul class="list-disc list-inside text-gray-700 text-lg leading-relaxed space-y-2">
+                    <!-- General tips will be dynamically inserted here -->
+                </ul>
+            </div>
+
+            <!-- حقل الملاحظات الإضافية -->
+            <div class="mb-6 mt-6">
+                <label for="notesInput" class="block text-gray-700 text-sm font-bold mb-2">ملاحظات إضافية (اختياري):</label>
+                <textarea id="notesInput" rows="3" placeholder="أضف أي ملاحظات هنا..."
+                    class="w-full p-3 border border-gray-300 rounded-lg"></textarea>
+            </div>
+
+            <!-- زر تقرير لياقة الوزن (لتحميل TXT) -->
+            <button id="generateFitnessReportTxtBtn"
+                class="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                تحميل تقرير لياقة الوزن (TXT)
+            </button>
+
+            <!-- زر تقرير لياقة الوزن (لتحميل Word) -->
+            <button id="generateFitnessReportWordBtn"
+                class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                تحميل تقرير لياقة الوزن (Word)
+            </button>
+
+            <!-- زر طباعة إيصال لياقة الوزن -->
+            <button id="printFitnessReceiptBtn"
+                class="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                طباعة إيصال لياقة الوزن
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal لمعاينة إيصال لياقة الوزن -->
+    <div id="fitnessReceiptPreviewModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeFitnessReceiptPreviewModal()">×</button>
+            <div class="modal-title">معاينة إيصال لياقة الوزن</div>
+            <!-- سيتم نسخ محتوى الإيصال هنا ديناميكياً -->
+            <div id="modalFitnessReceiptContent" class="receipt-container bg-white rounded-lg shadow-lg">
+                <!-- Receipt content will be dynamically inserted here -->
+            </div>
+            <div class="modal-print-button-container text-center mt-4 flex justify-center space-x-4">
+                <button onclick="window.printFitnessReceiptFromModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    طباعة الإيصال
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden">
+        <svg class="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="mt-4 text-lg">جاري توليد التقرير...</p>
+    </div>
+
+    <script>
+        // مفتاح لتخزين بيانات الصيدلية في localStorage (يجب أن يتطابق مع pph.html)
+        const LOCAL_STORAGE_KEY = 'pharmacy_data_v1';
+
+        // Pharmacy data object (will be loaded from localStorage)
+        let pharmacyData = {
+            name: 'اسم الصيدلية',
+            address: 'العنوان',
+            phone: 'رقم الهاتف',
+            logoUrl: 'https://placehold.co/150x150/d1d5db/9ca3af?text=شعار' // Placeholder logo
+        };
+
+        // Function to load pharmacy data from localStorage
+        function loadPharmacyData() {
+            const savedPharmacyData = localStorage.getItem(LOCAL_STORAGE_KEY); // Use correct key
+            if (savedPharmacyData) {
+                try {
+                    const parsedData = JSON.parse(savedPharmacyData);
+                    // Only update if parsedData is valid and has expected properties
+                    if (parsedData && parsedData.name && parsedData.address && parsedData.phone) {
+                        pharmacyData = parsedData;
+                        // If logoUrl is empty or null, use a default placeholder or ensure it's handled
+                        if (!pharmacyData.logoUrl) {
+                            pharmacyData.logoUrl = 'https://placehold.co/150x150/d1d5db/9ca3af?text=شعار';
+                        }
+                        console.log('Pharmacy data loaded from localStorage:', pharmacyData);
+                    }
+                } catch (e) {
+                    console.error('Error parsing pharmacy data from localStorage:', e);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load pharmacy data on page load
+            loadPharmacyData();
+
+            // عناصر الإدخال
+            const weightInput = document.getElementById('weightInput');
+            const heightInput = document.getElementById('heightInput');
+            const skipHeightCheckbox = document.getElementById('skipHeightCheckbox');
+            const ageInput = document.getElementById('ageInput');
+            const genderRadios = document.querySelectorAll('input[name="gender"]');
+            const activityLevelSelect = document.getElementById('activityLevel');
+            const goalRadios = document.querySelectorAll('input[name="goal"]');
+            const calculateCaloriesBtn = document.getElementById('calculateCaloriesBtn');
+            const generateFitnessReportTxtBtn = document.getElementById('generateFitnessReportTxtBtn'); // Changed ID
+            const generateFitnessReportWordBtn = document.getElementById('generateFitnessReportWordBtn'); // New button
+            const printFitnessReceiptBtn = document.getElementById('printFitnessReceiptBtn');
+            const backToHomeBtn = document.getElementById('backToHomeBtn');
+
+            // عناصر عرض النتائج
+            const fitnessResultsDiv = document.getElementById('fitnessResults');
+            const displayWeightSpan = document.getElementById('displayWeight');
+            const displayHeightSpan = document.getElementById('displayHeight');
+            const heightEstimateNoteSpan = document.getElementById('heightEstimateNote');
+            const displayAgeSpan = document.getElementById('displayAge');
+            const dailyCaloriesSpan = document.getElementById('dailyCalories');
+            const dietPlanUl = document.querySelector('#dietPlan ul');
+            const exerciseTipsUl = document.querySelector('#exerciseTips ul');
+            const generalTipsUl = document.querySelector('#generalTips ul');
+            const notesInput = document.getElementById('notesInput');
+
+            // عناصر المودال الجديدة
+            const fitnessReceiptPreviewModal = document.getElementById('fitnessReceiptPreviewModal');
+            const modalFitnessReceiptContent = document.getElementById('modalFitnessReceiptContent');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            // تهيئة المحتوى عند التحميل ليكون فارغًا ولكن مرئيًا
+            displayWeightSpan.textContent = '---';
+            displayHeightSpan.textContent = '---';
+            displayAgeSpan.textContent = '---';
+            dailyCaloriesSpan.textContent = '---';
+            dietPlanUl.innerHTML = '<li>الرجاء إدخال بياناتك لحساب خطة الوجبات.</li>';
+            exerciseTipsUl.innerHTML = '<li>الرجاء إدخال بياناتك للحصول على اقتراحات التمارين.</li>';
+            generalTipsUl.innerHTML = '<li>الرجاء إدخال بياناتك للحصول على نصائح عامة.</li>';
+
+
+            // إضافة مستمع حدث لزر الحساب
+            calculateCaloriesBtn.addEventListener('click', calculateCaloriesAndSuggestions);
+
+            // إضافة مستمع حدث لزر تحميل التقرير TXT
+            generateFitnessReportTxtBtn.addEventListener('click', generateAndDownloadTxtReport); // Changed function call
+
+            // إضافة مستمع حدث لزر تحميل التقرير Word
+            generateFitnessReportWordBtn.addEventListener('click', generateAndDownloadWordReport); // New function call
+
+            // إضافة مستمع حدث لزر طباعة الإيصال (الآن يفتح نافذة المعاينة)
+            printFitnessReceiptBtn.addEventListener('click', openFitnessReceiptPreviewModal);
+
+            // إضافة مستمع حدث لزر العودة للصفحة الرئيسية
+            backToHomeBtn.addEventListener('click', () => {
+                window.location.href = 'index.html'; // تأكد من أن هذا هو المسار الصحيح لصفحتك الرئيسية
+            });
+
+            // مستمع حدث لزر "لا أريد إضافة الطول"
+            skipHeightCheckbox.addEventListener('change', () => {
+                if (skipHeightCheckbox.checked) {
+                    heightInput.value = ''; // مسح قيمة الطول
+                    heightInput.disabled = true; // تعطيل حقل الطول
+                    heightInput.placeholder = 'سيتم استخدام تقدير';
+                } else {
+                    heightInput.disabled = false; // تفعيل حقل الطول
+                    heightInput.placeholder = 'مثال: 175';
+                }
+            });
+
+            /**
+             * دالة لحساب السعرات الحرارية وتقديم الاقتراحات بناءً على بيانات المستخدم.
+             */
+            function calculateCaloriesAndSuggestions() {
+                const weight = parseFloat(weightInput.value);
+                let height = parseFloat(heightInput.value);
+                const age = parseFloat(ageInput.value);
+                const gender = document.querySelector('input[name="gender"]:checked')?.value;
+                const activity = activityLevelSelect.value;
+                const goal = document.querySelector('input[name="goal"]:checked')?.value;
+
+                let isHeightEstimated = false;
+
+                // التحقق من صحة المدخلات
+                if (isNaN(weight) || weight <= 0) {
+                    alert('الرجاء إدخال الوزن بشكل صحيح.');
+                    return;
+                }
+                if (isNaN(age) || age <= 0) {
+                    alert('الرجاء إدخال العمر بشكل صحيح.');
+                    return;
+                }
+                if (!gender || !activity || !goal) {
+                    alert('الرجاء تحديد الجنس ومستوى النشاط والهدف.');
+                    return;
+                }
+
+                // معالجة خيار "لا أريد إضافة الطول"
+                if (skipHeightCheckbox.checked || isNaN(height) || height <= 0) {
+                    if (gender === 'male') {
+                        height = 175; // متوسط طول الرجل بالسنتيمتر
+                    } else { // female
+                        height = 162; // متوسط طول المرأة بالسنتيمتر
+                    }
+                    isHeightEstimated = true;
+                }
+
+                // حساب السعرات الحرارية الأساسية (BMR) باستخدام Mifflin-St Jeor Equation
+                let bmr;
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else { // female
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                }
+
+                // معاملات مستوى النشاط (PAL - Physical Activity Level)
+                const activityFactors = {
+                    'sedentary': 1.2,
+                    'light': 1.375,
+                    'moderate': 1.55,
+                    'active': 1.725,
+                    'very_active': 1.9
+                };
+
+                // حساب إجمالي السعرات الحرارية اليومية (TDEE)
+                let tdee = bmr * activityFactors[activity];
+
+                // تعديل السعرات الحرارية حسب الهدف
+                let targetCalories;
+                if (goal === 'lose') {
+                    targetCalories = tdee - 500; // عجز 500 سعرة حرارية لإنقاص حوالي 0.5 كجم/أسبوع
+                } else if (goal === 'gain') {
+                    targetCalories = tdee + 500; // زيادة 500 سعرة حرارية لزيادة حوالي 0.5 كجم/أسبوع
+                } else { // maintain
+                    targetCalories = tdee;
+                }
+
+                // عرض النتائج في الواجهة
+                displayWeightSpan.textContent = weight;
+                displayAgeSpan.textContent = age;
+                displayHeightSpan.textContent = height; // عرض الطول (سواء كان مدخل أو مقدر)
+                if (isHeightEstimated) {
+                    heightEstimateNoteSpan.classList.remove('hidden'); // إظهار ملاحظة التقدير
+                } else {
+                    heightEstimateNoteSpan.classList.add('hidden'); // إخفاء ملاحظة التقدير
+                }
+                dailyCaloriesSpan.textContent = Math.round(targetCalories);
+
+                // تحديث خطة الوجبات والتمارين والنصائح
+                updateDietPlan(Math.round(targetCalories), goal);
+                updateExerciseTips(activity, goal);
+                updateGeneralTips();
+            }
+
+            // بيانات الوجبات المحسنة (يمكن توسيعها بشكل أكبر)
+            const mealData = {
+                breakfast: [
+                    { name: 'شوفان بالحليب والمكسرات والفواكه', minCals: 300, maxCals: 500, protein: 'متوسط', carbs: 'عالي', fats: 'متوسط' },
+                    { name: 'بيض أومليت بالخضروات مع شريحة توست أسمر', minCals: 250, maxCals: 400, protein: 'عالي', carbs: 'متوسط', fats: 'متوسط' },
+                    { name: 'زبادي يوناني مع توت وبذور الشيا', minCals: 200, maxCals: 350, protein: 'عالي', carbs: 'منخفض', fats: 'منخفض' }
+                ],
+                snack: [
+                    { name: 'تفاحة مع قليل من زبدة الفول السوداني', minCals: 150, maxCals: 250 },
+                    { name: 'حفنة لوز أو عين جمل', minCals: 100, maxCals: 200 },
+                    { name: 'زبادي يوناني قليل الدسم', minCals: 100, maxCals: 180 },
+                    { name: 'خضروات مقطعة (جزر، خيار) مع حمص', minCals: 80, maxCals: 150 }
+                ],
+                lunch: [
+                    { name: 'صدر دجاج مشوي (150 جرام) مع أرز أسمر وسلطة خضراء كبيرة', minCals: 400, maxCals: 600, protein: 'عالي', carbs: 'عالي', fats: 'منخفض' },
+                    { name: 'سمك مخبوز مع بطاطا حلوة وخضروات مطهوة على البخار', minCals: 350, maxCals: 550, protein: 'عالي', carbs: 'متوسط', fats: 'متوسط' },
+                    { name: 'طبق بقوليات (عدس/فاصوليا) مع خبز أسمر وسلطة', minCals: 300, maxCals: 500, protein: 'متوسط', carbs: 'عالي', fats: 'منخفض' }
+                ],
+                dinner: [
+                    { name: 'شوربة خضار مع قطعة صغيرة من البروتين الخالي من الدهون (دجاج/سمك)', minCals: 250, maxCals: 450, protein: 'متوسط', carbs: 'منخفض', fats: 'منخفض' },
+                    { name: 'سلطة تونة أو دجاج مع الكثير من الخضروات الورقية', minCals: 200, maxCals: 380, protein: 'عالي', carbs: 'منخفض', fats: 'متوسط' },
+                    { name: 'جبن قريش مع طماطم وخيار وزيت زيتون', minCals: 180, maxCals: 300, protein: 'عالي', carbs: 'منخفض', fats: 'متوسط' }
+                ]
+            };
+
+            /**
+             * دالة لاختيار وجبة عشوائية من قائمة معينة.
+             * @param {Array<Object>} mealsArray - مصفوفة الوجبات للاختيار منها.
+             * @param {number} targetCals - السعرات الحرارية المستهدفة.
+             * @param {string} goal - هدف المستخدم.
+             * @returns {string} - اسم الوجبة المختارة.
+             */
+            function getRandomMeal(mealsArray, targetCals, goal) {
+                let suitableMeals = mealsArray.filter(meal => {
+                    const mealTargetCals = targetCals;
+
+                    if (goal === 'lose') {
+                        return meal.maxCals <= mealTargetCals * 0.4;
+                    } else if (goal === 'gain') {
+                        return meal.minCals >= mealTargetCals * 0.15;
+                    }
+                    return true;
+                });
+
+                if (suitableMeals.length === 0) {
+                    suitableMeals = mealsArray;
+                }
+
+                const randomIndex = Math.floor(Math.random() * suitableMeals.length);
+                return suitableMeals[randomIndex].name;
+            }
+
+            /**
+             * دالة لتحديث خطة الوجبات المقترحة.
+             * @param {number} calories - السعرات الحرارية المستهدفة.
+             * @param {string} goal - هدف المستخدم (lose, maintain, gain).
+             */
+            function updateDietPlan(calories, goal) {
+                const breakfast = getRandomMeal(mealData.breakfast, calories, goal);
+                const snack1 = getRandomMeal(mealData.snack, calories, goal);
+                const lunch = getRandomMeal(mealData.lunch, calories, goal);
+                const snack2 = getRandomMeal(mealData.snack, calories, goal);
+                const dinner = getRandomMeal(mealData.dinner, calories, goal);
+
+                dietPlanUl.innerHTML = `
+                    <li>**الإفطار:** ${breakfast}</li>
+                    <li>**وجبة خفيفة (1):** ${snack1}</li>
+                    <li>**الغداء:** ${lunch}</li>
+                    <li>**وجبة خفيفة (2):** ${snack2}</li>
+                    <li>**العشاء:** ${dinner}</li>
+                `;
+            }
+
+            /**
+             * دالة لتحديث التمارين المقترحة.
+             * @param {string} activity - مستوى النشاط البدني للمستخدم.
+             * @param {string} goal - هدف المستخدم (lose, maintain, gain).
+             */
+            function updateExerciseTips(activity, goal) {
+                let cardio, strength, flexibility;
+
+                if (activity === 'sedentary' || activity === 'light') {
+                    cardio = 'ابدأ بالمشي السريع لمدة 20-30 دقيقة، 3-4 مرات في الأسبوع.';
+                    strength = 'تمارين وزن الجسم الخفيفة (مثل تمارين الضغط على الحائط، القرفصاء بدون وزن) 2 مرات في الأسبوع.';
+                } else if (activity === 'moderate') {
+                    cardio = '30-45 دقيقة من الركض أو السباحة أو ركوب الدراجات، 3-5 مرات في الأسبوع.';
+                    strength = 'تمارين قوة شاملة للجسم باستخدام الأوزان الخفيفة أو وزن الجسم، 3 مرات في الأسبوع.';
+                } else { // active, very_active
+                    cardio = '45-60 دقيقة من التمارين الهوائية عالية الشدة (HIIT، ركض مكثف) 4-6 مرات في الأسبوع.';
+                    strength = 'تمارين قوة مكثفة (رفع أثقال) 3-4 مرات في الأسبوع مع التركيز على المجموعات العضلية الكبيرة.';
+                }
+
+                flexibility = 'تمارين إطالة أو يوجا لمدة 10-15 دقيقة بعد التمارين الرئيسية أو في أيام الراحة.';
+
+                exerciseTipsUl.innerHTML = `
+                    <li>**تمارين القلب (Cardio):** ${cardio}</li>
+                    <li>**تمارين القوة:** ${strength}</li>
+                    <li>**المرونة والإطالة:** ${flexibility}</li>
+                `;
+            }
+
+            /**
+             * دالة لتحديث النصائح العامة.
+             */
+            function updateGeneralTips() {
+                generalTipsUl.innerHTML = `
+                    <li>اشرب كميات كافية من الماء (حوالي 8 أكواب يومياً).</li>
+                    <li>احصل على قسط كافٍ من النوم (7-9 ساعات يومياً).</li>
+                    <li>قلل من تناول السكريات المضافة والأطعمة المصنعة.</li>
+                    <li>تناول البروتين في كل وجبة للمساعدة في الشبع والحفاظ على العضلات.</li>
+                    <li>استمع إلى جسدك وخذ فترات راحة عند الحاجة.</li>
+                    <li>**تتبع التقدم:** قم بتسجيل وزنك ومقاساتك بانتظام لمراقبة تقدمك.</li>
+                    <li>**الصبر والمثابرة:** النتائج تستغرق وقتاً، كن صبوراً وملتزماً بخطتك.</li>
+                    <li>**استشر متخصصاً:** هذه مجرد اقتراحات عامة، استشر طبيباً أو أخصائي تغذية للحصول على خطة مخصصة لحالتك الصحية.</li>
+                `;
+            }
+
+            /**
+             * دالة لإنشاء محتوى التقرير كنص عادي.
+             * @returns {string} - محتوى التقرير كنص عادي.
+             */
+            function getReportTextContent() {
+                const weight = displayWeightSpan.textContent;
+                const height = displayHeightSpan.textContent;
+                const age = displayAgeSpan.textContent;
+                const dailyCalories = dailyCaloriesSpan.textContent;
+                const isHeightEstimated = !heightEstimateNoteSpan.classList.contains('hidden');
+                const genderText = document.querySelector('input[name="gender"]:checked')?.nextElementSibling?.textContent || 'غير محدد';
+                const activityLevelText = activityLevelSelect.options[activityLevelSelect.selectedIndex].textContent || 'غير محدد';
+                const goalText = document.querySelector('input[name="goal"]:checked')?.nextElementSibling?.textContent || 'غير محدد';
+                const notesText = notesInput.value || 'لا توجد ملاحظات إضافية.';
+
+                const dietPlanItems = Array.from(dietPlanUl.children).map(li => li.textContent.replace(/\*\*/g, '')).join('\n- ');
+                const exerciseTipsItems = Array.from(exerciseTipsUl.children).map(li => li.textContent.replace(/\*\*/g, '')).join('\n- ');
+                const generalTipsItems = Array.from(generalTipsUl.children).map(li => li.textContent.replace(/\*\*/g, '')).join('\n- ');
+
+                const reportDate = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                return `
+تقرير لياقة الوزن الشخصي
+تاريخ التقرير: ${reportDate}
+
+بياناتك:
+- الوزن: ${weight} كجم
+- الطول: ${height} سم ${isHeightEstimated ? '(تقديري)' : ''}
+- العمر: ${age} سنة
+- الجنس: ${genderText}
+- مستوى النشاط: ${activityLevelText}
+- الهدف: ${goalText}
+
+ملخص الخطة:
+السعرات الحرارية المقترحة يومياً: ${dailyCalories} سعرة حرارية
+
+خطة الوجبات المقترحة:
+- ${dietPlanItems}
+
+تمارين مقترحة:
+- ${exerciseTipsItems}
+
+نصائح إضافية لنمط حياة صحي:
+- ${generalTipsItems}
+
+ملاحظات:
+${notesText}
+
+----------------------------------------
+هذا التقرير هو لأغراض إرشادية فقط. يرجى استشارة أخصائي صحي أو طبيب للحصول على استشارة شخصية.
+تقرير مُولّد بواسطة SMART PPH
+                `.trim();
+            }
+
+            /**
+             * دالة لتوليد وتحميل التقرير كملف TXT.
+             */
+            function generateAndDownloadTxtReport() {
+                if (dailyCaloriesSpan.textContent === '---') {
+                    alert('الرجاء حساب السعرات الحرارية والخطة أولاً قبل توليد التقرير.');
+                    return;
+                }
+
+                const reportText = getReportTextContent();
+                const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'تقرير_لياقة_الوزن_SMART_PPH.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            /**
+             * دالة لتوليد وتحميل التقرير كملف Word (HTML-based .doc).
+             */
+            function generateAndDownloadWordReport() {
+                if (dailyCaloriesSpan.textContent === '---') {
+                    alert('الرجاء حساب السعرات الحرارية والخطة أولاً قبل توليد التقرير.');
+                    return;
+                }
+
+                const reportText = getReportTextContent();
+
+                // تحويل النص العادي إلى HTML مناسب لملف Word
+                // استبدال الأسطر الجديدة بـ <br> ولف الفقرات في <p>
+                const formattedHtmlContent = reportText.split('\n').map(line => {
+                    if (line.trim() === '----------------------------------------') {
+                        return '<hr style="border-top: 1px dashed #ccc; margin: 15px 0;"/>';
+                    }
+                    if (line.startsWith('**') && line.endsWith('**')) { // Bold text
+                        return `<p style="font-weight: bold; margin-bottom: 5px; font-size: 1.1rem; color: #333; text-align: right;">${line.replace(/\*\*/g, '')}</p>`;
+                    }
+                    if (line.startsWith('- ')) { // List item
+                        return `<li style="margin-right: 1.5rem; font-size: 1.1rem; line-height: 1.6; color: #555; text-align: right;">${line.substring(2)}</li>`;
+                    }
+                    if (line.trim().endsWith(':')) { // Section titles
+                        return `<h3 style="font-weight: bold; font-size: 1.25rem; margin-bottom: 0.75rem; color: #333; margin-top: 1.5rem; text-align: right;">${line}</h3>`;
+                    }
+                    return `<p style="margin-bottom: 5px; font-size: 1.1rem; line-height: 1.6; color: #555; text-align: right;">${line}</p>`;
+                }).join('');
+
+                const wordHtmlContent = `
+                    <!DOCTYPE html>
+                    <html lang="ar" dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>
+                            body {
+                                font-family: 'Cairo', sans-serif;
+                                direction: rtl;
+                                padding: 20mm;
+                                color: #333;
+                                line-height: 1.6;
+                            }
+                            h1, h2, h3 {
+                                color: #333;
+                                text-align: center;
+                                margin-bottom: 1rem;
+                            }
+                            ul {
+                                list-style-type: disc;
+                                margin-right: 20px;
+                            }
+                            li {
+                                margin-bottom: 5px;
+                            }
+                            hr {
+                                border-top: 1px dashed #ccc;
+                                margin: 15px 0;
+                            }
+                            p {
+                                margin-bottom: 5px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${formattedHtmlContent}
+                        <div style="margin-top: 2.5rem; text-align: center; color: #777; font-size: 0.85rem;">
+                            <p>هذا التقرير هو لأغراض إرشادية فقط. يرجى استشارة أخصائي صحي أو طبيب للحصول على استشارة شخصية.</p>
+                            <p>تقرير مُولّد بواسطة SMART PPH</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob([wordHtmlContent], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'تقرير_لياقة_الوزن_SMART_PPH.doc'; // Use .doc extension
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            /**
+             * دالة لإنشاء محتوى إيصال لياقة الوزن كـ HTML.
+             * هذه الدالة لا تطبع مباشرة، بل تُرجع المحتوى.
+             */
+            function generateFitnessReceiptHtml() {
+                // التأكد من حساب وعرض النتائج قبل توليد المحتوى
+                if (dailyCaloriesSpan.textContent === '---') {
+                    alert('الرجاء حساب السعرات الحرارية والخطة أولاً قبل طباعة الإيصال.');
+                    return '';
+                }
+
+                const weight = displayWeightSpan.textContent;
+                const age = displayAgeSpan.textContent;
+                const height = displayHeightSpan.textContent;
+                const dailyCalories = dailyCaloriesSpan.textContent;
+                const isHeightEstimated = !heightEstimateNoteSpan.classList.contains('hidden');
+                const notesText = notesInput.value || 'لا توجد ملاحظات'; // الحصول على الملاحظات من حقل الإدخال
+
+                // الحصول على التاريخ والوقت الحاليين
+                const now = new Date();
+                const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                const formattedDate = now.toLocaleDateString('ar-EG', dateOptions);
+                const formattedTime = now.toLocaleTimeString('ar-EG', timeOptions);
+
+                // بناء محتوى HTML للإيصال
+                return `
+                    <div class="receipt-container" style="text-align: center;">
+                        ${pharmacyData.logoUrl && !pharmacyData.logoUrl.includes('placehold.co') ? `<img src="${pharmacyData.logoUrl}" alt="Pharmacy Logo" class="logo-placeholder" onerror="this.style.display='none';">` : ''}
+                        <h1 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 5px;">${pharmacyData.name || 'اسم الصيدلية'}</h1>
+                        <p style="font-size: 0.8rem; margin-bottom: 5px;">${pharmacyData.address || 'عنوان الصيدلية'}</p>
+                        <p style="font-size: 0.8rem; margin-bottom: 10px;">${pharmacyData.phone || 'رقم الهاتف'}</p>
+
+                        <div class="divider"></div>
+
+                        <h2 style="font-size: 1rem; font-weight: bold; margin-bottom: 10px;">إيصال لياقة الوزن</h2>
+                        <p style="font-size: 0.9rem; margin-bottom: 5px; text-align: right;">التاريخ: ${formattedDate}</p>
+                        <p style="font-size: 0.9rem; margin-bottom: 15px; text-align: right;">الوقت: ${formattedTime}</p>
+
+                        <div style="text-align: right; margin-bottom: 15px;">
+                            <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">الوزن:</span> ${weight} كجم</p>
+                            <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">العمر:</span> ${age} سنة</p>
+                            <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">الطول:</span> ${height} سم ${isHeightEstimated ? '(تقديري)' : ''}</p>
+                            <p style="font-size: 1.1rem; margin-top: 10px;"><span style="font-weight: bold;">السعرات الحرارية المقترحة:</span> ${dailyCalories} سعرة حرارية</p>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; text-align: right;">ملاحظات:</h3>
+                        <div style="font-size: 0.9rem; border: 1px dashed #ccc; padding: 5px; min-height: 50px; width: 100%; box-sizing: border-box; text-align: right;">
+                            ${notesText}
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <p style="font-size: 0.7rem; margin-top: 10px;">شكراً لاستخدامك SMART PPH</p>
+                       
+                    </div>
+                `;
+            }
+
+            /**
+             * دالة لفتح مودال معاينة إيصال لياقة الوزن.
+             */
+            function openFitnessReceiptPreviewModal() {
+                const receiptHtml = generateFitnessReceiptHtml();
+                if (receiptHtml) {
+                    modalFitnessReceiptContent.innerHTML = receiptHtml;
+                    fitnessReceiptPreviewModal.classList.remove('hidden');
+                    void fitnessReceiptPreviewModal.offsetWidth; // Force reflow
+                    fitnessReceiptPreviewModal.classList.add('visible');
+                }
+            }
+
+            /**
+             * دالة لطباعة المحتوى من نافذة المعاينة.
+             * @param {string} contentElementId - معرف العنصر الذي يحتوي على المحتوى المراد طباعته.
+             * @param {boolean} isCopy - لتحديد ما إذا كانت نسخة (يضيف "نسخة" إلى الإيصال).
+             */
+            window.printContent = function(contentElementId, isCopy = false) {
+                const contentToPrint = document.getElementById(contentElementId).cloneNode(true);
+                
+                // إزالة أي عناصر تفاعلية أو أزرار من المحتوى المستنسخ قبل الطباعة
+                const interactiveElements = contentToPrint.querySelectorAll('button, input, select, textarea');
+                interactiveElements.forEach(element => element.remove());
+
+                // إضافة نص "نسخة" إذا كانت نسخة
+                if (isCopy) {
+                    const copyTextDiv = document.createElement('p');
+                    copyTextDiv.textContent = 'نسخة';
+                    copyTextDiv.style.textAlign = 'center';
+                    copyTextDiv.style.fontWeight = 'bold';
+                    copyTextDiv.style.marginTop = '10px';
+                    contentToPrint.appendChild(copyTextDiv);
+                }
+
+                const printFrame = document.createElement('iframe');
+                printFrame.style.display = 'none';
+                document.body.appendChild(printFrame);
+                const printDocument = printFrame.contentWindow.document;
+
+                printDocument.open();
+                printDocument.write(`
+                    <!DOCTYPE html>
+                    <html lang="ar" dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>إيصال لياقة الوزن</title>
+                        <link rel="preconnect" href="https://fonts.googleapis.com">
+                        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+                        <style>
+                            /* Global print styles to ensure clean receipt */
+                            body {
+                                font-family: 'Cairo', sans-serif;
+                                margin: 0;
+                                padding: 0;
+                                direction: rtl;
+                                color: #000;
+                                background-color: #fff;
+                            }
+                            .receipt-container {
+                                width: 72mm; /* Thermal printer width */
+                                padding: 4mm;
+                                box-sizing: border-box;
+                                margin: 0 auto; /* Center for A4 print preview */
+                            }
+                            .receipt-container h1, .receipt-container h2, .receipt-container h3, .receipt-container p, .receipt-container span, .receipt-container label {
+                                color: #000 !important;
+                                font-weight: normal; /* Reset font-weight */
+                            }
+                            .receipt-container h1 { font-weight: bold !important; font-size: 1.2rem; }
+                            .receipt-container h2 { font-weight: bold !important; font-size: 1rem; }
+                            .receipt-container h3 { font-weight: bold !important; font-size: 0.9rem; }
+                            .receipt-container .logo-placeholder {
+                                max-width: 50mm; /* Adjust logo size for receipt */
+                                height: auto;
+                                display: block;
+                                margin: 0 auto 5mm;
+                            }
+                            .receipt-container .divider {
+                                border-top: 1px dashed #000;
+                                margin: 5mm 0;
+                            }
+                            /* Hide textarea border in print */
+                            .receipt-container textarea {
+                                border: none !important;
+                                resize: none;
+                                width: 100%;
+                                min-height: 30mm;
+                                font-family: 'Cairo', sans-serif;
+                                color: #000;
+                                text-align: right;
+                                padding: 0 !important;
+                                box-sizing: border-box;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${contentToPrint.outerHTML}
+                    </body>
+                    </html>
+                `);
+                printDocument.close();
+
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+                document.body.removeChild(printFrame); // Clean up the iframe
+            };
+
+            /**
+             * دالة لطباعة إيصال لياقة الوزن من المودال.
+             */
+            window.printFitnessReceiptFromModal = function() {
+                window.printContent('modalFitnessReceiptContent');
+                window.closeFitnessReceiptPreviewModal();
+            };
+
+            /**
+             * دالة لإغلاق مودال معاينة إيصال لياقة الوزن.
+             */
+            window.closeFitnessReceiptPreviewModal = function() {
+                fitnessReceiptPreviewModal.classList.remove('visible');
+                fitnessReceiptPreviewModal.addEventListener('transitionend', function handler() {
+                    fitnessReceiptPreviewModal.classList.add('hidden');
+                    fitnessReceiptPreviewModal.removeEventListener('transitionend', handler);
+                });
+                modalFitnessReceiptContent.innerHTML = ''; // Clear content when closing
+            };
+        });
+    </script>
+</body>
+</html>
