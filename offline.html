@@ -9,6 +9,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
 
+        html, body {
+            height: 100%; /* Ensure html and body take full height */
+        }
+
         body {
             display: flex;
             flex-direction: column; /* Changed to column to stack elements vertically */
@@ -16,10 +20,11 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow-y: auto; /* Changed from hidden to auto for vertical scrolling */
+            overflow-y: auto; /* Allow vertical scrolling if content exceeds viewport */
             font-family: 'Cairo', sans-serif;
             color: #e0e7ff;
             background: #0d1a2f;
+            padding-bottom: 50px; /* Add some padding at the bottom for scroll comfort */
         }
 
         /* تأثير الخلفية الفضائية */
@@ -69,7 +74,7 @@
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
+            max-width: 700px; /* Limits the content container width for readability */
             width: 100%;
             z-index: 1;
             display: flex;
@@ -101,15 +106,28 @@
             color: #d1d5db;
             font-size: 1.2rem;
             margin-bottom: 20px;
-            text-align: center;
+            text-align: center; /* Already centered */
             padding: 10px;
         }
+
+        /* New style for large farewell text - Adjusted for better fit */
+        .dialogue-box.farewell-large-text {
+            font-size: 2.5rem; /* Reduced from 3.5rem for better fit */
+            font-weight: 700;
+            color: #a78bfa; /* A prominent color */
+            transition: font-size 0.5s ease-in-out, color 0.5s ease-in-out;
+            min-height: 100px; /* Adjusted from 150px to match smaller font */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
 
         .full-text {
             color: #e0e7ff;
             font-size: 1.1rem;
             margin-top: 20px;
-            text-align: justify;
+            text-align: center; /* Changed from justify to center */
             opacity: 0;
             transition: opacity 1s ease-in-out;
         }
@@ -151,6 +169,7 @@
             height: 60px;
             animation: spin 1.5s linear infinite;
             margin-bottom: 30px; /* Space below spinner */
+            display: none; /* Hidden by default, shown by JS */
         }
 
         /* Pixel Art Face Container */
@@ -330,6 +349,9 @@
                 height: 80px;
                 margin-top: 20px;
             }
+            .dialogue-box.farewell-large-text {
+                font-size: 1.8rem; /* Further reduced for very small screens */
+            }
         }
     </style>
 </head>
@@ -386,6 +408,7 @@
         const leftEyebrow = document.querySelector('.eyebrow.left');
         const rightEyebrow = document.querySelector('.eyebrow.right');
         const mouth = document.querySelector('.mouth');
+        const loadingSpinner = document.querySelector('.loading-spinner'); // Get the spinner element
 
         const initialMessages = [
             "أهلاً بك، يا صديقي!",
@@ -399,11 +422,20 @@
             "سأعود للعمل بمجرد عودة الاتصال! شكراً لصبرك!"
         ];
 
+        const farewellMessages = [
+            "أهلاً بك مرة أخرى!",
+            "لقد عاد الاتصال! كم سأشتاق إليك...",
+            "أتمنى انقطاع الخدمة في أسرع وقت! هههه أمزح :)",
+            "جاري إعادة التحميل...",
+            "الرجاء الانتظار قليلاً."
+        ];
+
         const faceStates = ['happy', 'funny', 'shocked', 'surprised', 'silly'];
         let currentFaceStateIndex = 0;
-        let currentInitialMessageIndex = 0;
+        let currentMessageIndex = 0;
         let autoUpdateFaceAndMessagesInterval; // لتعابير الوجه والرسائل الطويلة
         let eyeAnimationInterval; // لحركة العين العشوائية
+        let reloadTimeout; // لمهلة إعادة التحميل
 
         const typingDelay = 75; // سرعة كتابة الحروف
         const messageDisplayTime = 2000; // وقت عرض الرسالة بعد الانتهاء من كتابتها
@@ -432,9 +464,9 @@
          * Displays initial messages sequentially with typing effect.
          */
         function displayInitialMessages() {
-            if (currentInitialMessageIndex < initialMessages.length) {
-                typeSentence(initialMessages[currentInitialMessageIndex], () => {
-                    currentInitialMessageIndex++;
+            if (currentMessageIndex < initialMessages.length) {
+                typeSentence(initialMessages[currentMessageIndex], () => {
+                    currentMessageIndex++;
                     setTimeout(displayInitialMessages, messageDisplayTime);
                 });
             } else {
@@ -442,6 +474,40 @@
                 dialogueBox.style.display = 'none';
                 // Start face expression cycling after initial messages
                 startAutoUpdateFaceAndMessagesCycling();
+            }
+        }
+
+        /**
+         * Displays farewell messages sequentially with typing effect and reloads.
+         */
+        function displayFarewellMessages(index = 0) {
+            // Stop all ongoing animations and intervals
+            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
+            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
+            if (reloadTimeout) clearTimeout(reloadTimeout); // Clear any previous reload timeout
+
+            dialogueBox.style.display = 'block'; // Ensure dialogue box is visible
+            dialogueBox.classList.add('farewell-large-text'); // Add class for large text
+            fullTextElement.classList.remove('visible'); // Hide full text
+            interactiveFace.style.display = 'none'; // Hide face
+            document.querySelector('h1').style.display = 'none'; // Hide main title
+            loadingSpinner.style.display = 'none'; // Hide spinner initially during messages
+
+            if (index < farewellMessages.length) {
+                typeSentence(farewellMessages[index], () => {
+                    setTimeout(() => {
+                        displayFarewellMessages(index + 1);
+                    }, messageDisplayTime); // Use messageDisplayTime for individual messages
+                });
+            } else {
+                // All farewell messages displayed
+                dialogueBox.textContent = "جاري إعادة التحميل..."; // Final message before reload
+                loadingSpinner.style.display = 'block'; // Show spinner
+                
+                reloadTimeout = setTimeout(() => {
+                    console.log("Reloading page...");
+                    window.location.reload();
+                }, 5000); // 5 seconds delay before reload
             }
         }
 
@@ -478,14 +544,13 @@
         }
 
         /**
-         * Starts the automatic cycling of messages and face states.
+         * Starts the automatic cycling of face states.
          */
         function startAutoUpdateFaceAndMessagesCycling() {
             if (autoUpdateFaceAndMessagesInterval) {
                 clearInterval(autoUpdateFaceAndMessagesInterval);
             }
             autoUpdateFaceAndMessagesInterval = setInterval(() => {
-                // Only update face state here, messages are handled by displayInitialMessages
                 updateFaceState();
             }, 4000); // كل 4 ثوانٍ تتغير حالة الوجه
         }
@@ -497,7 +562,7 @@
             if (eyeAnimationInterval) {
                 clearInterval(eyeAnimationInterval);
             }
-            eyeAnimationInterval = setInterval(animateEyesRandomly, 750); // كل 100 مللي ثانية (جزء من الثانية)
+            eyeAnimationInterval = setInterval(animateEyesRandomly, 100); // كل 100 مللي ثانية (جزء من الثانية)
         }
 
         // Space background animations
@@ -536,12 +601,32 @@
             }
         }
 
+        // Event listener for online status
+        window.addEventListener('online', () => {
+            console.log("Internet connection restored!");
+            // Stop all ongoing animations and intervals
+            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
+            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
+            if (reloadTimeout) clearTimeout(reloadTimeout);
+
+            // Start farewell message sequence and reload
+            displayFarewellMessages();
+        });
+
         // Initialize on DOMContentLoaded
         document.addEventListener('DOMContentLoaded', () => {
             createStars(100);
             createPlanets(3);
-            displayInitialMessages(); // Start the initial typing messages
-            startEyeAnimation(); // Start continuous random eye movement
+            
+            // Only display initial messages if currently offline
+            if (!navigator.onLine) {
+                displayInitialMessages(); // Start the initial typing messages
+                startEyeAnimation(); // Start continuous random eye movement
+            } else {
+                // If already online when loaded, go straight to farewell messages
+                console.log("Page loaded while online. Initiating farewell sequence.");
+                displayFarewellMessages();
+            }
         });
     </script>
 </body>
