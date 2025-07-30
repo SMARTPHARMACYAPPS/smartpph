@@ -11,20 +11,19 @@
 
         html, body {
             height: 100%; /* Ensure html and body take full height */
+            overflow: hidden; /* Prevent scrolling on the entire page */
+            margin: 0; /* Remove default body margin */
         }
 
         body {
-            display: flex;
-            flex-direction: column; /* Changed to column to stack elements vertically */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-y: auto; /* Allow vertical scrolling if content exceeds viewport */
+            display: grid; /* Use Grid for robust centering */
+            place-items: center; /* Centers content both horizontally and vertically */
+            min-height: 100vh; /* Ensure it takes full viewport height */
             font-family: 'Cairo', sans-serif;
             color: #e0e7ff;
             background: #0d1a2f;
-            padding-bottom: 50px; /* Add some padding at the bottom for scroll comfort */
+            /* Removed padding from body as place-items handles spacing */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
 
         /* تأثير الخلفية الفضائية */
@@ -75,13 +74,13 @@
             border-radius: 20px;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
             max-width: 700px; /* Limits the content container width for readability */
-            width: 100%;
+            width: 100%; /* Ensure it takes full width up to max-width */
             z-index: 1;
-            display: flex;
+            display: flex; /* Keep flex for internal layout of elements */
             flex-direction: column;
             align-items: center;
             border: 2px solid #6366f1;
-            margin: 20px; /* Add some margin for better spacing on scroll */
+            /* margin: auto; */ /* Removed as place-items on body handles centering */
         }
 
         h1 {
@@ -93,6 +92,7 @@
             align-items: center;
             justify-content: center;
             gap: 15px; /* Space between icon and text */
+            text-align: center; /* Ensure title is centered */
         }
 
         .no-internet-icon {
@@ -120,6 +120,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center; /* Ensure text is centered within this box */
         }
 
 
@@ -145,6 +146,7 @@
             color: #818cf8;
             font-size: 1.8rem;
             margin-bottom: 15px;
+            text-align: center; /* Center section title */
         }
         .tips-section ul {
             list-style: none;
@@ -156,9 +158,17 @@
             padding: 12px 20px;
             margin-bottom: 10px;
             border-radius: 8px;
-            text-align: right;
+            text-align: right; /* Keep original text-align for list item content */
             color: #e0e7ff;
+            max-width: 90%; /* Limit width for centering */
+            margin-right: auto; /* Center block in RTL */
+            margin-left: auto; /* Center block in LTR */
         }
+        /* For RTL, if text-align: right is desired for list content within a centered block */
+        .tips-section li p {
+            text-align: right;
+        }
+
 
         /* Loading Spinner */
         .loading-spinner {
@@ -409,6 +419,7 @@
         const rightEyebrow = document.querySelector('.eyebrow.right');
         const mouth = document.querySelector('.mouth');
         const loadingSpinner = document.querySelector('.loading-spinner'); // Get the spinner element
+        const mainTitle = document.querySelector('h1'); // Get the main title element
 
         const initialMessages = [
             "أهلاً بك، يا صديقي!",
@@ -486,12 +497,13 @@
             if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
             if (reloadTimeout) clearTimeout(reloadTimeout); // Clear any previous reload timeout
 
+            // Show elements relevant to farewell
             dialogueBox.style.display = 'block'; // Ensure dialogue box is visible
             dialogueBox.classList.add('farewell-large-text'); // Add class for large text
-            fullTextElement.classList.remove('visible'); // Hide full text
-            interactiveFace.style.display = 'none'; // Hide face
-            document.querySelector('h1').style.display = 'none'; // Hide main title
+            interactiveFace.style.display = 'flex'; // Show face again
             loadingSpinner.style.display = 'none'; // Hide spinner initially during messages
+            mainTitle.style.display = 'none'; // Hide main title
+            fullTextElement.classList.remove('visible'); // Hide full text
 
             if (index < farewellMessages.length) {
                 typeSentence(farewellMessages[index], () => {
@@ -504,10 +516,9 @@
                 dialogueBox.textContent = "جاري إعادة التحميل..."; // Final message before reload
                 loadingSpinner.style.display = 'block'; // Show spinner
                 
-                reloadTimeout = setTimeout(() => {
-                    console.log("Reloading page...");
-                    window.location.reload();
-                }, 5000); // 5 seconds delay before reload
+                // Reload immediately after the last message is typed
+                console.log("Reloading page immediately...");
+                window.location.reload();
             }
         }
 
@@ -625,6 +636,9 @@
             } else {
                 // If already online when loaded, go straight to farewell messages
                 console.log("Page loaded while online. Initiating farewell sequence.");
+                // Ensure face and spinner are visible for farewell sequence if starting online
+                interactiveFace.style.display = 'flex';
+                loadingSpinner.style.display = 'block'; // Will be hidden by displayFarewellMessages then shown again
                 displayFarewellMessages();
             }
         });
