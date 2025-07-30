@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -233,6 +233,35 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Food Database Modal specific styles */
+        #foodDatabaseModal .modal-content {
+            max-width: 600px;
+            width: 90%;
+        }
+        #foodDatabaseList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #foodDatabaseList li {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #foodDatabaseList li:last-child {
+            border-bottom: none;
+        }
+        #foodDatabaseList li span:first-child {
+            font-weight: bold;
+            color: #333;
+        }
+        #foodDatabaseList li span:last-child {
+            color: #666;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -312,7 +341,7 @@
             <button id="calculateCaloriesBtn"
                 class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l-2 2H5V6a2 0 012-2h4l2 2h4a2 2 0 012 2v10a2 2 0 01-2 2H9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l-2 2H5V6a2 2 0 012-2h4l2 2h4a2 2 0 012 2v10a2 2 0 01-2 2H9z" />
                 </svg>
                 حساب السعرات الحرارية والخطة
             </button>
@@ -333,6 +362,9 @@
             </p>
             <p class="text-gray-700 text-lg mb-4">
                 <span class="font-bold">السعرات الحرارية المقترحة يومياً:</span> <span id="dailyCalories" class="font-bold text-blue-800 text-2xl">---</span> سعرة حرارية
+            </p>
+            <p class="text-gray-700 text-lg mb-4">
+                <span class="font-bold">إجمالي سعرات الوجبات المقترحة:</span> <span id="totalMealsCalories" class="font-bold text-blue-800 text-xl">---</span> سعرة حرارية
             </p>
 
             <div id="dietPlan" class="mt-6 p-4 bg-white rounded-lg shadow-sm">
@@ -363,13 +395,13 @@
                     class="w-full p-3 border border-gray-300 rounded-lg"></textarea>
             </div>
 
-            <!-- زر تقرير لياقة الوزن (لتحميل TXT) -->
-            <button id="generateFitnessReportTxtBtn"
+            <!-- زر نسخ تقرير لياقة الوزن (كان تحميل TXT) -->
+            <button id="copyFitnessReportTxtBtn"
                 class="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5v2m0-2h2m4 0h2M9 8h6m-3 3v6m-3-3h6" />
                 </svg>
-                تحميل تقرير لياقة الوزن (TXT)
+                نسخ تقرير لياقة الوزن
             </button>
 
             <!-- زر تقرير لياقة الوزن (لتحميل Word) -->
@@ -379,6 +411,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 تحميل تقرير لياقة الوزن (Word)
+            </button>
+
+            <!-- زر قاعدة بيانات الأكل -->
+            <button id="openFoodDatabaseBtn"
+                class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7m-4 3v4m-4-4v4m-4-4v4M4 7h16a2 2 0 002-2V4a2 2 0 00-2-2H4a2 2 0 00-2 2v3a2 2 0 002 2z" />
+                </svg>
+                قاعدة بيانات الأكل
             </button>
 
             <!-- زر طباعة إيصال لياقة الوزن -->
@@ -409,6 +450,17 @@
                     طباعة الإيصال
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal لقاعدة بيانات الأكل -->
+    <div id="foodDatabaseModal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close-button" onclick="window.closeFoodDatabaseModal()">×</button>
+            <div class="modal-title">قاعدة بيانات الأكل (سعرات حرارية تقريبية)</div>
+            <ul id="foodDatabaseList" class="text-right">
+                <!-- Food items will be dynamically inserted here -->
+            </ul>
         </div>
     </div>
 
@@ -467,8 +519,9 @@
             const activityLevelSelect = document.getElementById('activityLevel');
             const goalRadios = document.querySelectorAll('input[name="goal"]');
             const calculateCaloriesBtn = document.getElementById('calculateCaloriesBtn');
-            const generateFitnessReportTxtBtn = document.getElementById('generateFitnessReportTxtBtn'); // Changed ID
+            const copyFitnessReportTxtBtn = document.getElementById('copyFitnessReportTxtBtn'); // Changed ID
             const generateFitnessReportWordBtn = document.getElementById('generateFitnessReportWordBtn'); // New button
+            const openFoodDatabaseBtn = document.getElementById('openFoodDatabaseBtn'); // New button for food database
             const printFitnessReceiptBtn = document.getElementById('printFitnessReceiptBtn');
             const backToHomeBtn = document.getElementById('backToHomeBtn');
 
@@ -479,6 +532,7 @@
             const heightEstimateNoteSpan = document.getElementById('heightEstimateNote');
             const displayAgeSpan = document.getElementById('displayAge');
             const dailyCaloriesSpan = document.getElementById('dailyCalories');
+            const totalMealsCaloriesSpan = document.getElementById('totalMealsCalories'); // New span for total meal calories
             const dietPlanUl = document.querySelector('#dietPlan ul');
             const exerciseTipsUl = document.querySelector('#exerciseTips ul');
             const generalTipsUl = document.querySelector('#generalTips ul');
@@ -487,6 +541,8 @@
             // عناصر المودال الجديدة
             const fitnessReceiptPreviewModal = document.getElementById('fitnessReceiptPreviewModal');
             const modalFitnessReceiptContent = document.getElementById('modalFitnessReceiptContent');
+            const foodDatabaseModal = document.getElementById('foodDatabaseModal'); // Food database modal
+            const foodDatabaseList = document.getElementById('foodDatabaseList'); // List inside food database modal
             const loadingSpinner = document.getElementById('loadingSpinner');
 
             // تهيئة المحتوى عند التحميل ليكون فارغًا ولكن مرئيًا
@@ -494,6 +550,7 @@
             displayHeightSpan.textContent = '---';
             displayAgeSpan.textContent = '---';
             dailyCaloriesSpan.textContent = '---';
+            totalMealsCaloriesSpan.textContent = '---'; // Initialize new span
             dietPlanUl.innerHTML = '<li>الرجاء إدخال بياناتك لحساب خطة الوجبات.</li>';
             exerciseTipsUl.innerHTML = '<li>الرجاء إدخال بياناتك للحصول على اقتراحات التمارين.</li>';
             generalTipsUl.innerHTML = '<li>الرجاء إدخال بياناتك للحصول على نصائح عامة.</li>';
@@ -502,11 +559,14 @@
             // إضافة مستمع حدث لزر الحساب
             calculateCaloriesBtn.addEventListener('click', calculateCaloriesAndSuggestions);
 
-            // إضافة مستمع حدث لزر تحميل التقرير TXT
-            generateFitnessReportTxtBtn.addEventListener('click', generateAndDownloadTxtReport); // Changed function call
+            // إضافة مستمع حدث لزر نسخ التقرير TXT
+            copyFitnessReportTxtBtn.addEventListener('click', copyReportToClipboard); // Changed function call
 
             // إضافة مستمع حدث لزر تحميل التقرير Word
             generateFitnessReportWordBtn.addEventListener('click', generateAndDownloadWordReport); // New function call
+
+            // إضافة مستمع حدث لزر قاعدة بيانات الأكل
+            openFoodDatabaseBtn.addEventListener('click', openFoodDatabaseModal); // New function call
 
             // إضافة مستمع حدث لزر طباعة الإيصال (الآن يفتح نافذة المعاينة)
             printFitnessReceiptBtn.addEventListener('click', openFitnessReceiptPreviewModal);
@@ -608,90 +668,161 @@
 
                 // تحديث خطة الوجبات والتمارين والنصائح
                 updateDietPlan(Math.round(targetCalories), goal);
-                updateExerciseTips(activity, goal);
+                updateExerciseTips(activity, goal, height, age, gender); // تمرير الطول والعمر والجنس
                 updateGeneralTips();
             }
 
             // بيانات الوجبات المحسنة (يمكن توسيعها بشكل أكبر)
             const mealData = {
                 breakfast: [
-                    { name: 'شوفان بالحليب والمكسرات والفواكه', minCals: 300, maxCals: 500, protein: 'متوسط', carbs: 'عالي', fats: 'متوسط' },
-                    { name: 'بيض أومليت بالخضروات مع شريحة توست أسمر', minCals: 250, maxCals: 400, protein: 'عالي', carbs: 'متوسط', fats: 'متوسط' },
-                    { name: 'زبادي يوناني مع توت وبذور الشيا', minCals: 200, maxCals: 350, protein: 'عالي', carbs: 'منخفض', fats: 'منخفض' }
+                    { name: 'شوفان بالحليب والمكسرات والفواكه', calories: 400 },
+                    { name: 'بيض أومليت بالخضروات مع شريحة توست أسمر', calories: 350 },
+                    { name: 'زبادي يوناني مع توت وبذور الشيا', calories: 280 },
+                    { name: 'ساندويتش جبنة قريش وخيار', calories: 220 }
                 ],
                 snack: [
-                    { name: 'تفاحة مع قليل من زبدة الفول السوداني', minCals: 150, maxCals: 250 },
-                    { name: 'حفنة لوز أو عين جمل', minCals: 100, maxCals: 200 },
-                    { name: 'زبادي يوناني قليل الدسم', minCals: 100, maxCals: 180 },
-                    { name: 'خضروات مقطعة (جزر، خيار) مع حمص', minCals: 80, maxCals: 150 }
+                    { name: 'تفاحة مع قليل من زبدة الفول السوداني', calories: 200 },
+                    { name: 'حفنة لوز أو عين جمل', calories: 150 },
+                    { name: 'زبادي يوناني قليل الدسم', calories: 140 },
+                    { name: 'خضروات مقطعة (جزر، خيار) مع حمص', calories: 100 },
+                    { name: 'برتقالة', calories: 80 }
                 ],
                 lunch: [
-                    { name: 'صدر دجاج مشوي (150 جرام) مع أرز أسمر وسلطة خضراء كبيرة', minCals: 400, maxCals: 600, protein: 'عالي', carbs: 'عالي', fats: 'منخفض' },
-                    { name: 'سمك مخبوز مع بطاطا حلوة وخضروات مطهوة على البخار', minCals: 350, maxCals: 550, protein: 'عالي', carbs: 'متوسط', fats: 'متوسط' },
-                    { name: 'طبق بقوليات (عدس/فاصوليا) مع خبز أسمر وسلطة', minCals: 300, maxCals: 500, protein: 'متوسط', carbs: 'عالي', fats: 'منخفض' }
+                    { name: 'صدر دجاج مشوي (150 جرام) مع أرز أسمر وسلطة خضراء كبيرة', calories: 550 },
+                    { name: 'سمك مخبوز مع بطاطا حلوة وخضروات مطهوة على البخار', calories: 500 },
+                    { name: 'طبق بقوليات (عدس/فاصوليا) مع خبز أسمر وسلطة', calories: 450 },
+                    { name: 'سلطة كينوا بالدجاج والخضروات', calories: 480 }
                 ],
                 dinner: [
-                    { name: 'شوربة خضار مع قطعة صغيرة من البروتين الخالي من الدهون (دجاج/سمك)', minCals: 250, maxCals: 450, protein: 'متوسط', carbs: 'منخفض', fats: 'منخفض' },
-                    { name: 'سلطة تونة أو دجاج مع الكثير من الخضروات الورقية', minCals: 200, maxCals: 380, protein: 'عالي', carbs: 'منخفض', fats: 'متوسط' },
-                    { name: 'جبن قريش مع طماطم وخيار وزيت زيتون', minCals: 180, maxCals: 300, protein: 'عالي', carbs: 'منخفض', fats: 'متوسط' }
+                    { name: 'شوربة خضار مع قطعة صغيرة من البروتين الخالي من الدهون (دجاج/سمك)', calories: 350 },
+                    { name: 'سلطة تونة أو دجاج مع الكثير من الخضروات الورقية', calories: 300 },
+                    { name: 'جبن قريش مع طماطم وخيار وزيت زيتون', calories: 250 },
+                    { name: 'خضروات سوتيه مع قطعة لحم أحمر قليل الدهن', calories: 400 }
                 ]
             };
 
             /**
-             * دالة لاختيار وجبة عشوائية من قائمة معينة.
+             * دالة لاختيار وجبة عشوائية من قائمة معينة مع مراعاة السعرات الحرارية المستهدفة.
              * @param {Array<Object>} mealsArray - مصفوفة الوجبات للاختيار منها.
-             * @param {number} targetCals - السعرات الحرارية المستهدفة.
-             * @param {string} goal - هدف المستخدم.
-             * @returns {string} - اسم الوجبة المختارة.
+             * @param {number} targetCalsForMeal - السعرات الحرارية المستهدفة لهذه الوجبة.
+             * @returns {{name: string, calories: number}} - الوجبة المختارة (الاسم والسعرات).
              */
-            function getRandomMeal(mealsArray, targetCals, goal) {
-                let suitableMeals = mealsArray.filter(meal => {
-                    const mealTargetCals = targetCals;
-
-                    if (goal === 'lose') {
-                        return meal.maxCals <= mealTargetCals * 0.4;
-                    } else if (goal === 'gain') {
-                        return meal.minCals >= mealTargetCals * 0.15;
-                    }
-                    return true;
-                });
-
-                if (suitableMeals.length === 0) {
-                    suitableMeals = mealsArray;
-                }
-
-                const randomIndex = Math.floor(Math.random() * suitableMeals.length);
-                return suitableMeals[randomIndex].name;
+            function getSmartMeal(mealsArray, targetCalsForMeal) {
+                // فرز الوجبات بناءً على مدى قرب سعراتها من السعرات المستهدفة
+                mealsArray.sort((a, b) =>
+                    Math.abs(a.calories - targetCalsForMeal) - Math.abs(b.calories - targetCalsForMeal)
+                );
+                // اختيار الوجبة الأقرب للسعرات المستهدفة
+                return mealsArray[0];
             }
 
             /**
              * دالة لتحديث خطة الوجبات المقترحة.
-             * @param {number} calories - السعرات الحرارية المستهدفة.
+             * @param {number} totalCalories - السعرات الحرارية الإجمالية المستهدفة يومياً.
              * @param {string} goal - هدف المستخدم (lose, maintain, gain).
              */
-            function updateDietPlan(calories, goal) {
-                const breakfast = getRandomMeal(mealData.breakfast, calories, goal);
-                const snack1 = getRandomMeal(mealData.snack, calories, goal);
-                const lunch = getRandomMeal(mealData.lunch, calories, goal);
-                const snack2 = getRandomMeal(mealData.snack, calories, goal);
-                const dinner = getRandomMeal(mealData.dinner, calories, goal);
+            function updateDietPlan(totalCalories, goal) {
+                // توزيع تقريبي للسعرات الحرارية على الوجبات
+                let breakfastCals, snack1Cals, lunchCals, snack2Cals, dinnerCals;
 
-                dietPlanUl.innerHTML = `
-                    <li>**الإفطار:** ${breakfast}</li>
-                    <li>**وجبة خفيفة (1):** ${snack1}</li>
-                    <li>**الغداء:** ${lunch}</li>
-                    <li>**وجبة خفيفة (2):** ${snack2}</li>
-                    <li>**العشاء:** ${dinner}</li>
-                `;
+                if (goal === 'lose') {
+                    breakfastCals = totalCalories * 0.25; // 25%
+                    snack1Cals = totalCalories * 0.10; // 10%
+                    lunchCals = totalCalories * 0.30; // 30%
+                    snack2Cals = totalCalories * 0.10; // 10%
+                    dinnerCals = totalCalories * 0.25; // 25%
+                } else if (goal === 'gain') {
+                    breakfastCals = totalCalories * 0.20; // 20%
+                    snack1Cals = totalCalories * 0.15; // 15%
+                    lunchCals = totalCalories * 0.30; // 30%
+                    snack2Cals = totalCalories * 0.15; // 15%
+                    dinnerCals = totalCalories * 0.20; // 20%
+                } else { // maintain
+                    breakfastCals = totalCalories * 0.25;
+                    snack1Cals = totalCalories * 0.10;
+                    lunchCals = totalCalories * 0.35;
+                    snack2Cals = totalCalories * 0.05;
+                    dinnerCals = totalCalories * 0.25;
+                }
+
+                const selectedBreakfast = getSmartMeal(mealData.breakfast, breakfastCals);
+                const selectedSnack1 = getSmartMeal(mealData.snack, snack1Cals);
+                const selectedLunch = getSmartMeal(mealData.lunch, lunchCals);
+                const selectedSnack2 = getSmartMeal(mealData.snack, snack2Cals);
+                const selectedDinner = getSmartMeal(mealData.dinner, dinnerCals);
+
+                const meals = [
+                    selectedBreakfast,
+                    selectedSnack1,
+                    selectedLunch,
+                    selectedSnack2,
+                    selectedDinner
+                ];
+
+                let totalActualCalories = 0;
+                let mealListHtml = '';
+                meals.forEach(meal => {
+                    mealListHtml += `<li>**${meal.name}** (${meal.calories} سعرة حرارية)</li>`;
+                    totalActualCalories += meal.calories;
+                });
+
+                dietPlanUl.innerHTML = mealListHtml;
+                totalMealsCaloriesSpan.textContent = totalActualCalories; // Display total actual calories of selected meals
             }
 
             /**
              * دالة لتحديث التمارين المقترحة.
              * @param {string} activity - مستوى النشاط البدني للمستخدم.
              * @param {string} goal - هدف المستخدم (lose, maintain, gain).
+             * @param {number} height - طول المستخدم بالسنتيمتر.
+             * @param {number} age - عمر المستخدم بالسنوات.
+             * @param {string} gender - جنس المستخدم ('male' أو 'female').
              */
-            function updateExerciseTips(activity, goal) {
+            function updateExerciseTips(activity, goal, height, age, gender) {
                 let cardio, strength, flexibility;
+                let heightIncreaseTips = '';
+
+                // معايير الطول التقريبية حسب العمر والجنس (أمثلة تقديرية)
+                // هذه الأرقام تقديرية جداً وقد تختلف بشكل كبير
+                const averageHeights = {
+                    'male': {
+                        10: 138, 12: 149, 14: 163, 16: 170, 18: 175, 20: 175, 25: 175
+                    },
+                    'female': {
+                        10: 138, 12: 152, 14: 158, 16: 162, 18: 162, 20: 162, 25: 162
+                    }
+                };
+
+                // البحث عن متوسط الطول المناسب للعمر
+                let avgHeightForAge = 0;
+                const ageKeys = Object.keys(averageHeights[gender]).map(Number).sort((a,b) => a-b);
+                for (let i = 0; i < ageKeys.length; i++) {
+                    if (age <= ageKeys[i]) {
+                        avgHeightForAge = averageHeights[gender][ageKeys[i]];
+                        break;
+                    }
+                    if (i === ageKeys.length - 1) { // If age is greater than all keys, use the last one
+                        avgHeightForAge = averageHeights[gender][ageKeys[i]];
+                    }
+                }
+
+                // اقتراح تمارين زيادة الطول إذا كان الطول أقل من المتوسط بشكل ملحوظ (مثلاً 5 سم أقل)
+                // ونركز على الأعمار التي لا تزال فيها صفائح النمو نشطة (عادةً قبل 25)
+                if (avgHeightForAge > 0 && height < (avgHeightForAge - 5) && age < 25) {
+                    heightIncreaseTips = `
+                        <li>**تمارين لزيادة الطول (خاصة للأعمار الصغيرة):**
+                            <ul>
+                                <li>التعلق بالبار: امسك باراً عالياً وعلق جسدك بحرية لمدة 30 ثانية، كرر 3-5 مرات.</li>
+                                <li>تمرين الكوبرا: استلقِ على بطنك وارفع الجزء العلوي من جسدك باستخدام ذراعيك، مع إبقاء الوركين على الأرض.</li>
+                                <li>تمرين تمديد الساقين: استلقِ على ظهرك وارفع ساق واحدة مستقيمة نحو السقف، ثم بدل الساقين.</li>
+                                <li>السباحة: وخاصة سباحة الصدر والظهر، تساعد على إطالة العمود الفقري.</li>
+                                <li>اليوجا والبيلاتس: تركز على المرونة وإطالة الجسم.</li>
+                            </ul>
+                            <span class="text-sm text-red-600">ملاحظة: هذه التمارين قد تساعد في تحسين وضعية الجسم وإطالة العمود الفقري، ولكن زيادة الطول بعد سن البلوغ تعتمد بشكل كبير على العوامل الوراثية وإغلاق صفائح النمو. استشر طبيباً.</span>
+                        </li>
+                    `;
+                }
+
 
                 if (activity === 'sedentary' || activity === 'light') {
                     cardio = 'ابدأ بالمشي السريع لمدة 20-30 دقيقة، 3-4 مرات في الأسبوع.';
@@ -710,6 +841,7 @@
                     <li>**تمارين القلب (Cardio):** ${cardio}</li>
                     <li>**تمارين القوة:** ${strength}</li>
                     <li>**المرونة والإطالة:** ${flexibility}</li>
+                    ${heightIncreaseTips}
                 `;
             }
 
@@ -738,6 +870,7 @@
                 const height = displayHeightSpan.textContent;
                 const age = displayAgeSpan.textContent;
                 const dailyCalories = dailyCaloriesSpan.textContent;
+                const totalMealsCalories = totalMealsCaloriesSpan.textContent; // Get total meals calories
                 const isHeightEstimated = !heightEstimateNoteSpan.classList.contains('hidden');
                 const genderText = document.querySelector('input[name="gender"]:checked')?.nextElementSibling?.textContent || 'غير محدد';
                 const activityLevelText = activityLevelSelect.options[activityLevelSelect.selectedIndex].textContent || 'غير محدد';
@@ -764,6 +897,7 @@
 
 ملخص الخطة:
 السعرات الحرارية المقترحة يومياً: ${dailyCalories} سعرة حرارية
+إجمالي سعرات الوجبات المقترحة: ${totalMealsCalories} سعرة حرارية
 
 خطة الوجبات المقترحة:
 - ${dietPlanItems}
@@ -784,25 +918,37 @@ ${notesText}
             }
 
             /**
-             * دالة لتوليد وتحميل التقرير كملف TXT.
+             * دالة لنسخ محتوى التقرير إلى الحافظة.
              */
-            function generateAndDownloadTxtReport() {
+            function copyReportToClipboard() {
                 if (dailyCaloriesSpan.textContent === '---') {
-                    alert('الرجاء حساب السعرات الحرارية والخطة أولاً قبل توليد التقرير.');
+                    alert('الرجاء حساب السعرات الحرارية والخطة أولاً قبل نسخ التقرير.');
                     return;
                 }
 
                 const reportText = getReportTextContent();
-                const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'تقرير_لياقة_الوزن_SMART_PPH.txt';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+
+                // استخدام document.execCommand('copy') لضمان التوافق مع iframes
+                const textArea = document.createElement('textarea');
+                textArea.value = reportText;
+                textArea.style.position = 'fixed'; // لتجنب التأثير على التخطيط
+                textArea.style.opacity = 0; // لجعلها غير مرئية
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    const msg = successful ? 'تم نسخ التقرير إلى الحافظة بنجاح!' : 'فشل نسخ التقرير إلى الحافظة.';
+                    alert(msg);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    alert('فشل نسخ التقرير إلى الحافظة. يرجى المحاولة يدوياً.');
+                } finally {
+                    document.body.removeChild(textArea);
+                }
             }
+
 
             /**
              * دالة لتوليد وتحميل التقرير كملف Word (HTML-based .doc).
@@ -888,6 +1034,59 @@ ${notesText}
                 URL.revokeObjectURL(url);
             }
 
+            // قاعدة بيانات الأكل (يمكن توسيعها)
+            const foodDatabase = [
+                { name: 'تفاح (1 متوسطة)', calories: 95 },
+                { name: 'موز (1 متوسطة)', calories: 105 },
+                { name: 'صدر دجاج مشوي (100 جرام)', calories: 165 },
+                { name: 'أرز أسمر مطبوخ (1 كوب)', calories: 215 },
+                { name: 'بيض مسلوق (1 بيضة كبيرة)', calories: 78 },
+                { name: 'زبادي يوناني قليل الدسم (1 كوب)', calories: 150 },
+                { name: 'لوز (28 جرام / حوالي 23 حبة)', calories: 160 },
+                { name: 'خبز أسمر (1 شريحة)', calories: 80 },
+                { name: 'زيت زيتون (1 ملعقة كبيرة)', calories: 120 },
+                { name: 'حمص (100 جرام)', calories: 164 },
+                { name: 'عدس مطبوخ (1 كوب)', calories: 230 },
+                { name: 'سمك سلمون مشوي (100 جرام)', calories: 208 },
+                { name: 'بطاطا حلوة (1 متوسطة)', calories: 112 },
+                { name: 'بروكلي مطبوخ (1 كوب)', calories: 55 },
+                { name: 'سلطة خضراء (كوب كبير)', calories: 50 },
+                { name: 'حليب قليل الدسم (1 كوب)', calories: 100 },
+                { name: 'شوفان (نصف كوب جاف)', calories: 150 },
+                { name: 'توت (1 كوب)', calories: 80 },
+                { name: 'بذور الشيا (2 ملعقة كبيرة)', calories: 140 },
+                { name: 'أفوكادو (نصف حبة)', calories: 160 },
+                { name: 'جبنة قريش (نصف كوب)', calories: 120 }
+            ];
+
+            /**
+             * دالة لفتح مودال قاعدة بيانات الأكل.
+             */
+            function openFoodDatabaseModal() {
+                foodDatabaseList.innerHTML = ''; // Clear previous content
+                foodDatabase.sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort alphabetically
+                foodDatabase.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<span>${item.name}</span><span>${item.calories} سعرة حرارية</span>`;
+                    foodDatabaseList.appendChild(listItem);
+                });
+
+                foodDatabaseModal.classList.remove('hidden');
+                void foodDatabaseModal.offsetWidth; // Force reflow
+                foodDatabaseModal.classList.add('visible');
+            }
+
+            /**
+             * دالة لإغلاق مودال قاعدة بيانات الأكل.
+             */
+            window.closeFoodDatabaseModal = function() {
+                foodDatabaseModal.classList.remove('visible');
+                foodDatabaseModal.addEventListener('transitionend', function handler() {
+                    foodDatabaseModal.classList.add('hidden');
+                    foodDatabaseModal.removeEventListener('transitionend', handler);
+                });
+            };
+
             /**
              * دالة لإنشاء محتوى إيصال لياقة الوزن كـ HTML.
              * هذه الدالة لا تطبع مباشرة، بل تُرجع المحتوى.
@@ -913,6 +1112,14 @@ ${notesText}
                 const formattedDate = now.toLocaleDateString('ar-EG', dateOptions);
                 const formattedTime = now.toLocaleTimeString('ar-EG', timeOptions);
 
+                // الحصول على محتوى خطة الوجبات بشكل مبسط جداً (فقط أسماء الوجبات)
+                // تم تعديل هذا الجزء ليكون مختصرًا جدًا
+                const dietPlanSimple = Array.from(dietPlanUl.children).map(li => {
+                    // استخراج اسم الوجبة فقط، إزالة السعرات الحرارية وما إلى ذلك
+                    const match = li.textContent.match(/\*\*(.*?)\*\*/);
+                    return match ? match[1].trim() : li.textContent.trim();
+                }).join('\n');
+
                 // بناء محتوى HTML للإيصال
                 return `
                     <div class="receipt-container" style="text-align: center;">
@@ -929,21 +1136,19 @@ ${notesText}
 
                         <div style="text-align: right; margin-bottom: 15px;">
                             <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">الوزن:</span> ${weight} كجم</p>
-                            <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">العمر:</span> ${age} سنة</p>
                             <p style="font-size: 1rem; margin-bottom: 5px;"><span style="font-weight: bold;">الطول:</span> ${height} سم ${isHeightEstimated ? '(تقديري)' : ''}</p>
                             <p style="font-size: 1.1rem; margin-top: 10px;"><span style="font-weight: bold;">السعرات الحرارية المقترحة:</span> ${dailyCalories} سعرة حرارية</p>
                         </div>
 
                         <div class="divider"></div>
 
-                        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; text-align: right;">ملاحظات:</h3>
-                        <div style="font-size: 0.9rem; border: 1px dashed #ccc; padding: 5px; min-height: 50px; width: 100%; box-sizing: border-box; text-align: right;">
-                            ${notesText}
-                        </div>
+                        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; text-align: right;">خطة الوجبات:</h3>
+                        <pre style="font-size: 0.9rem; text-align: right; white-space: pre-wrap; word-wrap: break-word;">${dietPlanSimple}</pre>
 
                         <div class="divider"></div>
 
-                        <p style="font-size: 0.7rem; margin-top: 10px;">شكراً لاستخدامك SMART PPH</p>
+                        <p style="font-size: 0.8rem; margin-top: 10px; text-align: center;">للمزيد اطلب ارسال تقرير الشامل لك علي هاتفك</p>
+                        <p style="font-size: 0.7rem; margin-top: 5px;">شكراً لاستخدامك SMART PPH</p>
                        
                     </div>
                 `;
@@ -1044,6 +1249,17 @@ ${notesText}
                                 text-align: right;
                                 padding: 0 !important;
                                 box-sizing: border-box;
+                            }
+                            /* Style for preformatted text in print */
+                            .receipt-container pre {
+                                border: none !important;
+                                background-color: transparent !important;
+                                padding: 0 !important;
+                                margin: 0 !important;
+                                font-size: 0.9rem;
+                                text-align: right;
+                                white-space: pre-wrap;
+                                word-wrap: break-word;
                             }
                         </style>
                     </head>
