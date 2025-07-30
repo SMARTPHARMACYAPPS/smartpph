@@ -1,26 +1,35 @@
-// اسم ذاكرة التخزين المؤقت (Cache) لتطبيقك. قم بتغييره عند تحديث الموارد لضمان تحديثها لدى المستخدمين.
-// تم تحديث الإصدار ليشمل الملفات الجديدة.
-const CACHE_NAME = 'smart-pph-cache-v1.1.0';
+// اسم ذاكرة التخزين المؤقت (Cache) لتطبيقك.
+// قم بتغيير هذا الاسم (مثل زيادة الرقم) في كل مرة تقوم فيها بتحديث أي من الملفات في `urlsToCache`
+// لضمان أن المتصفح يقوم بتنزيل الإصدارات الجديدة من الملفات.
+const CACHE_NAME = 'smart-pph-cache-v1.2.0'; // تم زيادة الإصدار لضمان التحديث
 
 // قائمة بالملفات الأساسية التي يجب تخزينها مؤقتًا عند تثبيت عامل الخدمة.
-// تأكد من أن هذه المسارات صحيحة بالنسبة لموقع ملفاتك.
+// بما أن تطبيقك مستضاف في مجلد فرعي (smartpph/)، فإن المسارات هنا يجب أن تكون:
+// 1. نسبية لنطاق عامل الخدمة (إذا كان عامل الخدمة في نفس المجلد).
+// 2. أو مسارات مطلقة تبدأ بالمسار الكامل للمجلد الفرعي (مثل '/smartpph/index.html').
+// الخيار الأسهل هو استخدام المسارات النسبية `./` إذا كان service-worker.js في نفس المجلد.
 const urlsToCache = [
-    '/', // الصفحة الرئيسية (عادةً index.html)
-    'index.html',
-    'discounts.html', // صفحة الخصومات الجديدة
-    'database.html', // صفحة قاعدة البيانات (قد تكون customers.html في سياق سابق، لكن سأفترض database.html الآن)
-    'fitnessup.html', // صفحة اللياقة البدنية الجديدة
-    'manifest.json', // ملف البيان الخاص بتطبيق الويب التقدمي
-    'pphicon.png', // الصورة الجديدة
-    'https://cdn.tailwindcss.com', // Tailwind CSS CDN
-    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js', // SheetJS library
-    // خطوط Cairo من Google Fonts (إذا كنت تستخدمها)
+    './', // يمثل index.html في نفس المجلد (نقطة البداية)
+    './index.html',
+    './discounts.html',
+    './database.html',
+    './fitnessup.html',
+    './manifest.json',
+    './pphicon.png', // تأكد من أن هذه الصورة موجودة في نفس المجلد
+    'https://cdn.tailwindcss.com', // Tailwind CSS CDN (خارجي)
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js', // SheetJS library (خارجي)
+    // خطوط Cairo من Google Fonts (هذه يجب أن تكون URLs كاملة لأنها خارجية)
+    // من المهم جدًا إضافة ملفات الخطوط الفعلية التي يتم تحميلها بواسطة CSS
+    // هذه مجرد أمثلة شائعة لملفات الخطوط، قد تحتاج إلى فحص تبويب "الشبكة" في أدوات المطور
+    // عند تحميل تطبيقك لأول مرة لمعرفة الروابط الدقيقة لملفات الخطوط التي يتم جلبها.
     'https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap',
-    'https://fonts.gstatic.com/s/cairo/v19/SLXGc1nY6HgpO7qL0YuRzyhJzW8.woff2', // مثال لملف خط، قد تحتاج إلى إضافة المزيد
-    'https://fonts.gstatic.com/s/cairo/v19/SLXGc1nY6HgpO7qL0YuRzyhJzW8.woff',
-    // إذا كان لديك أي صور أو ملفات JavaScript أو CSS إضافية محلية، أضفها هنا
-    // 'path/to/your/script.js',
-    // 'path/to/your/style.css'
+    'https://fonts.gstatic.com/s/cairo/v19/SLXGc1nY6HgpO7qL0YuRzyhJzW8.woff2', // مثال لملف خط WOFF2
+    'https://fonts.gstatic.com/s/cairo/v19/SLXGc1nY6HgpO7qL0YuRzyhJzW8.woff',  // مثال لملف خط WOFF
+    'https://fonts.gstatic.com/s/cairo/v19/SLXGc1nY6HgpO7qL0YuRzyhJzW8.ttf',   // مثال لملف خط TTF
+    // أضف هنا أي ملفات JavaScript أو CSS أو صور أخرى محلية يستخدمها تطبيقك
+    // مثال: './js/main.js',
+    // مثال: './css/style.css',
+    // مثال: './images/background.jpg'
 ];
 
 // حدث التثبيت (Install Event):
@@ -32,10 +41,14 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
+                // استخدام `addAll` قد يفشل إذا كان أي من الروابط غير صالحة أو لم يتم العثور عليها (404).
+                // في هذه الحالة، سيفشل تثبيت عامل الخدمة.
                 return cache.addAll(urlsToCache);
             })
             .catch(error => {
-                console.error('Service Worker: Cache addAll failed', error);
+                console.error('Service Worker: Cache addAll failed during install. Check URLs:', error);
+                // يمكن هنا إضافة منطق للتعامل مع الأخطاء بشكل أكثر تفصيلاً
+                // على سبيل المثال، يمكنك محاولة التخزين المؤقت لكل ملف على حدة لتحديد أي ملف يسبب المشكلة.
             })
     );
 });
@@ -61,7 +74,7 @@ self.addEventListener('activate', (event) => {
 
 // حدث الجلب (Fetch Event):
 // يتم تشغيل هذا الحدث في كل مرة يحاول فيها المتصفح جلب مورد (مثل صفحة HTML، صورة، CSS، JS).
-// هنا نستخدم استراتيجية "Cache First" (الذاكرة المؤقتة أولاً):
+// هنا نستخدم استراتيجية "Cache First, then Network" (الذاكرة المؤقتة أولاً، ثم الشبكة):
 // 1. نحاول جلب المورد من ذاكرة التخزين المؤقت.
 // 2. إذا وجدناه، نعيده فورًا.
 // 3. إذا لم نجده في الذاكرة المؤقتة، نذهب إلى الشبكة لجلبه.
@@ -78,6 +91,7 @@ self.addEventListener('fetch', (event) => {
                 return fetch(event.request)
                     .then((networkResponse) => {
                         // تحقق مما إذا كان الاستجابة صالحة قبل التخزين المؤقت
+                        // لا تخزن استجابات الأخطاء (مثل 404, 500) أو استجابات غير HTTP (مثل chrome-extension://)
                         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
                             return networkResponse;
                         }
@@ -92,8 +106,10 @@ self.addEventListener('fetch', (event) => {
                     })
                     .catch(error => {
                         console.error('Service Worker: Fetch failed for:', event.request.url, error);
-                        // يمكنك هنا عرض صفحة "غير متصل بالإنترنت" مخصصة إذا فشل الجلب
-                        // return caches.match('/offline.html');
+                        // هذه النقطة يتم الوصول إليها إذا فشل الجلب من الشبكة (أنت غير متصل بالإنترنت)
+                        // يمكنك هنا عرض صفحة "غير متصل بالإنترنت" مخصصة إذا كنت قد أعددت واحدة
+                        // مثال: return caches.match('/offline.html');
+                        // في هذه الحالة، سيظهر المتصفح خطأ "لا يوجد اتصال بالإنترنت" إذا لم يكن المورد مخزنًا مؤقتًا.
                     });
             })
     );
