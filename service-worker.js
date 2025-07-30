@@ -1,7 +1,7 @@
 // اسم ذاكرة التخزين المؤقت (Cache) لتطبيقك.
 // قم بتغيير هذا الاسم (مثل زيادة الرقم) في كل مرة تقوم فيها بتحديث أي من الملفات في `urlsToCache`
 // لضمان أن المتصفح يقوم بتنزيل الإصدارات الجديدة من الملفات.
-const CACHE_NAME = 'smart-pph-cache-v1.17.0'; // تم زيادة الإصدار لضمان التحديث
+const CACHE_NAME = 'smart-pph-cache-v1.18.0'; // تم زيادة الإصدار لضمان التحديث
 
 // قائمة بالملفات الأساسية التي يجب تخزينها مؤقتًا عند تثبيت عامل الخدمة.
 // تأكد من أن هذه المسارات صحيحة بالنسبة لموقع ملفاتك.
@@ -42,14 +42,35 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching App Shell');
-                // استخدام `addAll` قد يفشل إذا كان أي من الروابط غير صالحة أو لم يتم العثور عليها (404).
-                // في هذه الحالة، سيفشل تثبيت عامل الخدمة.
-                return cache.addAll(urlsToCache);
+                const cachePromises = urlsToCache.map(url => {
+                    // إذا كان URL هو Tailwind CSS، استخدم mode: 'no-cors'
+                    if (url === 'https://cdn.tailwindcss.com') {
+                        return fetch(url, { mode: 'no-cors' })
+                            .then(response => {
+                                if (response.ok || response.type === 'opaque') { // Opaque responses are fine for no-cors
+                                    return cache.put(url, response);
+                                } else {
+                                    throw new Error(`Failed to fetch ${url} with status ${response.status}`);
+                                }
+                            })
+                            .catch(error => {
+                                console.warn(`Service Worker: Failed to cache ${url} (no-cors):`, error);
+                                return Promise.resolve(); // Resolve to allow other caches to succeed
+                            });
+                    } else {
+                        // للملفات الأخرى، استخدم cache.add() بشكل طبيعي
+                        return cache.add(url)
+                            .catch(error => {
+                                console.warn(`Service Worker: Failed to cache ${url}:`, error);
+                                return Promise.resolve(); // Resolve to allow other caches to succeed
+                            });
+                    }
+                });
+                // استخدم Promise.allSettled لضمان أن التثبيت لا يفشل بسبب فشل مورد واحد
+                return Promise.allSettled(cachePromises);
             })
             .catch(error => {
-                console.error('Service Worker: Cache addAll failed during install. Check URLs:', error);
-                // يمكن هنا إضافة منطق للتعامل مع الأخطاء بشكل أكثر تفصيلاً
-                // على سبيل المثال، يمكنك محاولة التخزين المؤقت لكل ملف على حدة لتحديد أي ملف يسبب المشكلة.
+                console.error('Service Worker: Cache open failed during install:', error);
             })
     );
 });
