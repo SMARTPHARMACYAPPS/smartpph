@@ -1,0 +1,788 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitnessUp Pro - مستشارك الصحي والرياضي</title>
+    <!-- تضمين Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تضمين خط Inter من Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- تضمين Font Awesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right bottom, #1a202c, #2d3748);
+            display: flex;
+            flex-direction: column; /* Allow body content to stack */
+            justify-content: flex-start; /* Align content to top, let it push downwards */
+            align-items: center; /* Center horizontally */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #e2e8f0;
+            overflow-y: auto; /* Allow body to scroll */
+        }
+        .chat-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 768px;
+            min-height: 95vh; /* Changed to min-height to allow expansion */
+            background-color: #2d3748;
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid #4a5568;
+            position: relative;
+            margin-bottom: 20px; /* Add margin at the bottom to prevent sticking to edge */
+        }
+        .chat-header {
+            background: linear-gradient(to right, #4c51bf, #3f448c);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chat-header-title {
+            flex-basis: 100%;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+        .ai-star {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: #fcd34d;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        .chat-main-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden; /* Keep internal overflow for messages */
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto; /* Enable vertical scrolling for messages area */
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            background-color: #242b38;
+            border: 2px solid #667eea;
+            border-radius: 0.75rem;
+            margin: 1rem;
+        }
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 1.5rem;
+            word-wrap: break-word;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.user {
+            background-color: #4a5568;
+            align-self: flex-end;
+            color: #e2e8f0;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .message.ai {
+            background-color: #1a202c;
+            align-self: flex-start;
+            color: #e2e8f0;
+            border-bottom-left-radius: 0.5rem;
+        }
+        .message-timestamp {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+            text-align: right;
+            position: absolute;
+            bottom: 5px;
+            right: 15px;
+        }
+        .message.ai .message-timestamp {
+            text-align: left;
+            left: 15px;
+            right: auto;
+        }
+        .message.thinking-bubble {
+            background-color: #3f448c;
+            color: #e2e8f0;
+            font-style: italic;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            align-self: flex-start;
+            animation: none;
+        }
+        .message.thinking-bubble::after {
+            content: ' ...';
+            animation: dot-pulse 1.5s infinite steps(3, end);
+        }
+        @keyframes dot-pulse {
+            0% { content: ' .'; }
+            33% { content: ' ..'; }
+            66% { content: ' ...'; }
+            100% { content: ' .'; }
+        }
+        .message.highlight-green {
+            animation: highlightGreen 0.3s ease-in-out forwards;
+        }
+        @keyframes highlightGreen {
+            0% { background-color: #1a202c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+            50% { background-color: #38a169; box-shadow: 0 0 15px rgba(56, 161, 105, 0.7); }
+            100% { background-color: #1a202c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+        }
+        .chat-input-area {
+            display: flex;
+            flex-direction: column; /* Stack input and button row */
+            padding: 1.25rem;
+            border-top: 1px solid #4a5568;
+            background-color: #2d3748;
+            gap: 0.75rem; /* Gap between input and button row */
+            flex-shrink: 0;
+            align-items: center; /* Center items horizontally */
+        }
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.85rem 1.25rem;
+            border: 1px solid #4a5568;
+            border-radius: 2rem;
+            outline: none;
+            font-size: 1.05rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            width: 100%; /* Take full width of its container */
+            max-width: 100%; /* Ensure it doesn't overflow */
+        }
+        .chat-input::placeholder {
+            color: #a0aec0;
+        }
+        .chat-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+        .button-row { /* New container for buttons */
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+            justify-content: center; /* Center buttons horizontally */
+            gap: 0.75rem; /* Space between buttons */
+            width: 100%; /* Take full width of parent */
+            margin-top: 0.75rem; /* Space above button row */
+        }
+        .send-button, .stop-button, .input-action-button {
+            background: linear-gradient(to right, #667eea, #5a67d8);
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            flex-shrink: 0;
+            flex-grow: 1; /* Allow buttons to grow and fill space */
+            min-width: 120px; /* Minimum width for buttons */
+        }
+        .send-button:hover, .stop-button:hover, .input-action-button:hover {
+            background: linear-gradient(to right, #5a67d8, #434190);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+        .send-button:active, .stop-button:active, .input-action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.2);
+        }
+        .stop-button {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            display: none;
+        }
+        .stop-button:hover {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #a0aec0;
+            padding: 1rem;
+            border-top: 1px solid #4a5568;
+            background-color: #2d3748;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            flex-shrink: 0;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        .message-counter-area {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #a0aec0;
+            padding: 0.75rem 1.25rem;
+            background-color: #242b38;
+            border-top: 1px solid #4a5568;
+            flex-shrink: 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .chat-wrapper {
+                height: auto;
+                min-height: 90vh;
+                max-width: 98%;
+                margin: 0 auto;
+            }
+            .chat-header {
+                padding: 1rem;
+            }
+            .chat-header-title {
+                font-size: 1.5rem;
+                margin-bottom: 0;
+            }
+            .back-button {
+                top: 10px;
+                right: 10px;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .chat-messages {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+            .message {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            .chat-input-area {
+                padding: 0.8rem;
+            }
+            .chat-input {
+                margin-bottom: 0.5rem; /* Space between input and button row */
+            }
+            .button-row {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                gap: 0.5rem;
+            }
+            .send-button, .stop-button, .input-action-button {
+                width: 100%; /* Make buttons full width when stacked */
+                margin: 0; /* Remove horizontal margins */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <span class="chat-header-title">FitnessUp Pro <span class="ai-star">✦</span> مستشارك الصحي والرياضي</span>
+        </div>
+        <div class="chat-main-content">
+            <div class="chat-messages" id="chat-messages">
+                <!-- رسائل الشات ستظهر هنا -->
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="user-input" class="chat-input" placeholder="اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...">
+                <div class="button-row">
+                    <button id="send-button" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                        إرسال
+                    </button>
+                    <button id="suggest-question-button" class="input-action-button">
+                        <i class="fas fa-question-circle"></i> اقترح سؤالا
+                    </button>
+                    <button id="clear-chat-button" class="input-action-button">
+                        <i class="fas fa-trash-alt"></i> مسح المحادثة
+                    </button>
+                    <button id="stop-button" class="stop-button">
+                        <i class="fas fa-stop"></i>
+                        إيقاف
+                    </button>
+                </div>
+            </div>
+            <div class="message-counter-area" id="message-counter-area">
+                الرسائل المتبقية اليوم: <span id="remaining-messages">10</span>
+            </div>
+            <div class="disclaimer">
+                <i class="fas fa-exclamation-triangle text-yellow-500 ml-2"></i>
+                يرجى ملاحظة: هذا النموذج للذكاء الاصطناعي قد يقدم معلومات غير دقيقة. يرجى دائماً التحقق من صحة المعلومات واستشارة أخصائي قبل اتخاذ أي قرارات صحية أو رياضية.
+            </div>
+        </div>
+    </div>
+    <!-- Floating Back Button -->
+    <button id="back-button" class="back-button">
+        <i class="fas fa-arrow-right"></i>
+        العودة
+    </button>
+
+    <script type="module">
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const stopButton = document.getElementById('stop-button');
+        const backButton = document.getElementById('back-button');
+        const clearChatButton = document.getElementById('clear-chat-button');
+        const suggestQuestionButton = document.getElementById('suggest-question-button');
+        const messageCounterArea = document.getElementById('message-counter-area');
+        const messageCounterDisplay = document.getElementById('remaining-messages');
+
+        let thinkingBubbleElement = null;
+        let currentAiMessageElement = null;
+        let abortController = null; // For aborting fetch requests and typing
+        let typingIntervalId = null; // To store the interval ID for typing effect
+
+        let chatHistory = [];
+        const MAX_MESSAGES_PER_DAY = 10;
+        let remainingMessages = MAX_MESSAGES_PER_DAY;
+        let countdownInterval;
+
+        const CHAT_HISTORY_KEY = 'fitnessUpProChatHistory';
+        const MESSAGE_COUNT_KEY = 'fitnessUpProMessageCount';
+        const LAST_RESET_DATE_KEY = 'fitnessUpProLastResetDate';
+
+        // ***************************************************************
+        // !!! تحذير أمني هام جداً !!!
+        // تم نقل مفتاح الـ API إلى وظيفة Serverless Function.
+        // هذا الملف لا يحتوي على المفتاح مباشرة.
+        // ***************************************************************
+
+        const randomQuestions = [
+            "ما هي أفضل تمارين الإحماء قبل الجري؟",
+            "كيف يمكنني زيادة مرونتي؟",
+            "ما هي الأطعمة الغنية بالبروتين للنباتيين؟",
+            "كيف أتعامل مع آلام العضلات بعد التمرين؟",
+            "ما هي فوائد اليوغا للصحة العقلية والبدنية؟",
+            "كم ساعة نوم أحتاج لتحسين الأداء الرياضي؟",
+            "ما هي أفضل طريقة لإنقاص الوزن بشكل صحي؟",
+            "هل المكملات الغذائية ضرورية للمبتدئين في كمال الأجسام؟",
+            "كيف أبدأ روتين لياقة بدنية في المنزل؟",
+            "ما هي علامات الإفراط في التدريب وكيف أتجنبها؟"
+        ];
+
+        // Function to load chat history from Local Storage
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+            if (savedHistory) {
+                chatHistory = JSON.parse(savedHistory);
+                chatHistory.forEach(msg => {
+                    displayMessage(msg.role === "user" ? 'user' : 'ai', msg.parts[0].text, false, true);
+                });
+                // Scroll to bottom after loading messages
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                // Scroll the entire page to the bottom if content overflows
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        }
+
+        // Function to save chat history to Local Storage
+        function saveChatHistory() {
+            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
+        }
+
+        // Function to update and display the message counter
+        function updateMessageCounter() {
+            const today = new Date().toDateString();
+            const lastResetDate = localStorage.getItem(LAST_RESET_DATE_KEY);
+            let savedCount = localStorage.getItem(MESSAGE_COUNT_KEY);
+
+            if (lastResetDate !== today) {
+                remainingMessages = MAX_MESSAGES_PER_DAY;
+                localStorage.setItem(LAST_RESET_DATE_KEY, today);
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            } else if (savedCount !== null) {
+                remainingMessages = parseInt(savedCount, 10);
+            } else {
+                remainingMessages = MAX_MESSAGES_PER_DAY;
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            }
+
+            messageCounterDisplay.textContent = remainingMessages;
+            checkMessageLimit();
+        }
+
+        // Function to check message limit and disable input if needed
+        function checkMessageLimit() {
+            if (remainingMessages <= 0) {
+                sendButton.disabled = true;
+                userInput.disabled = true;
+                sendButton.style.cursor = 'not-allowed';
+                userInput.placeholder = 'لقد استنفدت عدد الرسائل المسموح بها لليوم.';
+                startCountdownToMidnight();
+            } else {
+                if (!thinkingBubbleElement && !currentAiMessageElement) {
+                    enableUserInput();
+                }
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                messageCounterArea.innerHTML = `الرسائل المتبقية اليوم: <span id="remaining-messages">${remainingMessages}</span>`;
+            }
+        }
+
+        // Function to start countdown to midnight
+        function startCountdownToMidnight() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                const now = new Date();
+                const midnight = new Date(now);
+                midnight.setHours(24, 0, 0, 0);
+
+                const timeLeft = midnight.getTime() - now.getTime();
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    updateMessageCounter();
+                    return;
+                }
+
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                messageCounterArea.innerHTML = `ارجع بعد: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Function to display messages in the UI
+        function displayMessage(sender, message, isTyping = false, fromLoad = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender);
+            
+            if (isTyping) {
+                messageDiv.textContent = '';
+            } else {
+                messageDiv.innerHTML = formatTextForDisplay(message);
+            }
+
+            if (!isTyping && !fromLoad) {
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('message-timestamp');
+                const now = new Date();
+                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                messageDiv.appendChild(timestampSpan);
+            } else if (fromLoad) {
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('message-timestamp');
+                const now = new Date();
+                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                messageDiv.appendChild(timestampSpan);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            // Scroll to bottom of chat messages area
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Scroll the entire page to the bottom
+            window.scrollTo(0, document.body.scrollHeight);
+            return messageDiv;
+        }
+
+        // Function to format text using simple Markdown
+        function formatTextForDisplay(text) {
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/^- (.*)$/gm, '<li>$1</li>');
+            if (text.includes('<li>')) {
+                text = `<ul>${text}</ul>`;
+            }
+            text = text.replace(/\n\n/g, '<br><br>');
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        // Function to show "thinking" bubble and stop button, disable input
+        function showLoading() {
+            sendButton.style.display = 'none';
+            stopButton.style.display = 'flex';
+            userInput.disabled = true;
+            userInput.style.cursor = 'not-allowed';
+
+            thinkingBubbleElement = document.createElement('div');
+            thinkingBubbleElement.classList.add('message', 'ai', 'thinking-bubble');
+            thinkingBubbleElement.textContent = 'أنا أفكر الآن';
+            chatMessages.appendChild(thinkingBubbleElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight); // Scroll page to bottom
+        }
+
+        // Function to hide "thinking" bubble
+        function hideLoadingBubble() {
+            if (thinkingBubbleElement) {
+                chatMessages.removeChild(thinkingBubbleElement);
+                thinkingBubbleElement = null;
+            }
+        }
+
+        // Function to enable user input (called after AI response is fully displayed/highlighted)
+        function enableUserInput() {
+            sendButton.style.display = 'flex';
+            stopButton.style.display = 'none';
+            userInput.disabled = false;
+            userInput.style.cursor = 'text';
+            userInput.focus();
+        }
+
+        // Function to simulate AI typing effect
+        function typeMessage(element, text, delay = 10) { // Typing speed 3 times faster (10ms)
+            let i = 0;
+            return new Promise(resolve => {
+                typingIntervalId = setInterval(() => {
+                    if (abortController && abortController.signal.aborted) {
+                        clearInterval(typingIntervalId);
+                        element.innerHTML = formatTextForDisplay(text);
+                        resolve();
+                        return;
+                    }
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        window.scrollTo(0, document.body.scrollHeight); // Scroll page to bottom during typing
+                        i++;
+                    } else {
+                        clearInterval(typingIntervalId);
+                        element.innerHTML = formatTextForDisplay(text);
+                        resolve();
+                    }
+                }, delay);
+            });
+        }
+
+        // Function to call Gemini API with exponential backoff
+        async function callGeminiAPI(prompt, retries = 3, delay = 1000) {
+            abortController = new AbortController();
+            const signal = abortController.signal;
+
+            try {
+                let chatHistoryToSend;
+                if (typeof prompt === 'object' && prompt.isSpecialRequest) {
+                    chatHistoryToSend = prompt.chatHistoryToProcess;
+                } else {
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    chatHistoryToSend = chatHistory;
+                }
+                
+                const generationConfig = {}; // No maxOutputTokens here
+
+                // Changed API URL to point to the Vercel/Netlify Serverless Function
+                const proxyUrl = '/api/gemini-proxy'; // For Vercel. Use '/.netlify/functions/gemini-proxy' for Netlify
+
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chatHistory: chatHistoryToSend, isSpecialRequest: (typeof prompt === 'object' && prompt.isSpecialRequest) }),
+                    signal: signal
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429 && retries > 0) {
+                        console.warn(`Too many requests. Retrying in ${delay / 1000}s...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return callGeminiAPI(prompt, retries - 1, delay * 2);
+                    }
+                    const errorBody = await response.text();
+                    throw new Error(`Proxy function error! status: ${response.status}, body: ${errorBody}`);
+                }
+
+                const result = await response.json();
+
+                if (result && result.text) { // Expecting { text: "..." } from the proxy
+                    if (!(typeof prompt === 'object' && prompt.isSpecialRequest)) {
+                        chatHistory.push({ role: "model", parts: [{ text: result.text }] });
+                        saveChatHistory();
+                    }
+                    return result.text;
+                } else {
+                    console.error("Unexpected proxy response structure:", result);
+                    return "عذراً، حدث خطأ في فهم طلبك من الخادم الوسيط. الرجاء المحاولة مرة أخرى.";
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Fetch aborted by user.');
+                    return "تم إيقاف الرد.";
+                }
+                console.error("Error calling proxy function:", error);
+                return "عذراً، لا أستطيع التواصل معك . السيرفرات مشغولة الان . عد لاحقاً.";
+            } finally {
+                abortController = null;
+            }
+        }
+
+        // Function to send message
+        async function sendMessage() {
+            if (remainingMessages <= 0) {
+                return;
+            }
+
+            const message = userInput.value.trim();
+            if (message === '') {
+                if (chatHistory.length === 0) {
+                    const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك.لديك 10 محاولات فقط رجاء استخدمها بعناية . اذا اردت التبرع لمبرمج التطبيق زيادة عدد المحاولات وتطوير التطبيق برجاء التواصل على الايميل المذكور في الصفحة الرئيسية. كيف يمكنني مساعدتك اليوم؟';
+                    displayMessage('ai', welcomeMessage);
+                    chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+                    saveChatHistory();
+                }
+                return;
+            }
+
+            displayMessage('user', message);
+            userInput.value = '';
+
+            remainingMessages--;
+            localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            messageCounterDisplay.textContent = remainingMessages;
+            checkMessageLimit();
+
+            showLoading();
+
+            const fullPrompt = `بصفتك مستشارًا طبيًا ورياضيًا ودودًا ومشجعًا، أجب على السؤال التالي بإيجاز معقول دون إطالة أو اختصار مبالغ فيه: ${message}`;
+            const aiResponse = await callGeminiAPI(fullPrompt);
+            
+            hideLoadingBubble();
+
+            currentAiMessageElement = displayMessage('ai', '', true);
+            await typeMessage(currentAiMessageElement, aiResponse);
+
+            currentAiMessageElement.classList.add('highlight-green');
+            setTimeout(() => {
+                currentAiMessageElement.classList.remove('highlight-green');
+                enableUserInput();
+            }, 3000);
+        }
+
+        // Function to stop AI response
+        function stopAiResponse() {
+            if (abortController) {
+                abortController.abort();
+            }
+            if (typingIntervalId) {
+                clearInterval(typingIntervalId);
+                typingIntervalId = null;
+            }
+            
+            hideLoadingBubble();
+            
+            enableUserInput();
+        }
+
+        // Function to clear chat
+        function clearChat() {
+            if (thinkingBubbleElement || (currentAiMessageElement && typingIntervalId)) {
+                stopAiResponse();
+            }
+
+            chatMessages.innerHTML = '';
+            chatHistory = [];
+            saveChatHistory();
+            updateMessageCounter(); // This will re-read current count, not reset it
+            
+            const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+            displayMessage('ai', welcomeMessage);
+            chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+            saveChatHistory();
+            enableUserInput();
+        }
+
+        // Renamed and modified function for "Suggest Question"
+        async function suggestQuestion() {
+            if (remainingMessages <= 0) {
+                alert("لا يمكنك اقتراح سؤال، لقد استنفدت عدد الرسائل المسموح بها لليوم.");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * randomQuestions.length);
+            const question = randomQuestions[randomIndex];
+            
+            userInput.value = question;
+            sendMessage();
+        }
+
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        stopButton.addEventListener('click', stopAiResponse);
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+        backButton.addEventListener('click', function() {
+            window.history.back();
+        });
+        clearChatButton.addEventListener('click', clearChat);
+        suggestQuestionButton.addEventListener('click', suggestQuestion);
+
+        // On page load
+        window.onload = function() {
+            loadChatHistory();
+            updateMessageCounter();
+            if (chatHistory.length === 0) {
+                setTimeout(() => {
+                    const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    displayMessage('ai', welcomeMessage);
+                    chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+                    saveChatHistory();
+                }, 500);
+            }
+        };
+    </script>
+</body>
+</html>
