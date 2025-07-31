@@ -262,6 +262,179 @@
             color: #666;
             font-size: 0.9em;
         }
+        
+        /* CSS for the Floating Button */
+        .floating-button {
+            position: fixed; /* يجعل الزر عائمًا بالنسبة لإطار العرض */
+            bottom: 30px;    /* المسافة من أسفل الشاشة */
+            left: 30px;      /* المسافة من يسار الشاشة */
+            z-index: 1000;   /* يضمن بقاءه فوق المحتوى الآخر */
+            width: 70px;     /* عرض الدائرة */
+            height: 70px;    /* ارتفاع الدائرة */
+            background-color: #000000; /* خلفية سوداء */
+            border-radius: 50%; /* يجعلها دائرة مثالية */
+            display: flex;   /* استخدام فليكس بوكس لتوسيط المحتوى بالداخل */
+            flex-direction: column; /* ترتيب المحتوى (النجمة والنص) عموديًا */
+            justify-content: center; /* توسيط عمودي */
+            align-items: center; /* توسيط أفقي */
+            gap: 2px; /* مسافة صغيرة بين النجمة والنص */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* ظل خفيف للعمق */
+            text-decoration: none; /* إزالة الخط السفلي من الرابط */
+            transition: background-color 0.3s ease, transform 0.3s ease; /* انتقالات سلسة */
+            cursor: pointer; /* للإشارة إلى أنه قابل للنقر */
+            overflow: hidden; /* لإخفاء الوجه عندما يكون خارج الدائرة */
+        }
+
+        .floating-button:hover {
+            background-color: #333333; /* لون أسود أفتح قليلاً عند التمرير */
+            transform: scale(1.05); /* تكبير طفيف عند التمرير */
+        }
+
+        .floating-button-icon {
+            font-size: 32px; /* حجم أيقونة النجمة */
+            color: #FFD700; /* لون ذهبي للنجمة */
+            line-height: 1; /* لضمان توسيط الأيقونة عموديًا */
+            display: block; /* لضمان أن الأيقونة تأخذ مساحة كافية للحركة */
+            transition: transform 0.3s ease, filter 0.3s ease; /* انتقالات سلسة للتحريك واللمعان */
+            position: relative; /* للسماح بالقفز */
+            z-index: 2; /* فوق الوجه */
+        }
+
+        .floating-button-text {
+            font-size: 10px; /* حجم نص "PPH AI" */
+            color: #e0e7ff; /* لون النص */
+            font-weight: 600;
+            line-height: 1; /* لضمان توسيط النص عموديًا */
+            text-transform: uppercase; /* لجعل النص أحرفًا كبيرة */
+            z-index: 2; /* فوق الوجه */
+        }
+
+        /* Animation for the star icon on hover */
+        .floating-button-icon.jump-animation {
+            animation: starJump 0.9s ease-in-out 3 forwards; /* تقفز 3 مرات */
+        }
+
+        .floating-button-icon.glow-animation {
+            animation: starGlow 0.99s ease-in-out forwards; /* تلمع مرة واحدة */
+        }
+
+        @keyframes starJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); } /* قفزة لأعلى */
+        }
+
+        @keyframes starGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(2.5); /* لمعان ساطع جداً */ }
+        }
+
+        /* Face Overlay Styles */
+        .face-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: transparent; /* خلفية شفافة */
+            opacity: 0; /* مخفي افتراضياً */
+            transform: scale(0); /* مخفي افتراضياً */
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 3; /* فوق النجمة والنص */
+        }
+
+        .face-overlay.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .face-eye {
+            width: 8px;
+            height: 8px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            top: 25px;
+        }
+        .face-eye.left-eye { left: 20px; }
+        .face-eye.right-eye { right: 20px; }
+
+        .face-mouth {
+            width: 30px;
+            height: 15px;
+            background-color: #ffffff;
+            border-radius: 0 0 15px 15px; /* ابتسامة */
+            position: absolute;
+            bottom: 20px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Face Animations */
+        .face-overlay.face-appear {
+            animation: faceAppear 0.3s ease-out forwards;
+        }
+        @keyframes faceAppear {
+            0% { opacity: 0; transform: scale(0); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .face-overlay.face-smile .face-mouth {
+            animation: faceSmile 0.4s ease-in-out forwards;
+        }
+        @keyframes faceSmile {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2, 0.8); } /* ابتسامة عريضة */
+            100% { transform: scale(1); }
+        }
+
+        .face-overlay.face-wave {
+            animation: faceWave 0.5s ease-in-out forwards;
+        }
+        @keyframes faceWave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+
+        .face-overlay.face-disappear {
+            animation: faceDisappear 0.9s ease-in forwards;
+        }
+        @keyframes faceDisappear {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 600px) {
+            .floating-button {
+                width: 60px; /* حجم معدل للشاشات الأصغر */
+                height: 60px; /* حجم معدل للشاشات الأصغر */
+                bottom: 20px;
+                left: 20px;
+            }
+            .floating-button-icon {
+                font-size: 28px; /* حجم أيقونة معدل للشاشات الأصغر */
+            }
+            .floating-button-text {
+                font-size: 9px; /* حجم نص معدل للشاشات الأصغر */
+            }
+            .face-eye {
+                width: 7px;
+                height: 7px;
+                top: 22px;
+            }
+            .face-eye.left-eye { left: 18px; }
+            .face-eye.right-eye { right: 18px; }
+            .face-mouth {
+                width: 25px;
+                height: 12px;
+                bottom: 18px;
+            }
+        }
+    
     </style>
 </head>
 <body>
@@ -276,7 +449,7 @@
     <!-- حاوية رئيسية للصفحة -->
     <div class="container bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl no-print">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">حاسبة لياقة الوزن</h1>
-        <p class="text-gray-600 text-center mb-6">احسب سعراتك الحرارية اليومية واحصل على خطة مقترحة للوجبات والتمارين.</p>
+        <p class="text-gray-600 text-center mb-6"> احسب سعراتك الحرارية اليومية واحصل على خطة مقترحة للوجبات والتمارين. واذا اردت نتيجة افضل اسأل ذكائنا الاصطناعي الجديد!</p>
 
         <!-- قسم إدخال البيانات -->
         <div class="mb-8 p-6 border border-gray-200 rounded-lg bg-gray-50">
@@ -298,6 +471,17 @@
                     </div>
                 </div>
             </div>
+<!-- HTML for the Floating Button -->
+<a href="fitnessupgiminiai.html" class="floating-button" aria-label="Go to Fitness Up Giminiai page" id="floatingButton">
+    <span class="floating-button-icon" id="floatingButtonIcon">✦</span>
+    <span class="floating-button-text">PPH AI</span>
+    <!-- Face Overlay (initially hidden) -->
+    <div class="face-overlay" id="faceOverlay">
+        <div class="face-eye left-eye"></div>
+        <div class="face-eye right-eye"></div>
+        <div class="face-mouth"></div>
+    </div>
+</a>
 
             <div class="mb-4">
                 <label for="ageInput" class="block text-gray-700 text-sm font-bold mb-2">العمر (سنة):</label>
@@ -1295,6 +1479,133 @@ ${notesText}
                 modalFitnessReceiptContent.innerHTML = ''; // Clear content when closing
             };
         });
+        
+
+
+    const floatingButton = document.getElementById('floatingButton');
+    const floatingButtonIcon = document.getElementById('floatingButtonIcon');
+    const floatingButtonText = document.querySelector('.floating-button-text');
+    const faceOverlay = document.getElementById('faceOverlay');
+
+    let animationInProgress = false; // Flag to prevent animation re-triggering
+
+    // Function to reset all animations and hide the face
+    function resetAnimationState() {
+        floatingButtonIcon.classList.remove('jump-animation', 'glow-animation');
+        floatingButtonIcon.style.filter = ''; // Remove brightness filter
+        faceOverlay.classList.remove('visible', 'face-appear', 'face-smile', 'face-wave', 'face-disappear');
+        // Ensure star and text are visible again
+        floatingButtonIcon.style.opacity = '1';
+        floatingButtonText.style.opacity = '1';
+        animationInProgress = false; // Reset flag after animation sequence completes
+    }
+
+    // Function to trigger the full animation sequence
+    function triggerAnimation() {
+        if (animationInProgress) return; // Exit if an animation is already running
+        animationInProgress = true;
+
+        // 1. Star Jump (3 times)
+        floatingButtonIcon.classList.add('jump-animation');
+
+        // Use a Promise to sequence animations for cleaner code
+        const animateStarJump = new Promise(resolve => {
+            const handleJumpEnd = (event) => {
+                if (event.animationName === 'starJump') {
+                    floatingButtonIcon.removeEventListener('animationend', handleJumpEnd);
+                    resolve();
+                }
+            };
+            floatingButtonIcon.addEventListener('animationend', handleJumpEnd);
+        });
+
+        animateStarJump.then(() => {
+            // 2. Star Glow
+            floatingButtonIcon.classList.remove('jump-animation');
+            floatingButtonIcon.classList.add('glow-animation');
+
+            return new Promise(resolve => {
+                const handleGlowEnd = (event) => {
+                    if (event.animationName === 'starGlow') {
+                        floatingButtonIcon.removeEventListener('animationend', handleGlowEnd);
+                        resolve();
+                    }
+                };
+                floatingButtonIcon.addEventListener('animationend', handleGlowEnd);
+            });
+        }).then(() => {
+            // Hide star and text, show face
+            floatingButtonIcon.style.opacity = '0';
+            floatingButtonText.style.opacity = '0';
+            
+            // 3. Face Appear
+            faceOverlay.classList.add('visible', 'face-appear');
+
+            return new Promise(resolve => {
+                const handleFaceAppearEnd = (event) => {
+                    if (event.animationName === 'faceAppear') {
+                        faceOverlay.removeEventListener('animationend', handleFaceAppearEnd);
+                        resolve();
+                    }
+                };
+                faceOverlay.addEventListener('animationend', handleFaceAppearEnd);
+            });
+        }).then(() => {
+            // 4. Face Smile (briefly)
+            faceOverlay.classList.add('face-smile');
+
+            return new Promise(resolve => {
+                const handleFaceSmileEnd = (event) => {
+                    if (event.animationName === 'faceSmile') {
+                        faceOverlay.removeEventListener('animationend', handleFaceSmileEnd);
+                        faceOverlay.classList.remove('face-smile'); // Remove smile class after animation
+                        resolve();
+                    }
+                };
+                faceOverlay.addEventListener('animationend', handleFaceSmileEnd);
+            });
+        }).then(() => {
+            // 5. Face Wave
+            faceOverlay.classList.add('face-wave');
+
+            return new Promise(resolve => {
+                const handleFaceWaveEnd = (event) => {
+                    if (event.animationName === 'faceWave') {
+                        faceOverlay.removeEventListener('animationend', handleFaceWaveEnd);
+                        resolve();
+                    }
+                };
+                faceOverlay.addEventListener('animationend', handleFaceWaveEnd);
+            });
+        }).then(() => {
+            // 6. Face Disappear
+            faceOverlay.classList.add('face-disappear');
+
+            return new Promise(resolve => {
+                const handleFaceDisappearEnd = (event) => {
+                    if (event.animationName === 'faceDisappear') {
+                        faceOverlay.removeEventListener('animationend', handleFaceDisappearEnd);
+                        resolve();
+                    }
+                };
+                faceOverlay.addEventListener('animationend', handleFaceDisappearEnd);
+            });
+        }).then(() => {
+            // All animations complete, reset state
+            resetAnimationState();
+        }).catch(error => {
+            console.error("Animation sequence error:", error);
+            resetAnimationState(); // Ensure state is reset even on error
+        });
+    }
+
+    // Trigger animation on mouse enter
+    floatingButton.addEventListener('mouseenter', triggerAnimation);
+
+    // Trigger animation automatically every 45 seconds
+    setInterval(triggerAnimation, 45000); // 45000 milliseconds = 45 seconds
+
+
     </script>
 </body>
 </html>
