@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -15,25 +15,1167 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(to right bottom, #1a202c, #2d3748);
             display: flex;
-            flex-direction: column; /* Allow body content to stack */
-            justify-content: flex-start; /* Align content to top, let it push downwards */
-            align-items: center; /* Center horizontally */
-            min-height: 100vh; /* Ensure body takes full viewport height */
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
             color: #e2e8f0;
-            overflow-y: auto; /* Allow body to scroll */
+            overflow-y: auto;
         }
         .chat-wrapper {
             display: flex;
             flex-direction: column;
             width: 100%;
             max-width: 768px;
-            min-height: 95vh; /* Changed to min-height to allow expansion */
+            min-height: 95vh;
             background-color: #2d3748;
             border-radius: 1.5rem;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid #4a5568;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .chat-header {
+            background: linear-gradient(to right, #4c51bf, #3f448c);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chat-header-title {
+            flex-basis: 100%;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+        }
+        .ai-star {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: #fcd34d;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            margin-left: 0.5rem;
+        }
+        .chat-main-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            background-color: #242b38;
+            border: 2px solid #667eea;
+            border-radius: 0.75rem;
+            margin: 1rem;
+            justify-content: flex-end; /* Added for bottom-alignment */
+        }
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 1.5rem;
+            word-wrap: break-word;
+            line-height: 1.6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.user {
+            background-color: #4a5568;
+            align-self: flex-end;
+            color: #e2e8f0;
+            border-bottom-right-radius: 0.5rem;
+        }
+        .message.ai {
+            background-color: #1a202c;
+            align-self: flex-start;
+            color: #e2e8f0;
+            border-bottom-left-radius: 0.5rem;
+            position: relative;
+        }
+        .message-timestamp {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+            text-align: right;
+            position: absolute;
+            bottom: 5px;
+            right: 15px;
+        }
+        .message.ai .message-timestamp {
+            text-align: left;
+            left: 15px;
+            right: auto;
+        }
+        .message.thinking-bubble {
+            background-color: #3f448c;
+            color: #e2e8f0;
+            font-style: italic;
+            padding: 0.75rem 1rem;
+            border-radius: 1.25rem;
+            align-self: flex-start;
+            animation: none;
+        }
+        .message.thinking-bubble::after {
+            content: ' ...';
+            animation: dot-pulse 1.5s infinite steps(3, end);
+        }
+        @keyframes dot-pulse {
+            0% { content: ' .'; }
+            33% { content: ' ..'; }
+            66% { content: ' ...'; }
+            100% { content: ' .'; }
+        }
+        .message.highlight-green {
+            animation: highlightGreen 0.3s ease-in-out forwards;
+        }
+        @keyframes highlightGreen {
+            0% { background-color: #1a202c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+            50% { background-color: #38a169; box-shadow: 0 0 15px rgba(56, 161, 105, 0.7); }
+            100% { background-color: #1a202c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+        }
+        .chat-input-area {
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem;
+            border-top: 1px solid #4a5568;
+            background-color: #2d3748;
+            gap: 0.75rem;
+            flex-shrink: 0;
+            align-items: center;
+        }
+        .chat-input-container {
+            display: flex;
+            width: 100%;
+            gap: 0.5rem;
+        }
+        .chat-input {
+            flex-grow: 1;
+            padding: 0.85rem 1.25rem;
+            border: 1px solid #4a5568;
+            border-radius: 2rem;
+            outline: none;
+            font-size: 1.05rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            width: 100%;
+            max-width: 100%;
+        }
+        .chat-input::placeholder {
+            color: #a0aec0;
+        }
+        .chat-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 0.75rem;
+        }
+        .send-button, .stop-button, .input-action-button, .microphone-button {
+            background: linear-gradient(to right, #667eea, #5a67d8);
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            flex-shrink: 0;
+            flex-grow: 1;
+            min-width: 120px;
+        }
+        .send-button:hover, .stop-button:hover, .input-action-button:hover, .microphone-button:hover {
+            background: linear-gradient(to right, #5a67d8, #434190);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+        .send-button:active, .stop-button:active, .input-action-button:active, .microphone-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(102, 126, 234, 0.2);
+        }
+        .stop-button {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+            display: none;
+        }
+        .stop-button:hover {
+            background: linear-gradient(to right, #dc2626, #b91c1c);
+        }
+        .microphone-button {
+            background: #2d3748;
+            color: #667eea;
+            width: auto;
+            min-width: unset;
+            padding: 0.85rem;
+            border-radius: 50%;
+            flex-grow: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .microphone-button:hover {
+            background-color: #1a202c;
+        }
+        .microphone-button.recording {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .disclaimer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #a0aec0;
+            padding: 1rem;
+            border-top: 1px solid #4a5568;
+            background-color: #2d3748;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+            flex-shrink: 0;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        .message-counter-area {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #a0aec0;
+            padding: 0.75rem 1.25rem;
+            background-color: #242b38;
+            border-top: 1px solid #4a5568;
+            flex-shrink: 0;
+        }
+        .premium-button {
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #a0aec0;
+            color: #a0aec0;
+            background-color: #2d3748;
+            transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .premium-button-active {
+            border-color: #fcd34d;
+            background: linear-gradient(to right, #fcd34d, #d97706);
+            color: #1a202c;
+            cursor: pointer;
+            animation: pulse-gold 2s infinite;
+        }
+        .premium-button-active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(252, 211, 77, 0.4);
+        }
+        .tts-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #fcd34d;
+            transition: color 0.2s;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: block;
+        }
+        .tts-button:hover {
+            color: #d97706;
+        }
+        .image-preview-container {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            align-self: flex-start;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.75rem;
+            border: 2px solid #667eea;
+        }
+        .remove-image-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(252, 211, 77, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .chat-wrapper {
+                height: auto;
+                min-height: 90vh;
+                max-width: 98%;
+                margin: 0 auto;
+            }
+            .chat-header {
+                padding: 1rem;
+            }
+            .chat-header-title {
+                font-size: 1.5rem;
+                margin-bottom: 0;
+            }
+            .back-button {
+                top: 10px;
+                right: 10px;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .chat-messages {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+            .message {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            .chat-input-area {
+                padding: 0.8rem;
+            }
+            .chat-input {
+                margin-bottom: 0.5rem;
+            }
+            .button-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .send-button, .stop-button, .input-action-button {
+                width: 100%;
+                margin: 0;
+            }
+            .tts-button {
+                font-size: 1rem;
+                top: 5px;
+                left: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <span class="chat-header-title">FitnessUp Pro <span class="ai-star">✦</span> مستشارك الصحي والرياضي</span>
+        </div>
+        <div class="chat-main-content">
+            <div class="chat-messages" id="chat-messages">
+                <!-- رسائل الشات ستظهر هنا -->
+            </div>
+            <div class="chat-input-area">
+                <input type="file" id="image-upload" accept="image/*" class="hidden">
+                <div id="image-preview-container" class="image-preview-container hidden">
+                    <img id="image-preview" class="image-preview" src="" alt="Image preview">
+                    <button id="remove-image-button" class="remove-image-button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="user-input" class="chat-input" placeholder="اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...">
+                    <button id="microphone-button" class="microphone-button">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+                <div class="button-row">
+                    <button id="send-button" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                        إرسال
+                    </button>
+                    <button id="image-upload-button" class="input-action-button">
+                        <i class="fas fa-camera"></i>
+                        صورة
+                    </button>
+                    <button id="suggest-question-button" class="input-action-button">
+                        <i class="fas fa-question-circle"></i> اقترح سؤالا
+                    </button>
+                    <button id="clear-chat-button" class="input-action-button">
+                        <i class="fas fa-trash-alt"></i> مسح المحادثة
+                    </button>
+                    <button id="stop-button" class="stop-button">
+                        <i class="fas fa-stop"></i>
+                        إيقاف
+                    </button>
+                </div>
+            </div>
+            <div class="message-counter-area" id="message-counter-area">
+                الرسائل المتبقية اليوم: <span id="remaining-messages">10</span>
+            </div>
+            <div class="disclaimer">
+                <i class="fas fa-exclamation-triangle text-yellow-500 ml-2"></i>
+                يرجى ملاحظة: هذا النموذج للذكاء الاصطناعي قد يقدم معلومات غير دقيقة. يرجى دائماً التحقق من صحة المعلومات واستشارة أخصائي قبل اتخاذ أي قرارات صحية أو رياضية.
+            </div>
+        </div>
+    </div>
+    <!-- Floating Back Button -->
+    <button id="back-button" class="back-button">
+        <i class="fas fa-arrow-right"></i>
+        العودة
+    </button>
+
+    <script type="module">
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const stopButton = document.getElementById('stop-button');
+        const backButton = document.getElementById('back-button');
+        const clearChatButton = document.getElementById('clear-chat-button');
+        const suggestQuestionButton = document.getElementById('suggest-question-button');
+        const imageUploadButton = document.getElementById('image-upload-button');
+        const imageUploadInput = document.getElementById('image-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageButton = document.getElementById('remove-image-button');
+        const microphoneButton = document.getElementById('microphone-button');
+        const messageCounterArea = document.getElementById('message-counter-area');
+        const messageCounterDisplay = document.getElementById('remaining-messages');
+
+        let thinkingBubbleElement = null;
+        let currentAiMessageElement = null;
+        let abortController = null;
+        let typingIntervalId = null;
+        let uploadedImage = null; // Stores the base64 image data
+
+        let chatHistory = [];
+        const MAX_MESSAGES_PER_DAY = 10;
+        let remainingMessages = MAX_MESSAGES_PER_DAY;
+        let countdownInterval;
+        let unlimitedMessages = false;
+        let premiumEnabled = false;
+        const CHAT_HISTORY_KEY = 'fitnessUpProChatHistory';
+        const MESSAGE_COUNT_KEY = 'fitnessUpProMessageCount';
+        const LAST_RESET_DATE_KEY = 'fitnessUpProLastResetDate';
+        const UNLOCK_CODE = 'Az700200';
+        const PREMIUM_STATUS_KEY = 'fitnessUpProPremium';
+        const randomQuestions = [
+            "ما هي أفضل تمارين الإحماء قبل الجري؟",
+            "كيف يمكنني زيادة مرونتي؟",
+            "ما هي الأطعمة الغنية بالبروتين للنباتيين؟",
+            "كيف أتعامل مع آلام العضلات بعد التمرين؟",
+            "ما هي فوائد اليوغا للصحة العقلية والبدنية؟",
+            "كم ساعة نوم أحتاج لتحسين الأداء الرياضي؟",
+            "ما هي أفضل طريقة لإنقاص الوزن بشكل صحي؟",
+            "هل المكملات الغذائية ضرورية للمبتدئين في كمال الأجسام؟",
+            "كيف أبدأ روتين لياقة بدنية في المنزل؟",
+            "ما هي علامات الإفراط في التدريب وكيف أتجنبها؟"
+        ];
+        
+        let mediaRecorder;
+        let audioChunks = [];
+        
+        // Helper function to convert base64 to ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // Helper function to convert PCM audio to a WAV file Blob
+        function pcmToWav(pcmData, sampleRate) {
+            const pcm16 = new Int16Array(pcmData);
+            const dataLength = pcm16.length * 2;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            // WAV header
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(view, 8, 'WAVE');
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // Audio format (1 for PCM)
+            view.setUint16(22, 1, true); // Num channels
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true); // Byte rate
+            view.setUint16(32, 2, true); // Block align
+            view.setUint16(34, 16, true); // Bits per sample
+            // Data sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataLength, true);
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(44 + i * 2, pcm16[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        // Helper function for writing strings to a DataView
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // Function to play TTS audio
+        async function playTTS(text) {
+            // Show a temporary loading indicator
+            const allTTSButtons = document.querySelectorAll('.tts-button');
+            allTTSButtons.forEach(btn => btn.disabled = true); // Disable all buttons
+            
+            try {
+                const payload = {
+                    contents: [{
+                        parts: [{ text: text }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: "Puck" }
+                            }
+                        }
+                    }
+                };
+                const apiKey = "AIzaSyAj13FaIFX1Dma-NaxJFt233IFycvfuP4Y"; // Insert your API key
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`TTS API error: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                    audio.onended = () => {
+                         allTTSButtons.forEach(btn => btn.disabled = false); // Re-enable all buttons
+                    };
+                } else {
+                    console.error("Invalid TTS response:", result);
+                }
+
+            } catch (error) {
+                console.error("Error playing TTS:", error);
+            } finally {
+                 allTTSButtons.forEach(btn => btn.disabled = false); // Ensure buttons are re-enabled
+            }
+        }
+        
+        // Function to load chat history from Local Storage
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+            if (savedHistory) {
+                chatHistory = JSON.parse(savedHistory);
+                chatHistory.forEach(msg => {
+                    displayMessage(msg.role === "user" ? 'user' : 'ai', msg.parts[0].text, false, true);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        }
+
+        // Function to save chat history to Local Storage
+        function saveChatHistory() {
+            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
+        }
+
+        // Function to update and display the message counter
+        function updateMessageCounter() {
+            premiumEnabled = localStorage.getItem(PREMIUM_STATUS_KEY) === 'true';
+            if (premiumEnabled) {
+                imageUploadButton.classList.add('premium-button-active');
+                messageCounterArea.innerHTML = `الرسائل المتبقية اليوم: <span id="remaining-messages" class="text-green-400">محاولات غير محدودة</span>`;
+                enableUserInput();
+                return;
+            } else {
+                imageUploadButton.classList.remove('premium-button-active');
+            }
+
+            const today = new Date().toDateString();
+            const lastResetDate = localStorage.getItem(LAST_RESET_DATE_KEY);
+            let savedCount = localStorage.getItem(MESSAGE_COUNT_KEY);
+
+            if (lastResetDate !== today) {
+                remainingMessages = MAX_MESSAGES_PER_DAY;
+                localStorage.setItem(LAST_RESET_DATE_KEY, today);
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            } else if (savedCount !== null) {
+                remainingMessages = parseInt(savedCount, 10);
+            } else {
+                remainingMessages = MAX_MESSAGES_PER_DAY;
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            }
+
+            messageCounterDisplay.textContent = remainingMessages;
+            checkMessageLimit();
+        }
+
+        // Function to check message limit and disable input if needed
+        function checkMessageLimit() {
+            if (premiumEnabled) {
+                enableUserInput();
+                return;
+            }
+
+            if (remainingMessages <= 0) {
+                sendButton.disabled = true;
+                userInput.disabled = true;
+                sendButton.style.cursor = 'not-allowed';
+                userInput.placeholder = 'لقد استنفدت عدد الرسائل المسموح بها لليوم.';
+                startCountdownToMidnight();
+            } else {
+                if (!thinkingBubbleElement && !currentAiMessageElement) {
+                    enableUserInput();
+                }
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                messageCounterArea.innerHTML = `الرسائل المتبقية اليوم: <span id="remaining-messages">${remainingMessages}</span>`;
+            }
+        }
+
+        // Function to start countdown to midnight
+        function startCountdownToMidnight() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            countdownInterval = setInterval(() => {
+                const now = new Date();
+                const midnight = new Date(now);
+                midnight.setHours(24, 0, 0, 0);
+
+                const timeLeft = midnight.getTime() - now.getTime();
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    updateMessageCounter();
+                    return;
+                }
+
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                messageCounterArea.innerHTML = `ارجع بعد: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Function to display messages in the UI
+        function displayMessage(sender, message, isTyping = false, fromLoad = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender);
+            
+            if (isTyping) {
+                messageDiv.textContent = '';
+            } else {
+                messageDiv.innerHTML = formatTextForDisplay(message);
+            }
+
+            if (sender === 'ai' && !isTyping) {
+                const ttsButton = document.createElement('button');
+                ttsButton.className = `tts-button`;
+                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                ttsButton.onclick = () => playTTS(message);
+                messageDiv.appendChild(ttsButton);
+            }
+
+            if (!isTyping && !fromLoad) {
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('message-timestamp');
+                const now = new Date();
+                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                messageDiv.appendChild(timestampSpan);
+            } else if (fromLoad) {
+                const timestampSpan = document.createElement('span');
+                timestampSpan.classList.add('message-timestamp');
+                const now = new Date();
+                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                messageDiv.appendChild(timestampSpan);
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
+            return messageDiv;
+        }
+
+        // Function to format text using simple Markdown
+        function formatTextForDisplay(text) {
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/^- (.*)$/gm, '<li>$1</li>');
+            if (text.includes('<li>')) {
+                text = `<ul>${text}</ul>`;
+            }
+            text = text.replace(/\n\n/g, '<br><br>');
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
+        // Function to show "thinking" bubble and stop button, disable input
+        function showLoading() {
+            sendButton.style.display = 'none';
+            stopButton.style.display = 'flex';
+            userInput.disabled = true;
+            userInput.style.cursor = 'not-allowed';
+            imageUploadButton.disabled = true;
+            imageUploadButton.style.opacity = '0.5';
+            microphoneButton.disabled = true;
+            microphoneButton.style.opacity = '0.5';
+
+            thinkingBubbleElement = document.createElement('div');
+            thinkingBubbleElement.classList.add('message', 'ai', 'thinking-bubble');
+            thinkingBubbleElement.textContent = 'أنا أفكر الآن';
+            chatMessages.appendChild(thinkingBubbleElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        // Function to hide "thinking" bubble
+        function hideLoadingBubble() {
+            if (thinkingBubbleElement) {
+                chatMessages.removeChild(thinkingBubbleElement);
+                thinkingBubbleElement = null;
+            }
+        }
+
+        // Function to enable user input
+        function enableUserInput() {
+            sendButton.style.display = 'flex';
+            stopButton.style.display = 'none';
+            userInput.disabled = false;
+            userInput.style.cursor = 'text';
+            userInput.focus();
+            imageUploadButton.disabled = false;
+            imageUploadButton.style.opacity = '1';
+            microphoneButton.disabled = false;
+            microphoneButton.style.opacity = '1';
+        }
+
+        // Function to simulate AI typing effect
+        function typeMessage(element, text, delay = 1) { // Speed increased
+            let i = 0;
+            return new Promise(resolve => {
+                typingIntervalId = setInterval(() => {
+                    if (abortController && abortController.signal.aborted) {
+                        clearInterval(typingIntervalId);
+                        element.innerHTML = formatTextForDisplay(text);
+                        resolve();
+                        return;
+                    }
+                    if (i < text.length) {
+                        element.textContent += text.charAt(i);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        window.scrollTo(0, document.body.scrollHeight);
+                        i++;
+                    } else {
+                        clearInterval(typingIntervalId);
+                        element.innerHTML = formatTextForDisplay(text);
+                        resolve();
+                    }
+                }, delay);
+            });
+        }
+        
+        // Function to call Gemini API with exponential backoff
+        async function callGeminiAPI(parts, retries = 3, delay = 1000) {
+            abortController = new AbortController();
+            const signal = abortController.signal;
+
+            try {
+                // Keep chat history clean for Gemini API
+                let chatHistoryForAPI = chatHistory.map(msg => ({
+                    role: msg.role === "model" ? "model" : "user",
+                    parts: msg.parts
+                }));
+                chatHistoryForAPI.push({ role: "user", parts: parts });
+                const payload = {
+                    contents: chatHistoryForAPI
+                };
+                const apiKey = "AIzaSyAj13FaIFX1Dma-NaxJFt233IFycvfuP4Y";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                    signal: signal
+                });
+                if (!response.ok) {
+                    if (response.status === 429 && retries > 0) {
+                        console.warn(`Too many requests. Retrying in ${delay / 1000}s...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return callGeminiAPI(parts, retries - 1, delay * 2);
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    // Save response to chat history
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                    saveChatHistory();
+                    return text;
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    return "عذراً، حدث خطأ في فهم طلبك. الرجاء المحاولة مرة أخرى.";
+                }
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Fetch aborted by user.');
+                    return "تم إيقاف الرد.";
+                }
+                console.error("Error calling Gemini API:", error);
+                return "عذراً، لا أستطيع التواصل مع الذكاء الاصطناعي حالياً. الرجاء المحاولة لاحقاً.";
+            } finally {
+                abortController = null;
+            }
+        }
+        
+        // Function to show a custom modal/alert for premium features
+        function showPremiumLockedMessage(message) {
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                position: fixed;
+                top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background-color: #fcd34d; color: #1a202c; padding: 2rem; border-radius: 1rem;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                text-align: center; z-index: 9999;
+                font-size: 1.2rem;
+                max-width: 80%;
+            `;
+            messageBox.innerHTML = `
+                <p>⚠️ ${message}</p>
+                <p style="font-size: 0.9rem; margin-top: 1rem;">أدخل الكود <strong class="text-blue-600">${UNLOCK_CODE}</strong> في شريط الرسائل لتفعيل الميزات البريميوم!</p>
+                <button onclick="this.parentNode.remove()" style="margin-top: 1rem; padding: 0.5rem 1rem; border-radius: 0.5rem; background-color: #1a202c; color: white; border: none; cursor: pointer;">إغلاق</button>
+            `;
+            document.body.appendChild(messageBox);
+        }
+
+        // Function to send message
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            // Check for the premium unlock code
+            if (message === UNLOCK_CODE) {
+                localStorage.setItem(PREMIUM_STATUS_KEY, 'true');
+                premiumEnabled = true;
+                updateMessageCounter();
+                displayMessage('ai', 'تهانينا! لقد قمت بتفعيل المحاولات غير المحدودة والميزات البريميوم بنجاح. استمتع بتجربة أفضل!');
+                userInput.value = '';
+                return;
+            }
+
+            if (!premiumEnabled && remainingMessages <= 0) {
+                showPremiumLockedMessage("لقد استنفدت عدد الرسائل المسموح بها لليوم.");
+                return;
+            }
+            
+            if (message === '' && !uploadedImage) {
+                return;
+            }
+
+            const promptParts = [];
+            if (uploadedImage) {
+                promptParts.push({
+                    inlineData: {
+                        mimeType: uploadedImage.mimeType,
+                        data: uploadedImage.base64
+                    }
+                });
+            }
+            
+            if (message !== '') {
+                promptParts.push({ text: `بصفتك مستشارًا طبيًا ورياضيًا ودودًا ومحفزًا، أجب على هذا السؤال: ${message}` });
+            } else {
+                 // If there is an image but no text, provide a generic prompt
+                promptParts.push({ text: `بصفتك مستشارًا طبيًا ورياضيًا ودودًا ومحفزًا، قم بتحليل هذه الصورة وقدم لي نصائح حولها.` });
+            }
+
+            displayMessage('user', message + (uploadedImage ? ' [صورة مرفقة]' : ''));
+            userInput.value = '';
+            
+            if (!premiumEnabled) {
+                remainingMessages--;
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+                messageCounterDisplay.textContent = remainingMessages;
+                checkMessageLimit();
+            }
+
+            // Hide image preview after sending
+            if (uploadedImage) {
+                removeImage();
+            }
+
+            showLoading();
+
+            const aiResponse = await callGeminiAPI(promptParts);
+            
+            hideLoadingBubble();
+            currentAiMessageElement = displayMessage('ai', '', true);
+            await typeMessage(currentAiMessageElement, aiResponse);
+            currentAiMessageElement.classList.add('highlight-green');
+            setTimeout(() => {
+                currentAiMessageElement.classList.remove('highlight-green');
+                enableUserInput();
+            }, 3000);
+        }
+
+        // Function to stop AI response
+        function stopAiResponse() {
+            if (abortController) {
+                abortController.abort();
+            }
+            if (typingIntervalId) {
+                clearInterval(typingIntervalId);
+                typingIntervalId = null;
+            }
+            
+            hideLoadingBubble();
+            enableUserInput();
+        }
+
+        // Function to clear chat
+        function clearChat() {
+            if (thinkingBubbleElement || (currentAiMessageElement && typingIntervalId)) {
+                stopAiResponse();
+            }
+
+            chatMessages.innerHTML = '';
+            chatHistory = [];
+            saveChatHistory();
+            updateMessageCounter();
+            const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+            displayMessage('ai', welcomeMessage);
+            chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+            saveChatHistory();
+            enableUserInput();
+        }
+
+        // Function to suggest a random question
+        async function suggestQuestion() {
+            if (!premiumEnabled && remainingMessages <= 0) {
+                showPremiumLockedMessage("لقد استنفدت عدد الرسائل المسموح بها لليوم.");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * randomQuestions.length);
+            const question = randomQuestions[randomIndex];
+            
+            userInput.value = question;
+            sendMessage();
+        }
+
+        // Function to handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64String = e.target.result.split(',')[1];
+                uploadedImage = {
+                    base64: base64String,
+                    mimeType: file.type
+                };
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.classList.remove('hidden');
+                userInput.placeholder = 'أضف نصًا إضافيًا للصورة (اختياري)';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Function to remove uploaded image
+        function removeImage() {
+            uploadedImage = null;
+            imageUploadInput.value = '';
+            imagePreview.src = '';
+            imagePreviewContainer.classList.add('hidden');
+            userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+        }
+
+        // Function to start voice recognition
+        function startVoiceRecognition() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopVoiceRecognition();
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    microphoneButton.classList.add('recording');
+                    userInput.placeholder = 'أتحدث...';
+                    userInput.disabled = true;
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        // Here you would send the audio to a speech-to-text API
+                        // For now, we will simulate it.
+                        console.log('Audio recorded:', audioBlob);
+                        const recognizedText = "أعطني خطة تمارين لمدة أسبوع"; // Placeholder text
+                        userInput.value = recognizedText;
+                        sendMessage();
+                        audioChunks = [];
+                        microphoneButton.classList.remove('recording');
+                        userInput.disabled = false;
+                        userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+                    };
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    alert('لا يمكن الوصول إلى الميكروفون. يرجى التأكد من أن لديك الأذونات اللازمة.');
+                });
+        }
+        
+        // Function to stop voice recognition
+        function stopVoiceRecognition() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        }
+
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        stopButton.addEventListener('click', stopAiResponse);
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !sendButton.disabled) {
+                sendMessage();
+            }
+        });
+        backButton.addEventListener('click', function() {
+            window.history.back();
+        });
+        clearChatButton.addEventListener('click', clearChat);
+        suggestQuestionButton.addEventListener('click', suggestQuestion);
+        imageUploadButton.addEventListener('click', () => {
+             imageUploadInput.click();
+        });
+        imageUploadInput.addEventListener('change', handleImageUpload);
+        removeImageButton.addEventListener('click', removeImage);
+        microphoneButton.addEventListener('click', startVoiceRecognition);
+
+        // On page load
+        window.onload = function() {
+            loadChatHistory();
+            updateMessageCounter();
+            if (chatHistory.length === 0) {
+                setTimeout(() => {
+                    const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    displayMessage('ai', welcomeMessage);
+                    chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+                    saveChatHistory();
+                }, 500);
+            }
+        };
+    </script>
+</body>
+</html>
             border: 1px solid #4a5568;
             position: relative;
             margin-bottom: 20px; /* Add margin at the bottom to prevent sticking to edge */
