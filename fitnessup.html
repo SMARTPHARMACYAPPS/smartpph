@@ -1607,5 +1607,17 @@ ${notesText}
 
 
     </script>
-</body>
+    
+</body<script>
+    /**
+     * يستمع إلى حدث "offline" ويعيد توجيه المستخدم إلى صفحة offline.html.
+     * هذا يضمن أن يتم عرض صفحة انقطاع الاتصال تلقائيًا دون الحاجة لإعادة تحميل يدوية.
+     */
+    window.addEventListener('offline', () => {
+        console.log("Internet connection lost! Redirecting to offline page.");
+        window.location.href = 'offline.html';
+    });
+</script>
+>
 </html>
+
