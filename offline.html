@@ -159,10 +159,10 @@
             margin-bottom: 10px;
             border-radius: 8px;
             text-align: right; /* Keep original text-align for list item content */
-            color: #e0e7ff;
             max-width: 90%; /* Limit width for centering */
             margin-right: auto; /* Center block in RTL */
             margin-left: auto; /* Center block in LTR */
+            color: #e0e7ff;
         }
         /* For RTL, if text-align: right is desired for list content within a centered block */
         .tips-section li p {
@@ -188,7 +188,7 @@
             height: 200px;
             background-color: #000000; /* مربع أسود */
             border-radius: 12px;
-            display: flex;
+            display: none; /* Hidden by default, shown by JS */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -416,6 +416,7 @@
         const loadingSpinner = document.querySelector('.loading-spinner'); // Get the spinner element
         const mainTitle = document.querySelector('h1'); // Get the main title element
 
+        // Initial messages to be displayed when offline
         const initialMessages = [
             "أهلاً بك، يا صديقي!",
             "يبدو أن اتصالنا بالإنترنت قد انقطع...",
@@ -428,6 +429,7 @@
             "سأعود للعمل بمجرد عودة الاتصال! شكراً لصبرك!"
         ];
 
+        // Farewell messages to be displayed when connection is restored
         const farewellMessages = [
             "أهلاً بك مرة أخرى!",
             "لقد عاد الاتصال! كم سأشتاق إليك...",
@@ -436,15 +438,25 @@
             "الرجاء الانتظار قليلاً."
         ];
 
+        // Face states for cycling animations
         const faceStates = ['happy', 'funny', 'shocked', 'surprised', 'silly'];
         let currentFaceStateIndex = 0;
         let currentMessageIndex = 0;
-        let autoUpdateFaceAndMessagesInterval; // لتعابير الوجه والرسائل الطويلة
-        let eyeAnimationInterval; // لحركة العين العشوائية
-        let reloadTimeout; // لمهلة إعادة التحميل
+        let autoUpdateFaceAndMessagesInterval; // Interval for face and messages
+        let eyeAnimationInterval; // Interval for random eye movement
+        let messageTimeout; // Timeout for message display
 
-        const typingDelay = 75; // سرعة كتابة الحروف
-        const messageDisplayTime = 2000; // وقت عرض الرسالة بعد الانتهاء من كتابتها
+        const typingDelay = 75; // Typing speed in milliseconds
+        const messageDisplayTime = 2000; // Time to display a message after typing is complete
+
+        /**
+         * Clears all running intervals and timeouts to prevent message overlap.
+         */
+        function stopAllAnimations() {
+            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
+            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
+            if (messageTimeout) clearTimeout(messageTimeout);
+        }
 
         /**
          * Types out a sentence character by character.
@@ -458,7 +470,8 @@
                 if (charIndex < sentence.length) {
                     dialogueBox.textContent += sentence.charAt(charIndex);
                     charIndex++;
-                    setTimeout(typeChar, typingDelay);
+                    // Use a new timeout for each character
+                    messageTimeout = setTimeout(typeChar, typingDelay);
                 } else {
                     if (callback) callback();
                 }
@@ -470,51 +483,64 @@
          * Displays initial messages sequentially with typing effect.
          */
         function displayInitialMessages() {
-            if (currentMessageIndex < initialMessages.length) {
-                typeSentence(initialMessages[currentMessageIndex], () => {
-                    currentMessageIndex++;
-                    setTimeout(displayInitialMessages, messageDisplayTime);
-                });
-            } else {
-                fullTextElement.classList.add('visible');
-                dialogueBox.style.display = 'none';
-                // Start face expression cycling after initial messages
-                startAutoUpdateFaceAndMessagesCycling();
+            stopAllAnimations(); // Ensure nothing is running from before
+            currentMessageIndex = 0; // Reset message index
+            
+            // Show elements for initial messages
+            mainTitle.style.display = 'flex';
+            fullTextElement.classList.remove('visible');
+            interactiveFace.style.display = 'flex';
+            dialogueBox.style.display = 'block';
+            dialogueBox.classList.remove('farewell-large-text');
+            loadingSpinner.style.display = 'none';
+
+            function showNextMessage() {
+                if (currentMessageIndex < initialMessages.length) {
+                    typeSentence(initialMessages[currentMessageIndex], () => {
+                        currentMessageIndex++;
+                        messageTimeout = setTimeout(showNextMessage, messageDisplayTime);
+                    });
+                } else {
+                    // All initial messages displayed
+                    fullTextElement.classList.add('visible');
+                    dialogueBox.style.display = 'none';
+                    startAutoUpdateFaceAndMessagesCycling();
+                }
             }
+            showNextMessage();
         }
 
         /**
          * Displays farewell messages sequentially with typing effect and reloads.
          */
-        function displayFarewellMessages(index = 0) {
-            // Stop all ongoing animations and intervals
-            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
-            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
-            if (reloadTimeout) clearTimeout(reloadTimeout); // Clear any previous reload timeout
-
+        function displayFarewellMessages() {
+            stopAllAnimations(); // Stop all animations and timeouts
+            
             // Show elements relevant to farewell
-            dialogueBox.style.display = 'block'; // Ensure dialogue box is visible
-            dialogueBox.classList.add('farewell-large-text'); // Add class for large text
-            interactiveFace.style.display = 'flex'; // Show face again
-            loadingSpinner.style.display = 'none'; // Hide spinner initially during messages
-            mainTitle.style.display = 'none'; // Hide main title
-            fullTextElement.classList.remove('visible'); // Hide full text
+            dialogueBox.style.display = 'block';
+            dialogueBox.classList.add('farewell-large-text');
+            interactiveFace.style.display = 'flex';
+            loadingSpinner.style.display = 'none';
+            mainTitle.style.display = 'none';
+            fullTextElement.classList.remove('visible');
 
-            if (index < farewellMessages.length) {
-                typeSentence(farewellMessages[index], () => {
-                    setTimeout(() => {
-                        displayFarewellMessages(index + 1);
-                    }, messageDisplayTime); // Use messageDisplayTime for individual messages
-                });
-            } else {
-                // All farewell messages displayed
-                dialogueBox.textContent = "جاري إعادة التحميل..."; // Final message before reload
-                loadingSpinner.style.display = 'block'; // Show spinner
-                
-                // Reload immediately after the last message is typed
-                console.log("Reloading page immediately...");
-                window.location.reload();
+            let farewellIndex = 0;
+            function showNextFarewellMessage() {
+                if (farewellIndex < farewellMessages.length) {
+                    typeSentence(farewellMessages[farewellIndex], () => {
+                        farewellIndex++;
+                        messageTimeout = setTimeout(showNextFarewellMessage, messageDisplayTime);
+                    });
+                } else {
+                    // All farewell messages displayed
+                    dialogueBox.textContent = "جاري إعادة التحميل...";
+                    loadingSpinner.style.display = 'block';
+                    
+                    // Reload the page
+                    setTimeout(() => window.location.reload(), messageDisplayTime);
+                }
             }
+            showNextFarewellMessage();
         }
 
         /**
@@ -553,9 +579,7 @@
          * Starts the automatic cycling of face states.
          */
         function startAutoUpdateFaceAndMessagesCycling() {
-            if (autoUpdateFaceAndMessagesInterval) {
-                clearInterval(autoUpdateFaceAndMessagesInterval);
-            }
+            stopAllAnimations(); // Clear any previous intervals
             autoUpdateFaceAndMessagesInterval = setInterval(() => {
                 updateFaceState();
             }, 4000); // كل 4 ثوانٍ تتغير حالة الوجه
@@ -565,10 +589,8 @@
          * Starts the continuous random eye movement.
          */
         function startEyeAnimation() {
-            if (eyeAnimationInterval) {
-                clearInterval(eyeAnimationInterval);
-            }
-            eyeAnimationInterval = setInterval(animateEyesRandomly, 750); // كل 100 مللي ثانية (جزء من الثانية)
+            stopAllAnimations(); // Clear any previous intervals
+            eyeAnimationInterval = setInterval(animateEyesRandomly, 750); // كل 750 مللي ثانية
         }
 
         // Space background animations
@@ -609,13 +631,8 @@
 
         // Event listener for online status
         window.addEventListener('online', () => {
-            console.log("Internet connection restored!");
-            // Stop all ongoing animations and intervals
-            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
-            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
-            if (reloadTimeout) clearTimeout(reloadTimeout);
-
-            // Start farewell message sequence and reload
+            console.log("Internet connection restored! Stopping all current animations and initiating farewell sequence.");
+            stopAllAnimations();
             displayFarewellMessages();
         });
 
@@ -624,16 +641,13 @@
             createStars(100);
             createPlanets(3);
             
-            // Only display initial messages if currently offline
+            // Check internet status on page load
             if (!navigator.onLine) {
-                displayInitialMessages(); // Start the initial typing messages
-                startEyeAnimation(); // Start continuous random eye movement
+                console.log("Page loaded while offline. Displaying initial messages.");
+                displayInitialMessages();
+                startEyeAnimation();
             } else {
-                // If already online when loaded, go straight to farewell messages
                 console.log("Page loaded while online. Initiating farewell sequence.");
-                // Ensure face and spinner are visible for farewell sequence if starting online
-                interactiveFace.style.display = 'flex';
-                loadingSpinner.style.display = 'block'; // Will be hidden by displayFarewellMessages then shown again
                 displayFarewellMessages();
             }
         });
