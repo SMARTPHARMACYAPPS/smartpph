@@ -1,39 +1,428 @@
-<script>
-    /**
-     * يستمع إلى حدث "offline" ويعيد توجيه المستخدم إلى صفحة offline.html.
-     * هذا يضمن أن يتم عرض صفحة انقطاع الاتصال تلقائيًا دون الحاجة لإعادة تحميل يدوية.
-     */
-    window.addEventListener('offline', () => {
-        console.log("Internet connection lost! Redirecting to offline page.");
-        window.location.href = 'offline.html';
-    });
-</script>            line-height: 1.2;
-            display: flex; /* To align icon and text */
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أوه! لا يوجد اتصال بالانترنت!</title>
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styles for the page layout and animations */
+        html, body {
+            height: auto;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            color: #e0e7ff;
+            background: #0d1a2f;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+        }
+
+        .space-background {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 4s infinite ease-in-out alternate;
+        }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            filter: blur(10px);
+            animation: float 20s infinite ease-in-out alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 15px; /* Space between icon and text */
-            text-align: center; /* Ensure title is centered */
+            padding: 20px;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         .no-internet-icon {
             width: 40px;
             height: 40px;
-            fill: #ff4d4d; /* Red color for the icon */
+            fill: #ff4d4d;
         }
 
         .dialogue-box {
-            min-height: 80px;
             color: #d1d5db;
             font-size: 1.2rem;
-            margin-bottom: 20px;
-            text-align: center; /* Already centered */
+            text-align: center;
             padding: 10px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
         }
 
-        /* New style for large farewell text - Adjusted for better fit */
-        .dialogue-box.farewell-large-text {
-            font-size: 2.5rem; /* Reduced from 3.5rem for better fit */
-            font-weight: 700;
+        .full-text {
+            color: #e0e7ff;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out 0.5s forwards;
+        }
+
+        .tips-section {
+            margin-top: 30px;
+            border-top: 1px solid rgba(99, 102, 241, 0.3);
+            padding-top: 20px;
+            width: 100%;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out 1s forwards;
+        }
+        .tips-section h2 {
+            color: #818cf8;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .tips-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tips-section li {
+            background-color: rgba(49, 46, 129, 0.5);
+            border-right: 4px solid #a78bfa;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: right;
+            max-width: 90%;
+            margin-right: auto;
+            margin-left: auto;
+            color: #e0e7ff;
+        }
+        .tips-section li p {
+            text-align: right;
+        }
+        
+        .game-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #1a202c;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 320px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out 1.5s forwards;
+        }
+        
+        /* Tic-Tac-Toe specific styles */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            background-color: #0d1a2f;
+            border-radius: 8px;
+            border: 2px solid #a78bfa;
+        }
+
+        .cell {
+            background-color: #1a202c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #e0e7ff;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .cell:hover {
+            background-color: #2d3748;
+        }
+        
+        .status-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            min-height: 30px;
+            margin-top: 10px;
+        }
+        
+        #restartButton {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #818cf8;
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        #restartButton:hover {
+            background-color: #6366f1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; gap: 10px; }
+            .no-internet-icon { width: 30px; height: 30px; }
+            .dialogue-box, .full-text { font-size: 1rem; }
+            .tips-section h2 { font-size: 1.5rem; }
+            .game-section { padding: 10px; max-width: 90%; }
+            .game-board { width: 250px; height: 250px; }
+            .cell { font-size: 2.5rem; }
+            .status-message { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="space-background" id="spaceBackground"></div>
+
+    <div class="container">
+        <h1>
+            <svg class="no-internet-icon" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                <path d="M0 0h24v24H0z" fill="none"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="#ff4d4d" stroke-width="2"/>
+            </svg>
+            أوه لا يوجد انترنت !
+        </h1>
+
+        <div id="dialogueBox" class="dialogue-box">
+            أهلاً بك، يا صديقي! يبدو أن اتصالنا بالإنترنت قد انقطع...
+        </div>
+
+        <div id="fullText" class="full-text">
+            <p>لا تقلق، أنا بيكسل، مساعدك الافتراضي. بينما أنا في مهمة البحث عن الاتصال، إليك بعض النصائح لتجربة ممتعة:</p>
+        </div>
+
+        <div class="tips-section">
+            <h2>نصائح سريعة:</h2>
+            <ul>
+                <li>تأكد من اتصالك بشبكة Wi-Fi أو بيانات الهاتف.</li>
+                <li>ربما تحتاج لإعادة تشغيل الراوتر!</li>
+                <li>ولا تنسى أن تأخذ استراحة قليلاً.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="game-section">
+        <h2 class="text-xl font-bold text-center text-white mb-4">العب إكس-أو ضد الكمبيوتر</h2>
+        <div id="gameBoard" class="game-board"></div>
+        <div id="status" class="status-message">دورك للعب.</div>
+        <button id="restartButton">العب مرة أخرى</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const spaceBackground = document.getElementById('spaceBackground');
+            
+            // Background animations
+            function createStars(num) {
+                for (let i = 0; i < num; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.width = star.style.height = `${Math.random() * 3 + 1}px`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 4}s`;
+                    spaceBackground.appendChild(star);
+                }
+            }
+
+            function createPlanets(num) {
+                const planetColors = [
+                    ['#5d4037', '#3e2723'],
+                    ['#4a148c', '#311b92'],
+                    ['#2e7d32', '#1b5e20'],
+                    ['#1a237e', '#0d47a1']
+                ];
+                for (let i = 0; i < num; i++) {
+                    const planet = document.createElement('div');
+                    planet.className = 'planet';
+                    const size = Math.random() * 80 + 50;
+                    planet.style.width = planet.style.height = `${size}px`;
+                    planet.style.left = `${Math.random() * 100}%`;
+                    planet.style.top = `${Math.random() * 100}%`;
+                    planet.style.animationDuration = `${Math.random() * 30 + 15}s`;
+                    const colors = planetColors[Math.floor(Math.random() * planetColors.length)];
+                    planet.style.background = `radial-gradient(circle at 30% 30%, ${colors[0]}, ${colors[1]})`;
+                    spaceBackground.appendChild(planet);
+                }
+            }
+
+            // Tic-Tac-Toe Game Logic
+            const gameBoard = document.getElementById('gameBoard');
+            const statusMessage = document.getElementById('status');
+            const restartButton = document.getElementById('restartButton');
+            const player = 'X';
+            const computer = 'O';
+            let boardState = ['', '', '', '', '', '', '', '', ''];
+            let isGameActive = true;
+
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            function handleResultValidation() {
+                let roundWon = false;
+                for (let i = 0; i <= 7; i++) {
+                    const winCondition = winningConditions[i];
+                    let a = boardState[winCondition[0]];
+                    let b = boardState[winCondition[1]];
+                    let c = boardState[winCondition[2]];
+                    if (a === '' || b === '' || c === '') {
+                        continue;
+                    }
+                    if (a === b && b === c) {
+                        roundWon = true;
+                        if (a === player) {
+                            statusMessage.textContent = `أنت فزت!`;
+                        } else {
+                            statusMessage.textContent = `الكمبيوتر فاز!`;
+                        }
+                        isGameActive = false;
+                        restartButton.style.display = 'block'; // Show the restart button
+                        return;
+                    }
+                }
+
+                if (!boardState.includes('')) {
+                    statusMessage.textContent = `تعادل!`;
+                    isGameActive = false;
+                    restartButton.style.display = 'block'; // Show the restart button
+                    return;
+                }
+            }
+
+            function handlePlayerMove(index) {
+                if (!isGameActive || boardState[index] !== '') {
+                    return;
+                }
+                boardState[index] = player;
+                document.querySelector(`.cell[data-index='${index}']`).textContent = player;
+                handleResultValidation();
+                if (isGameActive) {
+                    setTimeout(handleComputerMove, 500); // Computer moves after a short delay
+                }
+            }
+
+            // Simplified and beatable AI logic
+            function handleComputerMove() {
+                if (!isGameActive) {
+                    return;
+                }
+                statusMessage.textContent = 'دور الكمبيوتر...';
+                
+                // Find all empty spots
+                let availableSpots = boardState.map((val, index) => val === '' ? index : null).filter(val => val !== null);
+                
+                // If there are available spots, choose a random one
+                if (availableSpots.length > 0) {
+                    let randomMoveIndex = availableSpots[Math.floor(Math.random() * availableSpots.length)];
+                    boardState[randomMoveIndex] = computer;
+                    document.querySelector(`.cell[data-index='${randomMoveIndex}']`).textContent = computer;
+                    handleResultValidation();
+                }
+
+                if (isGameActive) {
+                    statusMessage.textContent = 'دورك للعب.';
+                }
+            }
+
+            function createBoard() {
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.setAttribute('data-index', i);
+                    cell.addEventListener('click', () => handlePlayerMove(i));
+                    gameBoard.appendChild(cell);
+                }
+            }
+
+            function resetGame() {
+                boardState = ['', '', '', '', '', '', '', '', ''];
+                isGameActive = true;
+                statusMessage.textContent = 'دورك للعب.';
+                document.querySelectorAll('.cell').forEach(cell => cell.textContent = '');
+                restartButton.style.display = 'none';
+            }
+
+            // Event listener for online status
+            function handleOnline() {
+                // Redirect to the home page when connection is restored
+                window.location.href = 'index.html';
+            }
+            window.addEventListener('online', handleOnline);
+
+            // Initialize on DOMContentLoaded
+            window.onload = function() {
+                createStars(100);
+                createPlanets(3);
+                createBoard();
+                
+                restartButton.addEventListener('click', resetGame);
+            };
+        });
+    </script>
+</body>
+</html>
             color: #a78bfa; /* A prominent color */
             transition: font-size 0.5s ease-in-out, color 0.5s ease-in-out;
             min-height: 100px; /* Adjusted from 150px to match smaller font */
