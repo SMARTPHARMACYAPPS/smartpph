@@ -675,7 +675,7 @@
 
         /* Animation for the star icon on hover */
         .floating-button-icon.jump-animation {
-            animation: starJump 0.9s ease-in-out 3 forwards; /* تقفز 3 مرات */
+            animation: starJump 0.6s ease-in-out 3 forwards; /* تقفز 3 مرات */
         }
 
         .floating-button-icon.glow-animation {
@@ -764,7 +764,7 @@
         }
 
         .face-overlay.face-disappear {
-            animation: faceDisappear 0.9s ease-in forwards;
+            animation: faceDisappear 0.3s ease-in forwards;
         }
         @keyframes faceDisappear {
             0% { opacity: 1; transform: scale(1); }
@@ -2294,7 +2294,50 @@ body.dark-mode .save-gaza-text {
 
             // Now print the receipt as a copy
             printContent('receipt', true);
+// نستخدم DOMContentLoaded للتأكد من تحميل الصفحة بالكامل قبل تشغيل الكود
+document.addEventListener('DOMContentLoaded', function() {
+    // البحث عن حقول الإدخال وأزرار الاختيار باستخدام المعرفات الصحيحة
+    const systolicInput = document.getElementById('pressureValueHigh');
+    const diastolicInput = document.getElementById('pressureValueLow');
+    const lowRadio = document.getElementById('status-low');
+    const normalRadio = document.getElementById('status-normal');
+    const highRadio = document.getElementById('status-high');
 
+    /**
+     * هذه الدالة تقوم بتحديث حالة أزرار الاختيار بناءً على قيم الضغط.
+     */
+    function updateRadioButtons() {
+        // تحويل القيمة المدخلة إلى عدد صحيح
+        const systolicValue = parseInt(systolicInput.value);
+        const diastolicValue = parseInt(diastolicInput.value);
+
+        // التحقق من أن القيم المدخلة أرقام صحيحة
+        if (!isNaN(systolicValue) && !isNaN(diastolicValue)) {
+            // تحديد زر الاختيار الصحيح بناءً على القيم
+            if (systolicValue < 90 || diastolicValue < 60) {
+                lowRadio.checked = true;
+            } else if ((systolicValue >= 90 && systolicValue <= 120) && (diastolicValue >= 60 && diastolicValue <= 80)) {
+                normalRadio.checked = true;
+            } else if (systolicValue >= 140 || diastolicValue >= 90) {
+                highRadio.checked = true;
+            } else {
+                // إلغاء تحديد جميع الأزرار إذا كانت القيم خارج النطاقات المحددة
+                lowRadio.checked = false;
+                normalRadio.checked = false;
+                highRadio.checked = false;
+            }
+        } else {
+            // إلغاء تحديد جميع الأزرار إذا كانت الحقول فارغة أو غير صحيحة
+            lowRadio.checked = false;
+            normalRadio.checked = false;
+            highRadio.checked = false;
+        }
+    }
+
+    // إضافة مستمع لحدث الإدخال على كلا الحقلين
+    if (systolicInput) systolicInput.addEventListener('input', updateRadioButtons);
+    if (diastolicInput) diastolicInput.addEventListener('input', updateRadioButtons);
+});
             // Restore original values after printing
             pharmacyNameInput.value = originalPharmacyName;
             sloganInput.value = originalSlogan;
@@ -2791,7 +2834,7 @@ body.dark-mode .save-gaza-text {
     floatingButton.addEventListener('mouseenter', triggerAnimation);
 
     // Trigger animation automatically every 45 seconds
-    setInterval(triggerAnimation, 45000); // 45000 milliseconds = 45 seconds
+    setInterval(triggerAnimation, 15000); // 45000 milliseconds = 45 seconds
 
 
     </script>
@@ -2807,17 +2850,194 @@ body.dark-mode .save-gaza-text {
                     });
             });
         }
-    </script>
-    <script>
-    /**
-     * يستمع إلى حدث "offline" ويعيد توجيه المستخدم إلى صفحة offline.html.
-     * هذا يضمن أن يتم عرض صفحة انقطاع الاتصال تلقائيًا دون الحاجة لإعادة تحميل يدوية.
-     */
-    window.addEventListener('offline', () => {
-        console.log("Internet connection lost! Redirecting to offline page.");
-        window.location.href = 'offline.html';
-    });
-</script>
+        /**
+ * هذه الدالة تقوم بإخفاء النافذة (modal) بعد 3 ثوانٍ من النقر على زر الحفظ.
+ */
+function hidePharmacyDetailsModal() {
+    // تحديد قيمة الـ data-key الخاصة بـ زر الحفظ
+    const saveButtonDataKey = 'savePharmacyDetailsBtn';
+    // تحديد المعرّف الصحيح للنافذة
+    const modalId = 'pharmacyDetailsModal'; 
 
+    // البحث عن الزر باستخدام خاصية data-key
+    const saveButton = document.querySelector(`[data-key="${saveButtonDataKey}"]`);
+
+    if (saveButton) {
+        saveButton.addEventListener('click', function(event) {
+            // هذا الكود يتأكد من أن النافذة ستختفي بعد 3 ثوانٍ
+            setTimeout(function() {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    // استبدل 'visible' بالفئة الصحيحة الموجودة في ملفك إذا كانت مختلفة
+                    modal.classList.remove('visible'); 
+                    console.log("تم إخفاء نافذة بيانات الصيدلية بعد 3 ثوانٍ.");
+                }
+            }, 3000); // 3000 ملي ثانية تعادل 3 ثوانٍ
+        });
+    }
+}
+// البحث عن حقول الإدخال وأزرار الاختيار
+const systolicInput = document.getElementById('systolic');
+const diastolicInput = document.getElementById('diastolic');
+const lowRadio = document.getElementById('status-low');
+const normalRadio = document.getElementById('status-normal');
+const highRadio = document.getElementById('status-high');
+
+// إضافة مستمع لحدث الإدخال على كلا الحقلين
+systolicInput.addEventListener('input', updateRadioButtons);
+diastolicInput.addEventListener('input', updateRadioButtons);
+
+/**
+ * هذه الدالة تقوم بتحديث حالة أزرار الاختيار بناءً على قيم الضغط.
+ */
+function updateRadioButtons() {
+    const systolicValue = parseInt(systolicInput.value);
+    const diastolicValue = parseInt(diastolicInput.value);
+
+    // التأكد من أن القيم المدخلة أرقام صحيحة
+    if (!isNaN(systolicValue) && !isNaN(diastolicValue)) {
+        // تحديد زر الاختيار الصحيح بناءً على القيم
+        if (systolicValue < 90 || diastolicValue < 60) {
+            lowRadio.checked = true;
+        } else if ((systolicValue >= 90 && systolicValue <= 120) && (diastolicValue >= 60 && diastolicValue <= 80)) {
+            normalRadio.checked = true;
+        } else if (systolicValue >= 140 || diastolicValue >= 90) {
+            highRadio.checked = true;
+        } else {
+            // إلغاء تحديد جميع الأزرار إذا كانت القيم غير صحيحة
+            lowRadio.checked = false;
+            normalRadio.checked = false;
+            highRadio.checked = false;
+        }
+    } else {
+        // إلغاء تحديد جميع الأزرار إذا كانت الحقول فارغة
+        lowRadio.checked = false;
+        normalRadio.checked = false;
+        highRadio.checked = false;
+    }
+}
+/**
+ * 
+ * 
+ * هذه الدالة تقوم بإخفاء النافذة (modal) بعد 3 ثوانٍ من النقر على زر الحفظ.
+ */
+function hidePharmacyDetailsModal() {
+    // تحديد قيمة الـ data-key الخاصة بـ زر الحفظ
+    const saveButtonDataKey = 'savePharmacyDetailsBtn';
+    // المعرّف (id) الخاص بالنافذة، والذي تم ذكره في محادثات سابقة.
+    const modalId = 'pharmacyDetailsModal'; 
+
+    // البحث عن الزر باستخدام خاصية data-key
+    const saveButton = document.querySelector(`[data-key="${saveButtonDataKey}"]`);
+
+    if (saveButton) {
+        saveButton.addEventListener('click', function(event) {
+            // هذا الكود يتأكد من أن النافذة ستختفي بعد 3 ثوانٍ
+            setTimeout(function() {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    // استبدل 'visible' بالفئة الصحيحة الموجودة في ملفك إذا كانت مختلفة
+                    modal.classList.remove('visible'); 
+                    console.log("تم إخفاء نافذة بيانات الصيدلية بعد 3 ثوانٍ.");
+                }
+            }, 3000); // 3000 ملي ثانية تعادل 3 ثوانٍ
+        });
+    }
+}
+
+// استدعاء الدالة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', hidePharmacyDetailsModal);
+// استدعاء الدالة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', hidePharmacyDetailsModal);
+// نستخدم DOMContentLoaded للتأكد من تحميل الصفحة بالكامل قبل تشغيل الكود
+document.addEventListener('DOMContentLoaded', function() {
+    // البحث عن حقول الإدخال وأزرار الاختيار باستخدام المعرفات الصحيحة
+    const systolicInput = document.getElementById('pressureValueHigh');
+    const diastolicInput = document.getElementById('pressureValueLow');
+    const lowRadio = document.getElementById('status-low');
+    const normalRadio = document.getElementById('status-normal');
+    const highRadio = document.getElementById('status-high');
+
+    /**
+     * هذه الدالة تقوم بتحديث حالة أزرار الاختيار بناءً على قيم الضغط.
+     */
+    function updateRadioButtons() {
+        // تحويل القيمة المدخلة إلى عدد صحيح
+        const systolicValue = parseInt(systolicInput.value);
+        const diastolicValue = parseInt(diastolicInput.value);
+
+        // التحقق من أن القيم المدخلة أرقام صحيحة
+        if (!isNaN(systolicValue) && !isNaN(diastolicValue)) {
+            // تحديد زر الاختيار الصحيح بناءً على القيم
+            if (systolicValue < 90 || diastolicValue < 60) {
+                lowRadio.checked = true;
+            } else if ((systolicValue >= 90 && systolicValue <= 120) && (diastolicValue >= 60 && diastolicValue <= 80)) {
+                normalRadio.checked = true;
+            } else if (systolicValue >= 140 || diastolicValue >= 90) {
+                highRadio.checked = true;
+            } else {
+                // إلغاء تحديد جميع الأزرار إذا كانت القيم خارج النطاقات المحددة
+                lowRadio.checked = false;
+                normalRadio.checked = false;
+                highRadio.checked = false;
+            }
+        } else {
+            // إلغاء تحديد جميع الأزرار إذا كانت الحقول فارغة أو غير صحيحة
+            lowRadio.checked = false;
+            normalRadio.checked = false;
+            highRadio.checked = false;
+        }
+    }
+
+    // إضافة مستمع لحدث الإدخال على كلا الحقلين
+    if (systolicInput) systolicInput.addEventListener('input', updateRadioButtons);
+    if (diastolicInput) diastolicInput.addEventListener('input', updateRadioButtons);
+});
+// نستخدم DOMContentLoaded للتأكد من تحميل الصفحة بالكامل قبل تشغيل الكود
+document.addEventListener('DOMContentLoaded', function() {
+    // البحث عن حقول الإدخال وأزرار الاختيار باستخدام المعرفات الصحيحة
+    const systolicInput = document.getElementById('pressureValueHigh');
+    const diastolicInput = document.getElementById('pressureValueLow');
+    const lowRadio = document.getElementById('status-low');
+    const normalRadio = document.getElementById('status-normal');
+    const highRadio = document.getElementById('status-high');
+
+    /**
+     * هذه الدالة تقوم بتحديث حالة أزرار الاختيار بناءً على قيم الضغط.
+     */
+    function updateRadioButtons() {
+        // تحويل القيمة المدخلة إلى عدد صحيح
+        const systolicValue = parseInt(systolicInput.value);
+        const diastolicValue = parseInt(diastolicInput.value);
+
+        // التحقق من أن القيم المدخلة أرقام صحيحة
+        if (!isNaN(systolicValue) && !isNaN(diastolicValue)) {
+            // تحديد زر الاختيار الصحيح بناءً على القيم
+            if (systolicValue < 90 || diastolicValue < 60) {
+                lowRadio.checked = true;
+            } else if ((systolicValue >= 90 && systolicValue <= 120) && (diastolicValue >= 60 && diastolicValue <= 80)) {
+                normalRadio.checked = true;
+            } else if (systolicValue >= 140 || diastolicValue >= 90) {
+                highRadio.checked = true;
+            } else {
+                // إلغاء تحديد جميع الأزرار إذا كانت القيم خارج النطاقات المحددة
+                lowRadio.checked = false;
+                normalRadio.checked = false;
+                highRadio.checked = false;
+            }
+        } else {
+            // إلغاء تحديد جميع الأزرار إذا كانت الحقول فارغة أو غير صحيحة
+            lowRadio.checked = false;
+            normalRadio.checked = false;
+            highRadio.checked = false;
+        }
+    }
+
+    // إضافة مستمع لحدث الإدخال على كلا الحقلين
+    if (systolicInput) systolicInput.addEventListener('input', updateRadioButtons);
+    if (diastolicInput) diastolicInput.addEventListener('input', updateRadioButtons);
+});
+    </script>
+    
 </body>
 </html>
