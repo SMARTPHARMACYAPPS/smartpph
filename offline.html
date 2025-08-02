@@ -413,6 +413,626 @@
         const leftEyebrow = document.querySelector('.eyebrow.left');
         const rightEyebrow = document.querySelector('.eyebrow.right');
         const mouth = document.querySelector('.mouth');
+        const loadingSpinner = document.querySelector('.loading-spinner');
+        const mainTitle = document.querySelector('h1');
+
+        // Initial messages to be displayed when offline
+        const initialMessages = [
+            "أهلاً بك، يا صديقي!",
+            "يبدو أن اتصالنا بالإنترنت قد انقطع...",
+            "لا تقلق، أنا بيكسل، مساعدك الافتراضي.",
+            "أبحث عن إشارة، ولكن الأمر قد يستغرق بعض الوقت.",
+            "في هذه الأثناء، إليك بعض الأشياء التي يمكنك فعلها.",
+            "تذكر أن تتحقق من اتصالك بالشبكة أولاً.",
+            "ربما تحتاج لإعادة تشغيل الراوتر!",
+            "ولا تنسى أن تشرب الماء وتتحرك قليلاً.",
+            "سأعود للعمل بمجرد عودة الاتصال! شكراً لصبرك!"
+        ];
+
+        // Farewell messages to be displayed when connection is restored
+        const farewellMessages = [
+            "أهلاً بك مرة أخرى!",
+            "لقد عاد الاتصال! كم سأشتاق إليك...",
+            "أتمنى انقطاع الخدمة في أسرع وقت! هههه أمزح :)",
+            "جاري إعادة التحميل...",
+            "الرجاء الانتظار قليلاً."
+        ];
+
+        // Face states for cycling animations
+        const faceStates = ['happy', 'funny', 'shocked', 'surprised', 'silly'];
+        let currentFaceStateIndex = 0;
+        let currentMessageIndex = 0;
+        let autoUpdateFaceAndMessagesInterval; // Interval for face and messages
+        let eyeAnimationInterval; // Interval for random eye movement
+        let messageTimeout; // Timeout for message display
+
+        const typingDelay = 75; // Typing speed in milliseconds
+        const messageDisplayTime = 2000; // Time to display a message after typing is complete
+
+        /**
+         * Clears all running intervals and timeouts to prevent message overlap.
+         */
+        function stopAllAnimations() {
+            if (autoUpdateFaceAndMessagesInterval) clearInterval(autoUpdateFaceAndMessagesInterval);
+            if (eyeAnimationInterval) clearInterval(eyeAnimationInterval);
+            if (messageTimeout) clearTimeout(messageTimeout);
+        }
+
+        /**
+         * Types out a sentence character by character.
+         * @param {string} sentence - The sentence to type.
+         * @param {function} callback - Function to call after typing is complete.
+         */
+        function typeSentence(sentence, callback) {
+            let charIndex = 0;
+            dialogueBox.textContent = '';
+            function typeChar() {
+                if (charIndex < sentence.length) {
+                    dialogueBox.textContent += sentence.charAt(charIndex);
+                    charIndex++;
+                    // Use a new timeout for each character
+                    messageTimeout = setTimeout(typeChar, typingDelay);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            typeChar();
+        }
+
+        /**
+         * Displays initial messages sequentially with typing effect.
+         */
+        function displayInitialMessages() {
+            stopAllAnimations(); // Ensure nothing is running from before
+            currentMessageIndex = 0; // Reset message index
+            
+            // Show elements for initial messages
+            mainTitle.style.display = 'flex';
+            fullTextElement.classList.remove('visible');
+            interactiveFace.style.display = 'flex';
+            dialogueBox.style.display = 'block';
+            dialogueBox.classList.remove('farewell-large-text');
+            loadingSpinner.style.display = 'none';
+
+            function showNextMessage() {
+                if (currentMessageIndex < initialMessages.length) {
+                    typeSentence(initialMessages[currentMessageIndex], () => {
+                        currentMessageIndex++;
+                        messageTimeout = setTimeout(showNextMessage, messageDisplayTime);
+                    });
+                } else {
+                    // All initial messages displayed
+                    fullTextElement.classList.add('visible');
+                    dialogueBox.style.display = 'none';
+                    startAutoUpdateFaceAndMessagesCycling();
+                }
+            }
+            showNextMessage();
+        }
+
+        /**
+         * Displays farewell messages sequentially with typing effect and redirects to the main page.
+         */
+        function displayFarewellMessages() {
+            stopAllAnimations(); // Stop all animations and timeouts
+            
+            // Show elements relevant to farewell
+            dialogueBox.style.display = 'block';
+            dialogueBox.classList.add('farewell-large-text');
+            interactiveFace.style.display = 'flex';
+            loadingSpinner.style.display = 'none';
+            mainTitle.style.display = 'none';
+            fullTextElement.classList.remove('visible');
+
+            let farewellIndex = 0;
+            function showNextFarewellMessage() {
+                if (farewellIndex < farewellMessages.length) {
+                    typeSentence(farewellMessages[farewellIndex], () => {
+                        farewellIndex++;
+                        messageTimeout = setTimeout(showNextFarewellMessage, messageDisplayTime);
+                    });
+                } else {
+                    // All farewell messages displayed
+                    dialogueBox.textContent = "جاري إعادة التحميل...";
+                    loadingSpinner.style.display = 'block';
+                    
+                    // Redirect to the main page instead of reloading offline.html
+                    setTimeout(() => window.location.href = '/', messageDisplayTime);
+                }
+            }
+            showNextFarewellMessage();
+        }
+
+        /**
+         * Updates the face's visual state (CSS classes and direct styles).
+         */
+        function updateFaceState() {
+            // Remove all specific state classes first
+            faceStates.forEach(state => interactiveFace.classList.remove(state));
+            
+            const currentState = faceStates[currentFaceStateIndex];
+            interactiveFace.classList.add(currentState);
+
+            // Reset base styles for elements that might be changed by previous states
+            leftEyebrow.style.transform = 'rotate(0deg)';
+            rightEyebrow.style.transform = 'rotate(0deg)';
+            leftEyebrow.style.display = 'none';
+            rightEyebrow.style.display = 'none';
+            
+            // Advance to the next face state
+            currentFaceStateIndex = (currentFaceStateIndex + 1) % faceStates.length;
+        }
+
+        /**
+         * Animates eyes randomly every fraction of a second, in parallel.
+         */
+        function animateEyesRandomly() {
+            // Generate one random offset for both X and Y for synchronized movement
+            const randomX = Math.floor(Math.random() * 20) - 10; // -10 to +10px
+            const randomY = Math.floor(Math.random() * 20) - 10;
+
+            leftEye.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            rightEye.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        }
+
+        /**
+         * Starts the automatic cycling of face states.
+         */
+        function startAutoUpdateFaceAndMessagesCycling() {
+            stopAllAnimations(); // Clear any previous intervals
+            autoUpdateFaceAndMessagesInterval = setInterval(() => {
+                updateFaceState();
+            }, 4000); // كل 4 ثوانٍ تتغير حالة الوجه
+        }
+
+        /**
+         * Starts the continuous random eye movement.
+         */
+        function startEyeAnimation() {
+            stopAllAnimations(); // Clear any previous intervals
+            eyeAnimationInterval = setInterval(animateEyesRandomly, 750); // كل 750 مللي ثانية
+        }
+
+        // Space background animations
+        const spaceBackground = document.getElementById('spaceBackground');
+
+        function createStars(num) {
+            for (let i = 0; i < num; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = star.style.height = `${Math.random() * 3 + 1}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                spaceBackground.appendChild(star);
+            }
+        }
+
+        function createPlanets(num) {
+            const planetColors = [
+                ['#5d4037', '#3e2723'],
+                ['#4a148c', '#311b92'],
+                ['#2e7d32', '#1b5e20'],
+                ['#1a237e', '#0d47a1']
+            ];
+            for (let i = 0; i < num; i++) {
+                const planet = document.createElement('div');
+                planet.className = 'planet';
+                const size = Math.random() * 80 + 50;
+                planet.style.width = planet.style.height = `${size}px`;
+                planet.style.left = `${Math.random() * 100}%`;
+                planet.style.top = `${Math.random() * 100}%`;
+                planet.style.animationDuration = `${Math.random() * 30 + 15}s`;
+                const colors = planetColors[Math.floor(Math.random() * planetColors.length)];
+                planet.style.background = `radial-gradient(circle at 30% 30%, ${colors[0]}, ${colors[1]})`;
+                spaceBackground.appendChild(planet);
+            }
+        }
+
+        // Event listener for online status
+        window.addEventListener('online', () => {
+            console.log("Internet connection restored! Stopping all current animations and initiating farewell sequence.");
+            stopAllAnimations();
+            displayFarewellMessages();
+        });
+
+        // Initialize on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars(100);
+            createPlanets(3);
+            
+            // Check internet status on page load
+            if (!navigator.onLine) {
+                console.log("Page loaded while offline. Displaying initial messages.");
+                displayInitialMessages();
+                startEyeAnimation();
+            } else {
+                console.log("Page loaded while online. Initiating farewell sequence.");
+                displayFarewellMessages();
+            }
+        });
+    </script>
+</body>
+</html>
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 4s infinite ease-in-out forwards;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .planet {
+            position: absolute;
+            opacity: 0.7;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #5d4037, #3e2723);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3);
+            animation: floatAndRotate 20s infinite linear;
+        }
+
+        @keyframes floatAndRotate {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, 30px) rotate(90deg); }
+            50% { transform: translate(0, 0) rotate(180deg); }
+            75% { transform: translate(-20px, -30px) rotate(270deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        .container {
+            background-color: rgba(17, 24, 39, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            max-width: 700px; /* Limits the content container width for readability */
+            width: 100%; /* Ensure it takes full width up to max-width */
+            z-index: 1;
+            display: flex; /* Keep flex for internal layout of elements */
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid #6366f1;
+            /* margin: auto; */ /* Removed as place-items on body handles centering */
+        }
+
+        h1 {
+            color: #818cf8;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            display: flex; /* To align icon and text */
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* Space between icon and text */
+            text-align: center; /* Ensure title is centered */
+        }
+
+        .no-internet-icon {
+            width: 40px;
+            height: 40px;
+            fill: #ff4d4d; /* Red color for the icon */
+        }
+
+        .dialogue-box {
+            min-height: 80px;
+            color: #d1d5db;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center; /* Already centered */
+            padding: 10px;
+        }
+
+        /* New style for large farewell text - Adjusted for better fit */
+        .dialogue-box.farewell-large-text {
+            font-size: 2.5rem; /* Reduced from 3.5rem for better fit */
+            font-weight: 700;
+            color: #a78bfa; /* A prominent color */
+            transition: font-size 0.5s ease-in-out, color 0.5s ease-in-out;
+            min-height: 100px; /* Adjusted from 150px to match smaller font */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center; /* Ensure text is centered within this box */
+        }
+
+
+        .full-text {
+            color: #e0e7ff;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            text-align: center; /* Changed from justify to center */
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .full-text.visible {
+            opacity: 1;
+        }
+
+        .tips-section {
+            margin-top: 30px;
+            border-top: 1px solid rgba(99, 102, 241, 0.3);
+            padding-top: 20px;
+            width: 100%;
+        }
+        .tips-section h2 {
+            color: #818cf8;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-align: center; /* Center section title */
+        }
+        .tips-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tips-section li {
+            background-color: rgba(49, 46, 129, 0.5);
+            border-right: 4px solid #a78bfa;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            text-align: right; /* Keep original text-align for list item content */
+            max-width: 90%; /* Limit width for centering */
+            margin-right: auto; /* Center block in RTL */
+            margin-left: auto; /* Center block in LTR */
+            color: #e0e7ff;
+        }
+        /* For RTL, if text-align: right is desired for list content within a centered block */
+        .tips-section li p {
+            text-align: right;
+        }
+
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 8px solid rgba(255, 255, 255, 0.3);
+            border-top: 8px solid #818cf8;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 30px; /* Space below spinner */
+            display: none; /* Hidden by default, shown by JS */
+        }
+
+        /* Pixel Art Face Container */
+        .pixel-face-container {
+            width: 200px; /* حجم المربع الأسود للوجه */
+            height: 200px;
+            background-color: #000000; /* مربع أسود */
+            border-radius: 12px;
+            display: none; /* Hidden by default, shown by JS */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease-in-out, transform 0.1s ease-out;
+            margin-bottom: 25px; /* Space above spinner */
+        }
+
+        /* Face Elements Container */
+        .face-elements {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1; /* تأكد من أن عناصر الوجه فوق الدوار */
+        }
+
+        /* Pixel Eyes (Square) */
+        .eye {
+            width: 20px;
+            height: 20px;
+            background-color: #ffffff;
+            position: absolute;
+            top: 50px; /* مكان العين من الأعلى */
+            border-radius: 2px; /* لمسة بيكسلية خفيفة */
+            transition: transform 0.1s linear; /* حركة سلسة للعيون كل جزء من الثانية */
+        }
+
+        .eye.left {
+            left: 60px;
+        }
+
+        .eye.right {
+            right: 60px;
+        }
+
+        /* Eyebrows */
+        .eyebrow {
+            width: 30px; /* عرض الحاجب */
+            height: 5px;  /* سمك الحاجب */
+            background-color: #ffffff;
+            position: absolute;
+            top: 40px; /* مكان الحاجب فوق العين */
+            border-radius: 2px;
+            transition: all 0.3s ease-in-out;
+            display: none; /* مخفي افتراضياً */
+        }
+        .eyebrow.left {
+            left: 55px; /* مكان الحاجب الأيسر */
+        }
+        .eyebrow.right {
+            right: 55px; /* مكان الحاجب الأيمن */
+        }
+
+        /* Mouth (Arc shape) - Always smiling */
+        .mouth {
+            position: absolute;
+            bottom: 40px;
+            width: 80px;
+            height: 40px;
+            background-color: #ffffff;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            border-radius: 0 0 40px 40px; /* Always smiling arc upwards */
+            transform: rotate(0deg); /* Always straight, not rotated */
+        }
+
+        /* Face States CSS - Only affect eyes and eyebrows, not mouth */
+        /* Happy (Default) */
+        .pixel-face-container.happy .eyebrow { display: none; }
+
+        /* Funny */
+        .pixel-face-container.funny .eye.left { transform: translateY(5px); }
+        .pixel-face-container.funny .eye.right { transform: translateY(-5px); }
+        .pixel-face-container.funny .eyebrow { display: none; }
+
+        /* Shocked */
+        .pixel-face-container.shocked .eye {
+            width: 25px;
+            height: 25px;
+            top: 45px;
+        }
+        .pixel-face-container.shocked .eyebrow { display: none; }
+
+        /* Surprised */
+        .pixel-face-container.surprised .eye {
+            width: 22px;
+            height: 22px;
+            top: 40px;
+        }
+        .pixel-face-container.surprised .eyebrow { display: block; }
+        .pixel-face-container.surprised .eyebrow.left { transform: translateY(-5px) rotate(-5deg); }
+        .pixel-face-container.surprised .eyebrow.right { transform: translateY(-5px) rotate(5deg); }
+
+        /* Silly */
+        .pixel-face-container.silly .eye.left {
+            transform: translateY(5px) rotate(10deg); /* عين مائلة لأعلى */
+        }
+        .pixel-face-container.silly .eye.right {
+            transform: translateY(-5px) rotate(-10deg); /* عين مائلة لأسفل */
+        }
+        .pixel-face-container.silly .eyebrow { display: none; }
+
+
+        /* Keyframe Animation for spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+                gap: 10px;
+            }
+            .no-internet-icon {
+                width: 30px;
+                height: 30px;
+            }
+            .offline-message {
+                font-size: 1.8rem;
+                min-height: 100px;
+            }
+            .pixel-face-container {
+                width: 150px;
+                height: 150px;
+            }
+            .eye {
+                width: 15px;
+                height: 15px;
+                top: 35px;
+            }
+            .eye.left {
+                left: 45px;
+            }
+            .eye.right {
+                right: 45px;
+            }
+            .eyebrow {
+                width: 25px;
+                height: 4px;
+                top: 28px;
+            }
+            .eyebrow.left { left: 40px; }
+            .eyebrow.right { right: 40px; }
+            
+            .mouth {
+                width: 60px;
+                height: 30px;
+                bottom: 30px;
+            }
+            /* Adjust states for smaller screens */
+            .pixel-face-container.funny .mouth { width: 70px; height: 28px; border-radius: 0 0 35px 35px; }
+            .pixel-face-container.shocked .eye { width: 20px; height: 20px; top: 30px; }
+            .pixel-face-container.shocked .mouth { width: 25px; height: 25px; bottom: 40px; }
+            .pixel-face-container.surprised .eye { width: 18px; height: 18px; top: 32px; }
+            .pixel-face-container.surprised .mouth { width: 40px; height: 20px; bottom: 35px; }
+            .pixel-face-container.silly .mouth { width: 55px; height: 40px; bottom: 25px; }
+
+            .spinner {
+                width: 80px;
+                height: 80px;
+                margin-top: 20px;
+            }
+            .dialogue-box.farewell-large-text {
+                font-size: 1.8rem; /* Further reduced for very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="space-background" id="spaceBackground"></div>
+
+    <div class="container">
+        <!-- Pixel Face Container -->
+        <div class="pixel-face-container" id="interactiveFace">
+            <div class="face-elements">
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+                <div class="eyebrow left"></div>
+                <div class="eyebrow right"></div>
+                <div class="mouth"></div>
+            </div>
+        </div>
+
+        <div class="loading-spinner"></div> <!-- Spinner below the face -->
+
+        <h1>
+            <svg class="no-internet-icon" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                <path d="M0 0h24v24H0z" fill="none"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="#ff4d4d" stroke-width="2"/> <!-- Red line for "no" -->
+            </svg>
+            أوه لا يوجد انترنت !
+        </h1>
+        <div id="dialogueBox" class="dialogue-box"></div>
+
+        <div id="fullText" class="full-text">
+            <p>عزيزي المستخدم، يبدو أن شبكة الإنترنت قد قررت أن تأخذ استراحة. لا تقلق، أنا "بيكسل" أحاول إيجاد الطريق للعودة! </p>
+            <p>بينما أنا في مهمة البحث عن الاتصال، إليك نصيحةا:</p>
+            <div class="tips-section">
+                <h2>سأعود للعمل بمجرد عودة الاتصال! شكراً لصبرك:</h2>
+                <ul>
+                    <li>تأكد من اتصالك بشبكة Wi-Fi أو بيانات الهاتف.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dialogueBox = document.getElementById('dialogueBox');
+        const fullTextElement = document.getElementById('fullText');
+        const interactiveFace = document.getElementById('interactiveFace');
+        const leftEye = document.querySelector('.eye.left');
+        const rightEye = document.querySelector('.eye.right');
+        const leftEyebrow = document.querySelector('.eyebrow.left');
+        const rightEyebrow = document.querySelector('.eyebrow.right');
+        const mouth = document.querySelector('.mouth');
         const loadingSpinner = document.querySelector('.loading-spinner'); // Get the spinner element
         const mainTitle = document.querySelector('h1'); // Get the main title element
 
