@@ -95,7 +95,7 @@
             border: 2px solid #667eea;
             border-radius: 0.75rem;
             margin: 1rem;
-            justify-content: flex-end; /* Added for bottom-alignment */
+            justify-content: flex-start;
         }
         .message {
             max-width: 85%;
@@ -124,6 +124,35 @@
             border-bottom-left-radius: 0.5rem;
             position: relative;
         }
+        .message-content h1, .message-content h2, .message-content h3 {
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+        .message-content h1 { font-size: 1.5rem; }
+        .message-content h2 { font-size: 1.25rem; }
+        .message-content h3 { font-size: 1.125rem; }
+        .message-content p { margin-bottom: 0.75rem; }
+        .message-content strong { color: #fcd34d; }
+        .message-content a { color: #667eea; text-decoration: underline; }
+        .message-content ul, .message-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .message-content ul li {
+            list-style-type: disc;
+        }
+        .message-content ol li {
+            list-style-type: decimal;
+        }
+        .message-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-right: 1rem;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
         .message-timestamp {
             font-size: 0.7rem;
             color: #a0aec0;
@@ -147,17 +176,25 @@
             border-radius: 1.25rem;
             align-self: flex-start;
             animation: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .message.thinking-bubble::after {
-            content: ' ...';
-            animation: dot-pulse 1.5s infinite steps(3, end);
+        .thinking-bubble .dot {
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            animation: dotWave 1s infinite ease-in-out;
         }
-        @keyframes dot-pulse {
-            0% { content: ' .'; }
-            33% { content: ' ..'; }
-            66% { content: ' ...'; }
-            100% { content: ' .'; }
+        .thinking-bubble .dot:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-bubble .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes dotWave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
         }
+
         .message.highlight-green {
             animation: highlightGreen 0.3s ease-in-out forwards;
         }
@@ -309,15 +346,15 @@
             left: 10px;
             font-size: 1.25rem;
             cursor: pointer;
-            color: #fcd34d; /* Changed to always be gold */
+            color: #fcd34d;
             transition: color 0.2s;
             padding: 5px;
             background-color: rgba(0, 0, 0, 0.3);
             border-radius: 50%;
-            display: block; /* Changed to always be visible */
+            display: block;
         }
         .tts-button:hover {
-            color: #d97706; /* Adjusted hover color */
+            color: #d97706;
         }
         .image-preview-container {
             margin-top: 1rem;
@@ -345,7 +382,133 @@
             cursor: pointer;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
+
+        .floating-button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .floating-button {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(to right, #667eea, #5a67d8);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background-color: #2d3748;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+            border: 1px solid #4a5568;
+            position: relative;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.5rem;
+            color: #a0aec0;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .modal-textarea, .modal-select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            resize: vertical;
+        }
+        .modal-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23A0AEC0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>');
+            background-repeat: no-repeat;
+            background-position: left 0.75rem center;
+            padding-right: 2.5rem;
+        }
+
+        .modal-save-button {
+            background: linear-gradient(to right, #667eea, #5a67d8);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
         
+        .notification-card {
+            background-color: #242b38;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #4a5568;
+        }
+        .permission-message {
+            background-color: #fcd34d;
+            color: #1a202c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
         @keyframes pulse-gold {
             0% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(252, 211, 77, 0); }
@@ -403,6 +566,14 @@
                 top: 5px;
                 left: 5px;
             }
+            .floating-button-container {
+                bottom: 10px;
+                left: 10px;
+            }
+            .floating-button {
+                width: 45px;
+                height: 45px;
+            }
         }
     </style>
 </head>
@@ -441,10 +612,17 @@
                         <i class="fas fa-stop"></i>
                         إيقاف
                     </button>
+                    <button id="voice-chat-button" class="input-action-button">
+                        <i class="fas fa-microphone"></i> تحدث صوتيًا
+                    </button>
+                    <button id="notifications-button" class="input-action-button">
+                        <i class="fas fa-bell"></i> تنبيهات
+                    </button>
                 </div>
             </div>
             <div class="message-counter-area" id="message-counter-area">
                 الرسائل المتبقية اليوم: <span id="remaining-messages">10</span>
+                <span id="voice-timer" class="mr-4"></span>
             </div>
             <div class="disclaimer">
                 <i class="fas fa-exclamation-triangle text-yellow-500 ml-2"></i>
@@ -456,6 +634,65 @@
         <i class="fas fa-arrow-right"></i>
         العودة
     </button>
+    
+    <div class="floating-button-container">
+        <button id="profile-button" class="floating-button">
+            <i class="fas fa-user-circle text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- Modals (pop-up windows) -->
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" id="close-profile-modal"><i class="fas fa-times"></i></button>
+            <h2 class="modal-header">ملفك الشخصي وإعدادات الصوت</h2>
+            <p class="text-sm text-gray-400 text-center mb-4">سيتم استخدام هذه المعلومات لتقديم نصائح مخصصة.</p>
+            <input type="text" id="profile-name" class="modal-input" placeholder="اسمك">
+            <textarea id="profile-description" class="modal-textarea" rows="4" placeholder="وصف عن نفسك (مثال: 'أنا شاب عمري 25 سنة، أرغب في بناء العضلات وخسارة 5 كجم. أمارس الرياضة 3 مرات في الأسبوع.')."></textarea>
+            
+            <h3 class="font-semibold text-lg text-center mb-2 mt-4">اعدادات الصوت</h3>
+            <select id="tts-voice-select" class="modal-select">
+                <option value="Puck">Puck (متحمس)</option>
+                <option value="Kore">Kore (مؤثر)</option>
+                <option value="Zephyr">Zephyr (مشرق)</option>
+                <option value="Charon">Charon (إخباري)</option>
+                <option value="Alnilam">Alnilam (حازم)</option>
+            </select>
+
+            <button id="save-profile-button" class="modal-save-button">حفظ</button>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notifications-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-button" id="close-notifications-modal"><i class="fas fa-times"></i></button>
+            <h2 class="modal-header">تنبيهات مخصصة</h2>
+            <p class="text-sm text-gray-400 text-center mb-4">اضبط الفترات الزمنية لتنبيهات الماء والتمارين.</p>
+            <div class="notification-card flex flex-col items-center">
+                <div class="flex items-center w-full mb-2">
+                    <h3 class="font-semibold text-lg flex-grow">تنبيه شرب الماء</h3>
+                </div>
+                <div class="flex items-center w-full">
+                    <input type="number" id="water-hours" class="modal-input w-1/3 text-center ml-2" placeholder="ساعة" min="0" max="24">
+                    <span class="text-gray-400 mr-2">:</span>
+                    <input type="number" id="water-minutes" class="modal-input w-1/3 text-center" placeholder="دقيقة" min="0" max="59">
+                </div>
+            </div>
+            <div class="notification-card flex flex-col items-center">
+                <div class="flex items-center w-full mb-2">
+                    <h3 class="font-semibold text-lg flex-grow">تنبيه التمارين</h3>
+                </div>
+                <div class="flex items-center w-full">
+                    <input type="number" id="exercise-hours" class="modal-input w-1/3 text-center ml-2" placeholder="ساعة" min="0" max="24">
+                    <span class="text-gray-400 mr-2">:</span>
+                    <input type="number" id="exercise-minutes" class="modal-input w-1/3 text-center" placeholder="دقيقة" min="0" max="59">
+                </div>
+            </div>
+            <button id="save-notifications-button" class="modal-save-button">حفظ التنبيهات</button>
+        </div>
+    </div>
 
     <script type="module">
         const chatMessages = document.getElementById('chat-messages');
@@ -472,24 +709,57 @@
         const removeImageButton = document.getElementById('remove-image-button');
         const messageCounterArea = document.getElementById('message-counter-area');
         const messageCounterDisplay = document.getElementById('remaining-messages');
+        const voiceChatButton = document.getElementById('voice-chat-button');
+        const notificationsButton = document.getElementById('notifications-button');
+        const profileButton = document.getElementById('profile-button');
+        const voiceTimerDisplay = document.getElementById('voice-timer');
+
+        // Profile Modal elements
+        const profileModal = document.getElementById('profile-modal');
+        const closeProfileModalButton = document.getElementById('close-profile-modal');
+        const profileNameInput = document.getElementById('profile-name');
+        const profileDescriptionTextarea = document.getElementById('profile-description');
+        const ttsVoiceSelect = document.getElementById('tts-voice-select');
+        const saveProfileButton = document.getElementById('save-profile-button');
+
+        // Notifications Modal elements
+        const notificationsModal = document.getElementById('notifications-modal');
+        const closeNotificationsModalButton = document.getElementById('close-notifications-modal');
+        const waterHoursInput = document.getElementById('water-hours');
+        const waterMinutesInput = document.getElementById('water-minutes');
+        const exerciseHoursInput = document.getElementById('exercise-hours');
+        const exerciseMinutesInput = document.getElementById('exercise-minutes');
+        const saveNotificationsButton = document.getElementById('save-notifications-button');
 
         let thinkingBubbleElement = null;
         let currentAiMessageElement = null;
         let abortController = null;
         let typingIntervalId = null;
-        let uploadedImage = null; // Stores the base64 image data
-
+        let uploadedImage = null;
         let chatHistory = [];
         const MAX_MESSAGES_PER_DAY = 10;
         let remainingMessages = MAX_MESSAGES_PER_DAY;
-        let countdownInterval;
         let unlimitedMessages = false;
         let premiumEnabled = false;
         const CHAT_HISTORY_KEY = 'fitnessUpProChatHistory';
         const MESSAGE_COUNT_KEY = 'fitnessUpProMessageCount';
         const LAST_RESET_DATE_KEY = 'fitnessUpProLastResetDate';
+        const NOTIFICATIONS_SETTINGS_KEY = 'fitnessUpProNotifications';
         const UNLOCK_CODE = 'Az700200';
         const PREMIUM_STATUS_KEY = 'fitnessUpProPremium';
+        const USER_PROFILE_KEY = 'fitnessUpProUserProfile';
+
+        // Voice chat timer variables
+        const MAX_VOICE_DURATION = 5 * 60; // 5 minutes in seconds
+        const VOICE_DURATION_KEY = 'fitnessUpProVoiceDuration';
+        const VOICE_LAST_RESET_DATE_KEY = 'fitnessUpProVoiceLastResetDate';
+        let voiceChatDuration = 0; // in seconds
+        let voiceTimerInterval = null;
+        
+        let notificationIntervals = {};
+        let isVoiceChatActive = false;
+        let ttsAudio = null;
+
         const randomQuestions = [
             "ما هي أفضل تمارين الإحماء قبل الجري؟",
             "كيف يمكنني زيادة مرونتي؟",
@@ -502,8 +772,8 @@
             "كيف أبدأ روتين لياقة بدنية في المنزل؟",
             "ما هي علامات الإفراط في التدريب وكيف أتجنبها؟"
         ];
-        
-        // Helper function to convert base64 to ArrayBuffer
+
+        // Function to convert base64 to ArrayBuffer
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -514,550 +784,681 @@
             return bytes.buffer;
         }
 
-        // Helper function to convert PCM audio to a WAV file Blob
+        // Function to convert PCM audio to a WAV file Blob
         function pcmToWav(pcmData, sampleRate) {
             const pcm16 = new Int16Array(pcmData);
             const dataLength = pcm16.length * 2;
             const buffer = new ArrayBuffer(44 + dataLength);
             const view = new DataView(buffer);
-            // WAV header
-            // RIFF chunk descriptor
             writeString(view, 0, 'RIFF');
             view.setUint32(4, 36 + dataLength, true);
             writeString(view, 8, 'WAVE');
-            // FMT sub-chunk
             writeString(view, 12, 'fmt ');
             view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // Audio format (1 for PCM)
-            view.setUint16(22, 1, true); // Num channels
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
             view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true); // Byte rate
-            view.setUint16(32, 2, true); // Block align
-            view.setUint16(34, 16, true); // Bits per sample
-            // Data sub-chunk
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
             writeString(view, 36, 'data');
             view.setUint32(40, dataLength, true);
-
-            // Write PCM data
             for (let i = 0; i < pcm16.length; i++) {
                 view.setInt16(44 + i * 2, pcm16[i], true);
             }
-
             return new Blob([view], { type: 'audio/wav' });
         }
 
-        // Helper function for writing strings to a DataView
         function writeString(view, offset, string) {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         }
-        
+
         // Function to play TTS audio
         async function playTTS(text) {
-            // Show a temporary loading indicator
             const allTTSButtons = document.querySelectorAll('.tts-button');
-            allTTSButtons.forEach(btn => btn.disabled = true); // Disable all buttons
+            allTTSButtons.forEach(btn => btn.disabled = true);
             
+            const userProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || '{}');
+            const voiceName = userProfile.ttsVoice || 'Puck'; // Use selected voice or default to Puck
+
             try {
                 const payload = {
-                    contents: [{
-                        parts: [{ text: text }]
-                    }],
+                    contents: [{ parts: [{ text: text }] }],
                     generationConfig: {
                         responseModalities: ["AUDIO"],
                         speechConfig: {
                             voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: "Puck" }
+                                prebuiltVoiceConfig: { voiceName: voiceName }
                             }
                         }
                     }
                 };
-                const apiKey = "YOUR_API_KEY_HERE"; // Insert your API key
+                const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const response = await fetch(apiUrl, {
+                let response = await fetchWithExponentialBackoff(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) {
-                    throw new Error(`TTS API error: ${response.statusText}`);
-                }
-                
+
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
                 const audioData = part?.inlineData?.data;
                 const mimeType = part?.inlineData?.mimeType;
+
                 if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
                     const sampleRateMatch = mimeType.match(/rate=(\d+)/);
                     const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
                     const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const wavBlob = pcmToWav(pcmData, sampleRate);
                     const audioUrl = URL.createObjectURL(wavBlob);
                     
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                    audio.onended = () => {
-                         allTTSButtons.forEach(btn => btn.disabled = false); // Re-enable all buttons
+                    if (ttsAudio) {
+                        ttsAudio.pause();
+                        URL.revokeObjectURL(ttsAudio.src);
+                    }
+                    ttsAudio = new Audio(audioUrl);
+                    
+                    ttsAudio.onplay = () => {
+                        const messageToHighlight = document.querySelector(`.message.ai:last-child`);
+                        if (messageToHighlight) {
+                            messageToHighlight.classList.add('highlight-green');
+                        }
                     };
-                } else {
-                    console.error("Invalid TTS response:", result);
-                }
+                    
+                    ttsAudio.onended = () => {
+                        URL.revokeObjectURL(audioUrl);
+                        allTTSButtons.forEach(btn => btn.disabled = false);
+                        const highlightedMessage = document.querySelector('.message.highlight-green');
+                        if (highlightedMessage) {
+                            highlightedMessage.classList.remove('highlight-green');
+                        }
+                        if (isVoiceChatActive) {
+                            startSpeechRecognition();
+                        }
+                    };
+                    ttsAudio.play();
 
+                } else {
+                    console.error("TTS audio data not found or invalid format.");
+                    allTTSButtons.forEach(btn => btn.disabled = false);
+                }
             } catch (error) {
-                console.error("Error playing TTS:", error);
-            } finally {
-                 allTTSButtons.forEach(btn => btn.disabled = false); // Ensure buttons are re-enabled
+                console.error("Error playing TTS audio:", error);
+                allTTSButtons.forEach(btn => btn.disabled = false);
             }
         }
         
-        // Function to load chat history from Local Storage
-        function loadChatHistory() {
-            const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
-            if (savedHistory) {
-                chatHistory = JSON.parse(savedHistory);
-                chatHistory.forEach(msg => {
-                    displayMessage(msg.role === "user" ? 'user' : 'ai', msg.parts[0].text, false, true);
-                });
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                window.scrollTo(0, document.body.scrollHeight);
-            }
-        }
-
-        // Function to save chat history to Local Storage
-        function saveChatHistory() {
-            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
-        }
-
-        // Function to update and display the message counter
-        function updateMessageCounter() {
-            premiumEnabled = localStorage.getItem(PREMIUM_STATUS_KEY) === 'true';
-            if (premiumEnabled) {
-                imageUploadButton.classList.add('premium-button-active');
-                messageCounterArea.innerHTML = `الرسائل المتبقية اليوم: <span id="remaining-messages" class="text-green-400">محاولات غير محدودة</span>`;
-                enableUserInput();
-                return;
-            } else {
-                imageUploadButton.classList.remove('premium-button-active');
-            }
-
-            const today = new Date().toDateString();
-            const lastResetDate = localStorage.getItem(LAST_RESET_DATE_KEY);
-            let savedCount = localStorage.getItem(MESSAGE_COUNT_KEY);
-
-            if (lastResetDate !== today) {
-                remainingMessages = MAX_MESSAGES_PER_DAY;
-                localStorage.setItem(LAST_RESET_DATE_KEY, today);
-                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
-            } else if (savedCount !== null) {
-                remainingMessages = parseInt(savedCount, 10);
-            } else {
-                remainingMessages = MAX_MESSAGES_PER_DAY;
-                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
-            }
-
-            messageCounterDisplay.textContent = remainingMessages;
-            checkMessageLimit();
-        }
-
-        // Function to check message limit and disable input if needed
-        function checkMessageLimit() {
-            if (premiumEnabled) {
-                enableUserInput();
-                return;
-            }
-
-            if (remainingMessages <= 0) {
-                sendButton.disabled = true;
-                userInput.disabled = true;
-                sendButton.style.cursor = 'not-allowed';
-                userInput.placeholder = 'لقد استنفدت عدد الرسائل المسموح بها لليوم.';
-                startCountdownToMidnight();
-            } else {
-                if (!thinkingBubbleElement && !currentAiMessageElement) {
-                    enableUserInput();
-                }
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                }
-                messageCounterArea.innerHTML = `الرسائل المتبقية اليوم: <span id="remaining-messages">${remainingMessages}</span>`;
-            }
-        }
-
-        // Function to start countdown to midnight
-        function startCountdownToMidnight() {
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-
-            countdownInterval = setInterval(() => {
-                const now = new Date();
-                const midnight = new Date(now);
-                midnight.setHours(24, 0, 0, 0);
-
-                const timeLeft = midnight.getTime() - now.getTime();
-
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    updateMessageCounter();
-                    return;
-                }
-
-                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-                messageCounterArea.innerHTML = `ارجع بعد: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        // Function to display messages in the UI
-        function displayMessage(sender, message, isTyping = false, fromLoad = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.classList.add(sender);
-            
-            if (isTyping) {
-                messageDiv.textContent = '';
-            } else {
-                messageDiv.innerHTML = formatTextForDisplay(message);
-            }
-
-            if (sender === 'ai' && !isTyping) {
-                const ttsButton = document.createElement('button');
-                ttsButton.className = `tts-button`;
-                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                ttsButton.onclick = () => playTTS(message);
-                messageDiv.appendChild(ttsButton);
-            }
-
-            if (!isTyping && !fromLoad) {
-                const timestampSpan = document.createElement('span');
-                timestampSpan.classList.add('message-timestamp');
-                const now = new Date();
-                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                messageDiv.appendChild(timestampSpan);
-            } else if (fromLoad) {
-                const timestampSpan = document.createElement('span');
-                timestampSpan.classList.add('message-timestamp');
-                const now = new Date();
-                timestampSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                messageDiv.appendChild(timestampSpan);
-            }
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            window.scrollTo(0, document.body.scrollHeight);
-            return messageDiv;
-        }
-
-        // Function to format text using simple Markdown
-        function formatTextForDisplay(text) {
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            text = text.replace(/^- (.*)$/gm, '<li>$1</li>');
-            if (text.includes('<li>')) {
-                text = `<ul>${text}</ul>`;
-            }
-            text = text.replace(/\n\n/g, '<br><br>');
-            text = text.replace(/\n/g, '<br>');
-            return text;
-        }
-
-        // Function to show "thinking" bubble and stop button, disable input
-        function showLoading() {
-            sendButton.style.display = 'none';
-            stopButton.style.display = 'flex';
-            userInput.disabled = true;
-            userInput.style.cursor = 'not-allowed';
-            imageUploadButton.disabled = true;
-            imageUploadButton.style.opacity = '0.5';
-
-            thinkingBubbleElement = document.createElement('div');
-            thinkingBubbleElement.classList.add('message', 'ai', 'thinking-bubble');
-            thinkingBubbleElement.textContent = 'أنا أفكر الآن';
-            chatMessages.appendChild(thinkingBubbleElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            window.scrollTo(0, document.body.scrollHeight);
-        }
-
-        // Function to hide "thinking" bubble
-        function hideLoadingBubble() {
-            if (thinkingBubbleElement) {
-                chatMessages.removeChild(thinkingBubbleElement);
-                thinkingBubbleElement = null;
-            }
-        }
-
-        // Function to enable user input
-        function enableUserInput() {
-            sendButton.style.display = 'flex';
-            stopButton.style.display = 'none';
-            userInput.disabled = false;
-            userInput.style.cursor = 'text';
-            userInput.focus();
-            imageUploadButton.disabled = false;
-            imageUploadButton.style.opacity = '1';
-        }
-
-        // Function to simulate AI typing effect
-        function typeMessage(element, text, delay = 1) { // Speed increased
-            let i = 0;
-            return new Promise(resolve => {
-                typingIntervalId = setInterval(() => {
-                    if (abortController && abortController.signal.aborted) {
-                        clearInterval(typingIntervalId);
-                        element.innerHTML = formatTextForDisplay(text);
-                        resolve();
-                        return;
+        // General purpose fetch with exponential backoff
+        async function fetchWithExponentialBackoff(url, options, maxRetries = 3) {
+            let retries = 0;
+            while (retries < maxRetries) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429) {
+                        const delay = Math.pow(2, retries) * 1000;
+                        retries++;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
                     }
-                    if (i < text.length) {
-                        element.textContent += text.charAt(i);
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                        window.scrollTo(0, document.body.scrollHeight);
-                        i++;
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.statusText}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (retries < maxRetries - 1) {
+                        retries++;
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
                     } else {
-                        clearInterval(typingIntervalId);
-                        element.innerHTML = formatTextForDisplay(text);
-                        resolve();
+                        throw error;
                     }
-                }, delay);
-            });
-        }
-        
-        // Function to call Gemini API with exponential backoff
-        async function callGeminiAPI(parts, retries = 3, delay = 1000) {
-            abortController = new AbortController();
-            const signal = abortController.signal;
-
-            try {
-                // Keep chat history clean for Gemini API
-                let chatHistoryForAPI = chatHistory.map(msg => ({
-                    role: msg.role === "model" ? "model" : "user",
-                    parts: msg.parts
-                }));
-                chatHistoryForAPI.push({ role: "user", parts: parts });
-                const payload = {
-                    contents: chatHistoryForAPI
-                };
-                const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload),
-                    signal: signal
-                });
-                if (!response.ok) {
-                    if (response.status === 429 && retries > 0) {
-                        console.warn(`Too many requests. Retrying in ${delay / 1000}s...`);
-                        await new Promise(res => setTimeout(res, delay));
-                        return callGeminiAPI(parts, retries - 1, delay * 2);
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    // Save response to chat history
-                    chatHistory.push({ role: "model", parts: [{ text: text }] });
-                    saveChatHistory();
-                    return text;
-                } else {
-                    console.error("Unexpected API response structure:", result);
-                    return "عذراً، حدث خطأ في فهم طلبك. الرجاء المحاولة مرة أخرى.";
-                }
-
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Fetch aborted by user.');
-                    return "تم إيقاف الرد.";
-                }
-                console.error("Error calling Gemini API:", error);
-                return "عذراً، لا أستطيع التواصل مع الذكاء الاصطناعي حالياً. الرجاء المحاولة لاحقاً.";
-            } finally {
-                abortController = null;
             }
         }
-        
-        // Function to show a custom modal/alert for premium features
-        function showPremiumLockedMessage(message) {
-            const messageBox = document.createElement('div');
-            messageBox.style.cssText = `
-                position: fixed;
-                top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background-color: #fcd34d; color: #1a202c; padding: 2rem; border-radius: 1rem;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                text-align: center; z-index: 9999;
-                font-size: 1.2rem;
-                max-width: 80%;
+
+        // Function to create a message element
+        function createMessageElement(role, text) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(role);
+            messageElement.innerHTML = `
+                <div class="message-content">${marked.parse(text)}</div>
+                <div class="message-timestamp">${new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</div>
             `;
-            messageBox.innerHTML = `
-                <p>⚠️ ${message}</p>
-                <p style="font-size: 0.9rem; margin-top: 1rem;">أدخل الكود <strong class="text-blue-600"></strong> في شريط الرسائل لتفعيل الميزات البريميوم!</p>
-                <button onclick="this.parentNode.remove()" style="margin-top: 1rem; padding: 0.5rem 1rem; border-radius: 0.5rem; background-color: #1a202c; color: white; border: none; cursor: pointer;">إغلاق</button>
-            `;
-            document.body.appendChild(messageBox);
+            if (role === 'ai') {
+                const ttsButton = document.createElement('button');
+                ttsButton.classList.add('tts-button');
+                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                ttsButton.onclick = () => playTTS(text);
+                messageElement.appendChild(ttsButton);
+            }
+            return messageElement;
         }
 
-        // Function to send message
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            // Check for the premium unlock code
-            if (message === UNLOCK_CODE) {
-                localStorage.setItem(PREMIUM_STATUS_KEY, 'true');
-                premiumEnabled = true;
-                updateMessageCounter();
-                displayMessage('ai', 'تهانينا! لقد قمت بتفعيل المحاولات غير المحدودة والميزات البريميوم بنجاح. استمتع بتجربة أفضل!');
-                userInput.value = '';
-                return;
-            }
+        // Function to display a message
+        function displayMessage(role, text, shouldAnimate = true) {
+            const messageElement = createMessageElement(role, text);
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            if (!premiumEnabled && remainingMessages <= 0) {
-                showPremiumLockedMessage("لقد استنفدت عدد الرسائل المسموح بها لليوم.");
-                return;
-            }
-            
-            if (message === '' && !uploadedImage) {
-                return;
-            }
-
-            const promptParts = [];
-            if (uploadedImage) {
-                promptParts.push({
-                    inlineData: {
-                        mimeType: uploadedImage.mimeType,
-                        data: uploadedImage.base64
-                    }
-                });
-            }
-            
-            if (message !== '') {
-                promptParts.push({ text: `ببصفتك مستشارا طبيا ( لكن قم بتنبيه المستخدم احيانا باستشارة المتخصصين ) ورياضيا ودودا ومرحا ومشجعا ، وانت شات بوت اسمه fitness up pro في تطبيق اسمه SMART PPH وظيفته مساعدة الصيدليات والعيادات وحتى الاشخاص حيث داخل التطبيق ميزات مثل طباعة فواتير الضغط والسكر وانشاء كارت احترافي للصيدلية وانشاء بطاقات خصومات وقواعد بيانات وميزة تجعلك تكتب وزنك وعمرك وطولك ويعطيك تقرير شامل عما يجب اكله والسعرات الحرارية والتمارين ( مرتبطة بالتطبيق غير مرتبطة بك ك chatbot) ، المستخدم في تطبيق سمارت pph يجب عليه ادخال بيانات مكان عمله كي تخرج له النتائج بصورة صحيحة ، اجب علي الرسالة التالية من غير اطالة ومن غير اختصار شديد مستخدما الوجوه التعبيرية لكن بعدد قليل وحاول ان تمزج بين اللغة العربية الفصحى واللهجة المصرية الا اذا طلب منك ذلك ، ولا تتحدث في مواضيع غير المحددة لك: ${message}` });
+            if (role === 'ai' && shouldAnimate) {
+                currentAiMessageElement = messageElement;
+                animateTyping(text);
             } else {
-                 // If there is an image but no text, provide a generic prompt
-                promptParts.push({ text: `بصفتك مستشارًا طبيًا ورياضيًا ودودًا ومشجعًا، قم بتحليل هذه الصورة وقدم لي نصائح حولها.` });
+                currentAiMessageElement = null;
             }
-
-            displayMessage('user', message + (uploadedImage ? ' [صورة مرفقة]' : ''));
-            userInput.value = '';
-            
-            if (!premiumEnabled) {
-                remainingMessages--;
-                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
-                messageCounterDisplay.textContent = remainingMessages;
-                checkMessageLimit();
-            }
-
-            // Hide image preview after sending
-            if (uploadedImage) {
-                removeImage();
-            }
-
-            showLoading();
-
-            const aiResponse = await callGeminiAPI(promptParts);
-            
-            hideLoadingBubble();
-            currentAiMessageElement = displayMessage('ai', '', true);
-            await typeMessage(currentAiMessageElement, aiResponse);
-            currentAiMessageElement.classList.add('highlight-green');
-            setTimeout(() => {
-                currentAiMessageElement.classList.remove('highlight-green');
-                enableUserInput();
-            }, 3000);
         }
 
-        // Function to stop AI response
-        function stopAiResponse() {
-            if (abortController) {
-                abortController.abort();
-            }
+        // Function to animate the AI typing
+        function animateTyping(fullText) {
+            let i = 0;
+            const messageContent = currentAiMessageElement.querySelector('.message-content');
+            messageContent.innerHTML = '';
+            
+            typingIntervalId = setInterval(() => {
+                if (i < fullText.length) {
+                    messageContent.innerHTML += fullText.charAt(i);
+                    i++;
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    clearInterval(typingIntervalId);
+                    typingIntervalId = null;
+                }
+            }, 5);
+        }
+
+        // Function to stop the typing animation
+        function stopTypingAnimation() {
             if (typingIntervalId) {
                 clearInterval(typingIntervalId);
                 typingIntervalId = null;
             }
-            
-            hideLoadingBubble();
-            enableUserInput();
-        }
-
-        // Function to clear chat
-        function clearChat() {
-            if (thinkingBubbleElement || (currentAiMessageElement && typingIntervalId)) {
-                stopAiResponse();
+            if (thinkingBubbleElement) {
+                thinkingBubbleElement.remove();
+                thinkingBubbleElement = null;
             }
-
-            chatMessages.innerHTML = '';
-            chatHistory = [];
-            saveChatHistory();
-            updateMessageCounter();
-            const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
-            displayMessage('ai', welcomeMessage);
-            chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
-            saveChatHistory();
-            enableUserInput();
+        }
+        
+        // Function to show the thinking bubble
+        function showThinkingBubble() {
+            if (!thinkingBubbleElement) {
+                thinkingBubbleElement = document.createElement('div');
+                thinkingBubbleElement.classList.add('message', 'ai', 'thinking-bubble');
+                thinkingBubbleElement.innerHTML = `
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                `;
+                chatMessages.appendChild(thinkingBubbleElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
 
-        // Function to suggest a random question
-        async function suggestQuestion() {
-            if (!premiumEnabled && remainingMessages <= 0) {
-                showPremiumLockedMessage("لقد استنفدت عدد الرسائل المسموح بها لليوم.");
+        // Function to handle sending a message
+        async function sendMessage(userText, isVoice=false) {
+            if (userText.trim() === '') return;
+
+            if (userText.trim() === UNLOCK_CODE) {
+                unlimitedMessages = true;
+                premiumEnabled = true;
+                localStorage.setItem(PREMIUM_STATUS_KEY, 'true');
+                displayMessage('ai', 'تم تفعيل وضع الرسائل غير المحدود بنجاح! استمتع بخدماتنا المتميزة.');
+                updateMessageCounter();
+                userInput.value = '';
                 return;
             }
 
-            const randomIndex = Math.floor(Math.random() * randomQuestions.length);
-            const question = randomQuestions[randomIndex];
+            if (!unlimitedMessages && remainingMessages <= 0) {
+                displayMessage('ai', 'عذراً، لقد استنفدت عدد الرسائل اليومي. يمكنك الاشتراك في خدمة Premium للحصول على رسائل غير محدودة.');
+                return;
+            }
+
+            const userProfileData = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || '{}');
+            let profilePrompt = '';
+            if (userProfileData.name || userProfileData.description) {
+                profilePrompt += 'معلومات المستخدم:';
+                if (userProfileData.name) {
+                    profilePrompt += `\n- الاسم: ${userProfileData.name}`;
+                }
+                if (userProfileData.description) {
+                    profilePrompt += `\n- الوصف: ${userProfileData.description}`;
+                }
+                profilePrompt += '\n\n';
+            }
             
-            userInput.value = question;
-            sendMessage();
+            const fullPrompt = profilePrompt + userText;
+            displayMessage('user', userText);
+            chatHistory.push({ role: "user", parts: [{ text: fullPrompt }] });
+            userInput.value = '';
+
+            showThinkingBubble();
+            sendButton.style.display = 'none';
+            stopButton.style.display = 'inline-flex';
+            if (isVoice) {
+                voiceChatButton.disabled = true;
+                voiceChatButton.innerHTML = '<i class="fas fa-volume-up"></i> يرد الآن...';
+            }
+
+            abortController = new AbortController();
+            const signal = abortController.signal;
+
+            try {
+                let parts = [{ text: fullPrompt }];
+                if (uploadedImage) {
+                    parts.unshift({
+                        inlineData: {
+                            mimeType: "image/jpeg",
+                            data: uploadedImage
+                        }
+                    });
+                }
+                
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: parts
+                    }]
+                };
+
+                const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                let response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: signal
+                });
+
+                const result = await response.json();
+                const aiResponse = result.candidates[0].content.parts[0].text;
+
+                stopTypingAnimation();
+                if (thinkingBubbleElement) {
+                    thinkingBubbleElement.remove();
+                    thinkingBubbleElement = null;
+                }
+                
+                chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+                displayMessage('ai', aiResponse);
+                saveChatHistory();
+                removeImage();
+                
+                if (isVoice) {
+                    await playTTS(aiResponse);
+                }
+
+                if (!unlimitedMessages) {
+                    remainingMessages--;
+                    updateMessageCounter();
+                    saveMessageCount();
+                }
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Request aborted by user');
+                    stopTypingAnimation();
+                    if (thinkingBubbleElement) {
+                        thinkingBubbleElement.remove();
+                        thinkingBubbleElement = null;
+                    }
+                    displayMessage('ai', 'تم إيقاف الرد.');
+                } else {
+                    console.error("API Error:", error);
+                    stopTypingAnimation();
+                    if (thinkingBubbleElement) {
+                        thinkingBubbleElement.remove();
+                        thinkingBubbleElement = null;
+                    }
+                    displayMessage('ai', 'عذراً، حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى.');
+                }
+            } finally {
+                sendButton.style.display = 'inline-flex';
+                stopButton.style.display = 'none';
+                abortController = null;
+                if (isVoice) {
+                    voiceChatButton.disabled = false;
+                    voiceChatButton.innerHTML = '<i class="fas fa-microphone"></i> تحدث صوتيًا';
+                }
+            }
+        }
+        
+        let recognition = null;
+        // Function to start speech recognition
+        const startSpeechRecognition = async () => {
+            if (voiceChatDuration >= MAX_VOICE_DURATION) {
+                displayMessage('ai', 'عذراً، لقد استنفدت الوقت المخصص للدردشة الصوتية اليوم.');
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window)) {
+                displayMessage('ai', 'عذراً، متصفحك لا يدعم خاصية التحدث الصوتي.');
+                return;
+            }
+
+            try {
+                // Check for microphone permission
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+
+                if (recognition) {
+                    recognition.stop();
+                }
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'ar-EG';
+                recognition.start();
+                startVoiceTimer();
+
+                userInput.placeholder = 'أنا أستمع... تحدث الآن.';
+                voiceChatButton.innerHTML = '<i class="fas fa-microphone-slash"></i> أستمع...';
+                voiceChatButton.classList.add('bg-red-500', 'hover:bg-red-600');
+                isVoiceChatActive = true;
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    recognition.stop();
+                    stopVoiceTimer();
+                    sendMessage(transcript, true);
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    stopVoiceTimer();
+                    userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+                    voiceChatButton.innerHTML = '<i class="fas fa-microphone"></i> تحدث صوتيًا';
+                    voiceChatButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    isVoiceChatActive = false;
+                };
+
+                recognition.onend = () => {
+                    if(isVoiceChatActive) {
+                        stopVoiceTimer();
+                        userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+                        voiceChatButton.innerHTML = '<i class="fas fa-microphone"></i> تحدث صوتيًا';
+                        voiceChatButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+                    }
+                };
+            } catch (err) {
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    displayMessage('ai', 'عذراً، لم يتم منح الإذن لاستخدام الميكروفون. يرجى السماح للمتصفح بالوصول إلى الميكروفون لاستخدام هذه الميزة.');
+                } else {
+                    console.error('Microphone access error:', err);
+                    displayMessage('ai', 'حدث خطأ في الوصول إلى الميكروفون. يرجى المحاولة مرة أخرى.');
+                }
+            }
+        };
+
+        // Function to stop the entire voice chat session and AI response
+        const stopVoiceChatSession = () => {
+            if (recognition) {
+                recognition.stop();
+                stopVoiceTimer();
+            }
+            if (ttsAudio) {
+                ttsAudio.pause();
+            }
+            isVoiceChatActive = false;
+            voiceChatButton.innerHTML = '<i class="fas fa-microphone"></i> تحدث صوتيًا';
+            voiceChatButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+            // Abort the API call if it's in progress
+            if (abortController) {
+                abortController.abort();
+            }
+        };
+
+        // Function to start the voice timer
+        function startVoiceTimer() {
+            if (voiceTimerInterval) clearInterval(voiceTimerInterval);
+            voiceTimerInterval = setInterval(() => {
+                voiceChatDuration++;
+                updateVoiceTimerDisplay();
+                localStorage.setItem(VOICE_DURATION_KEY, voiceChatDuration);
+                if (voiceChatDuration >= MAX_VOICE_DURATION) {
+                    stopVoiceChatSession();
+                    displayMessage('ai', 'لقد استنفدت الوقت المخصص للدردشة الصوتية اليوم.');
+                }
+            }, 1000);
         }
 
+        // Function to stop the voice timer
+        function stopVoiceTimer() {
+            clearInterval(voiceTimerInterval);
+        }
+
+        // Function to update the voice timer display
+        function updateVoiceTimerDisplay() {
+            const remaining = MAX_VOICE_DURATION - voiceChatDuration;
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            voiceTimerDisplay.textContent = `الوقت المتبقي للصوت: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (remaining <= 60 && remaining > 0) {
+                voiceTimerDisplay.classList.add('text-yellow-500');
+            } else if (remaining <= 0) {
+                voiceTimerDisplay.classList.remove('text-yellow-500');
+                voiceTimerDisplay.classList.add('text-red-500');
+                voiceTimerDisplay.textContent = 'الوقت انتهى!';
+            } else {
+                voiceTimerDisplay.classList.remove('text-yellow-500', 'text-red-500');
+            }
+        }
+        
+        // Function to save chat history to localStorage
+        function saveChatHistory() {
+            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
+        }
+
+        // Function to load chat history from localStorage
+        function loadChatHistory() {
+            const savedChat = localStorage.getItem(CHAT_HISTORY_KEY);
+            if (savedChat) {
+                chatHistory = JSON.parse(savedChat);
+                chatHistory.forEach(message => {
+                    const messageElement = createMessageElement(message.role, message.parts[0].text);
+                    chatMessages.appendChild(messageElement);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        
+        // Function to clear chat history
+        function clearChat() {
+            const confirmed = window.confirm('هل أنت متأكد أنك تريد مسح المحادثة بالكامل؟');
+            if (confirmed) {
+                localStorage.removeItem(CHAT_HISTORY_KEY);
+                chatHistory = [];
+                chatMessages.innerHTML = '';
+            }
+        }
+        
+        // Function to suggest a random question
+        function suggestQuestion() {
+            const randomQuestion = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
+            userInput.value = randomQuestion;
+        }
+
+        // Function to save message count and reset date
+        function saveMessageCount() {
+            localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            const today = new Date().toDateString();
+            localStorage.setItem(LAST_RESET_DATE_KEY, today);
+        }
+
+        // Function to load and update the message counter
+        function updateMessageCounter() {
+            premiumEnabled = localStorage.getItem(PREMIUM_STATUS_KEY) === 'true';
+            
+            const lastResetDate = localStorage.getItem(LAST_RESET_DATE_KEY);
+            const today = new Date().toDateString();
+            
+            if (lastResetDate !== today) {
+                remainingMessages = MAX_MESSAGES_PER_DAY;
+                localStorage.setItem(LAST_RESET_DATE_KEY, today);
+                localStorage.setItem(MESSAGE_COUNT_KEY, remainingMessages);
+            } else {
+                const savedCount = localStorage.getItem(MESSAGE_COUNT_KEY);
+                if (savedCount !== null) {
+                    remainingMessages = parseInt(savedCount, 10);
+                }
+            }
+            
+            if (premiumEnabled) {
+                messageCounterDisplay.textContent = 'غير محدود';
+            } else {
+                messageCounterDisplay.textContent = remainingMessages;
+            }
+        }
+
+        // Function to load and update voice duration
+        function updateVoiceDuration() {
+            const lastResetDate = localStorage.getItem(VOICE_LAST_RESET_DATE_KEY);
+            const today = new Date().toDateString();
+            
+            if (lastResetDate !== today) {
+                voiceChatDuration = 0;
+                localStorage.setItem(VOICE_LAST_RESET_DATE_KEY, today);
+                localStorage.setItem(VOICE_DURATION_KEY, voiceChatDuration);
+            } else {
+                const savedDuration = localStorage.getItem(VOICE_DURATION_KEY);
+                if (savedDuration !== null) {
+                    voiceChatDuration = parseInt(savedDuration, 10);
+                }
+            }
+            updateVoiceTimerDisplay();
+        }
+        
         // Function to handle image upload
         function handleImageUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64String = e.target.result.split(',')[1];
-                uploadedImage = {
-                    base64: base64String,
-                    mimeType: file.type
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = e.target.result.split(',')[1];
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
                 };
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.classList.remove('hidden');
-                userInput.placeholder = 'أضف نصًا إضافيًا للصورة (اختياري)';
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            }
         }
-
-        // Function to remove uploaded image
+        
+        // Function to remove the uploaded image
         function removeImage() {
             uploadedImage = null;
-            imageUploadInput.value = '';
             imagePreview.src = '';
             imagePreviewContainer.classList.add('hidden');
-            userInput.placeholder = 'اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...';
+            imageUploadInput.value = '';
+        }
+
+        // Function to handle profile save
+        function saveProfile() {
+            const name = profileNameInput.value.trim();
+            const description = profileDescriptionTextarea.value.trim();
+            const ttsVoice = ttsVoiceSelect.value;
+            const userProfile = { name, description, ttsVoice };
+            localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(userProfile));
+            profileModal.style.display = 'none';
+        }
+
+        // Function to load profile data
+        function loadProfile() {
+            const userProfile = JSON.parse(localStorage.getItem(USER_PROFILE_KEY) || '{}');
+            profileNameInput.value = userProfile.name || '';
+            profileDescriptionTextarea.value = userProfile.description || '';
+            ttsVoiceSelect.value = userProfile.ttsVoice || 'Puck';
+        }
+
+        // Function to handle saving notification settings
+        function saveNotifications() {
+            const waterHours = parseInt(waterHoursInput.value);
+            const waterMinutes = parseInt(waterMinutesInput.value);
+            const exerciseHours = parseInt(exerciseHoursInput.value);
+            const exerciseMinutes = parseInt(exerciseMinutesInput.value);
+            
+            const waterInterval = (waterHours * 60 * 60 * 1000) + (waterMinutes * 60 * 1000);
+            const exerciseInterval = (exerciseHours * 60 * 60 * 1000) + (exerciseMinutes * 60 * 1000);
+
+            const settings = {
+                waterInterval: waterInterval > 0 ? waterInterval : null,
+                exerciseInterval: exerciseInterval > 0 ? exerciseInterval : null,
+            };
+
+            localStorage.setItem(NOTIFICATIONS_SETTINGS_KEY, JSON.stringify(settings));
+            notificationsModal.style.display = 'none';
+            setupNotifications();
+        }
+
+        // Function to load notification settings
+        function loadNotificationsSettings() {
+            const settings = JSON.parse(localStorage.getItem(NOTIFICATIONS_SETTINGS_KEY) || '{}');
+            if (settings.waterInterval) {
+                const hours = Math.floor(settings.waterInterval / (1000 * 60 * 60));
+                const minutes = (settings.waterInterval % (1000 * 60 * 60)) / (1000 * 60);
+                waterHoursInput.value = hours;
+                waterMinutesInput.value = minutes;
+            } else {
+                waterHoursInput.value = '';
+                waterMinutesInput.value = '';
+            }
+            if (settings.exerciseInterval) {
+                const hours = Math.floor(settings.exerciseInterval / (1000 * 60 * 60));
+                const minutes = (settings.exerciseInterval % (1000 * 60 * 60)) / (1000 * 60);
+                exerciseHoursInput.value = hours;
+                exerciseMinutesInput.value = minutes;
+            } else {
+                exerciseHoursInput.value = '';
+                exerciseMinutesInput.value = '';
+            }
+        }
+
+        // Function to check for and send notifications
+        function setupNotifications() {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+
+            // Clear existing intervals
+            for (const key in notificationIntervals) {
+                clearInterval(notificationIntervals[key]);
+            }
+
+            const settings = JSON.parse(localStorage.getItem(NOTIFICATIONS_SETTINGS_KEY) || '{}');
+            
+            if (settings.waterInterval) {
+                notificationIntervals.water = setInterval(() => {
+                    if (Notification.permission === 'granted') {
+                        new Notification('FitnessUp Pro', {
+                            body: 'تذكير: حان وقت شرب الماء!',
+                        });
+                    }
+                }, settings.waterInterval);
+            }
+
+            if (settings.exerciseInterval) {
+                notificationIntervals.exercise = setInterval(() => {
+                    if (Notification.permission === 'granted') {
+                        new Notification('FitnessUp Pro', {
+                            body: 'تذكير: قم ببعض التمارين الخفيفة الآن!',
+                        });
+                    }
+                }, settings.exerciseInterval);
+            }
         }
 
 
-        // Event Listeners
-        sendButton.addEventListener('click', sendMessage);
-        stopButton.addEventListener('click', stopAiResponse);
-        userInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter' && !sendButton.disabled) {
-                sendMessage();
+        // Event listeners
+        sendButton.addEventListener('click', () => sendMessage(userInput.value));
+        userInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage(userInput.value);
             }
         });
-        backButton.addEventListener('click', function() {
-            window.history.back();
+        stopButton.addEventListener('click', stopVoiceChatSession);
+        backButton.addEventListener('click', () => {
+            window.location.href = 'home.html';
         });
         clearChatButton.addEventListener('click', clearChat);
         suggestQuestionButton.addEventListener('click', suggestQuestion);
@@ -1067,10 +1468,37 @@
         imageUploadInput.addEventListener('change', handleImageUpload);
         removeImageButton.addEventListener('click', removeImage);
 
+        // Event listeners for new features
+        voiceChatButton.addEventListener('click', () => {
+            if (isVoiceChatActive) {
+                stopVoiceChatSession();
+            } else {
+                startSpeechRecognition();
+            }
+        });
+        notificationsButton.addEventListener('click', () => {
+            loadNotificationsSettings();
+            notificationsModal.style.display = 'flex';
+        });
+        profileButton.addEventListener('click', () => {
+            loadProfile();
+            profileModal.style.display = 'flex';
+        });
+        closeProfileModalButton.addEventListener('click', () => {
+            profileModal.style.display = 'none';
+        });
+        saveProfileButton.addEventListener('click', saveProfile);
+        closeNotificationsModalButton.addEventListener('click', () => {
+            notificationsModal.style.display = 'none';
+        });
+        saveNotificationsButton.addEventListener('click', saveNotifications);
+
+
         // On page load
         window.onload = function() {
             loadChatHistory();
             updateMessageCounter();
+            updateVoiceDuration();
             if (chatHistory.length === 0) {
                 setTimeout(() => {
                     const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
@@ -1079,20 +1507,26 @@
                     saveChatHistory();
                 }, 500);
             }
+            setupNotifications();
+            if (localStorage.getItem(PREMIUM_STATUS_KEY) === 'true') {
+                unlimitedMessages = true;
+            }
         };
-    </script>
-    <script>
-    /**
-     * يستمع إلى حدث "offline" ويعيد توجيه المستخدم إلى صفحة offline.html.
-     * هذا يضمن أن يتم عرض صفحة انقطاع الاتصال تلقائيًا دون الحاجة لإعادة تحميل يدوية.
-     */
-    window.addEventListener('offline', () => {
-        console.log("Internet connection lost! Redirecting to offline page.");
-        window.location.href = 'offline.html';
-    });
-</script>
 
+        // Offline event listener
+        window.addEventListener('offline', () => {
+            console.log("Internet connection lost! Redirecting to offline page.");
+            // You may need to create an offline.html page or show a custom message.
+            // window.location.href = 'offline.html';
+        });
+    </script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+    </script>
 </body>
 </html>
-
-
