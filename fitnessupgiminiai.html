@@ -811,13 +811,13 @@
         const NOTIFICATIONS_KEY = 'notifications';
         const MESSAGE_COUNTER_KEY = 'messageCounter';
         const MESSAGE_DATE_KEY = 'messageDate';
-        const PREMIUM_STATUS_KEY = 'premiumStatus'; // Secret code key
+        const PREMIUM_STATUS_KEY = 'premiumStatus';
         const PROFILE_KEY = 'userProfile';
         const MAX_FREE_MESSAGES = 3;
         const PREMIUM_CODE = 'Az700200';
 
         // API Key (should be handled securely in a real app)
-        const API_KEY = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk";
+        const API_KEY = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk"; // تم تعديل مفتاح API ليتم التعامل معه تلقائيًا من قبل بيئة Canvas
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + API_KEY;
         const ttsApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + API_KEY;
         
@@ -947,7 +947,6 @@
         function updateMessageCounter() {
             loadMessageCounter();
             
-            // Clear any existing interval
             if (timeCounterInterval) {
                 clearInterval(timeCounterInterval);
             }
@@ -959,7 +958,6 @@
                 if (remaining > 0) {
                     messageCounterSpan.textContent = remaining;
                 } else {
-                    // Update counter every second
                     const updateCounter = () => {
                         const now = new Date();
                         const midnight = new Date();
@@ -973,9 +971,231 @@
                         messageCounterSpan.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                     };
                     
-                    updateCounter(); // Initial update
+                    updateCounter();
                     timeCounterInterval = setInterval(updateCounter, 1000);
                 }
+            }
+        }
+        
+        // --- Added utility functions for TTS audio conversion ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Converts raw PCM audio data to a WAV file Blob.
+         * @param {ArrayBuffer} pcmData - The raw PCM data.
+         * @param {number} sampleRate - The sample rate of the audio.
+         * @param {number} numChannels - The number of audio channels (e.g., 1 for mono).
+         * @param {number} bitsPerSample - The number of bits per sample (e.g., 16).
+         * @returns {Blob} The WAV file as a Blob.
+         */
+        function pcmToWav(pcmData, sampleRate = 16000, numChannels = 1, bitsPerSample = 16) {
+            const dataLength = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+            
+            let offset = 0;
+
+            function writeString(str) {
+                for (let i = 0; i < str.length; i++) {
+                    view.setUint8(offset++, str.charCodeAt(i));
+                }
+            }
+
+            function writeUint32(val) {
+                view.setUint32(offset, val, true);
+                offset += 4;
+            }
+
+            function writeUint16(val) {
+                view.setUint16(offset, val, true);
+                offset += 2;
+            }
+
+            // RIFF chunk
+            writeString('RIFF');
+            writeUint32(36 + dataLength);
+            writeString('WAVE');
+
+            // fmt sub-chunk
+            writeString('fmt ');
+            writeUint32(16); // sub-chunk size
+            writeUint16(1); // Audio format (1 for PCM)
+            writeUint16(numChannels); // Number of channels
+            writeUint32(sampleRate); // Sample rate
+            writeUint32(sampleRate * numChannels * (bitsPerSample / 8)); // Byte rate
+            writeUint16(numChannels * (bitsPerSample / 8)); // Block align
+            writeUint16(bitsPerSample); // Bits per sample
+
+            // data sub-chunk
+            writeString('data');
+            writeUint32(dataLength);
+
+            const pcmBytes = new Uint8Array(pcmData);
+            for (let i = 0; i < pcmBytes.length; i++) {
+                view.setUint8(offset++, pcmBytes[i]);
+            }
+            
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+
+        // ---- TTS Functions ----
+        function stopPlayback() {
+            // Stop any ongoing audio playback
+            if (currentPlayingAudio) {
+                currentPlayingAudio.pause();
+                currentPlayingAudio = null;
+            }
+
+            // Stop speech recognition if it's active
+            if (isListening && recognition) {
+                recognition.stop();
+            }
+
+            // Reset state flags
+            isSpeaking = false;
+            isListening = false;
+            
+            // Reset UI for the TTS modal
+            ttsModal.style.display = 'none';
+            setTtsState('listening');
+
+            // Reset UI for the individual message TTS button
+            if (currentPlayingButton) {
+                currentPlayingButton.classList.remove('loading');
+                currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                currentPlayingButton = null;
+            }
+        }
+
+
+        async function playTTS(text, buttonElement = null) {
+            // Stop any previously playing audio
+            stopPlayback();
+
+            return new Promise(async (resolve, reject) => {
+                try {
+                    isSpeaking = true;
+                    currentPlayingButton = buttonElement;
+
+                    const payload = {
+                        contents: [{
+                            parts: [{ text: text }]
+                        }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                voiceConfig: {
+                                    prebuiltVoiceConfig: { voiceName: selectedVoice }
+                                }
+                            }
+                        },
+                        model: "gemini-2.5-flash-preview-tts"
+                    };
+
+                    const response = await fetch(ttsApiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('API response was not ok');
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        // The API returns signed PCM16 audio data.
+                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                        const pcmBuffer = base64ToArrayBuffer(audioData);
+                        
+                        // Use the improved pcmToWav function
+                        const wavBlob = pcmToWav(pcmBuffer, sampleRate, 1, 16);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        
+                        const audio = new Audio(audioUrl);
+                        currentPlayingAudio = audio;
+
+                        audio.onended = () => {
+                            isSpeaking = false;
+                            if (buttonElement) {
+                                buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
+                                currentPlayingButton = null;
+                            }
+                            resolve();
+                        };
+                        
+                        audio.onerror = (e) => {
+                            isSpeaking = false;
+                            if (buttonElement) {
+                                buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
+                                currentPlayingButton = null;
+                            }
+                            console.error('Audio playback error:', e);
+                            reject(new Error("Audio playback error"));
+                        };
+                        
+                        if (buttonElement) {
+                            buttonElement.innerHTML = '<i class="fas fa-stop"></i>';
+                        }
+                        
+                        audio.play().catch(e => {
+                            isSpeaking = false;
+                            if (buttonElement) {
+                                buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
+                                currentPlayingButton = null;
+                            }
+                            console.error('Playback failed:', e);
+                            reject(e);
+                        });
+                    } else {
+                        reject(new Error("Failed to get audio data from API response."));
+                    }
+
+                } catch (error) {
+                    isSpeaking = false;
+                    console.error('Error in playTTS:', error);
+                    reject(error);
+                }
+            });
+        }
+
+        function setTtsState(state) {
+            ttsBubble.classList.remove('listening-animation', 'thinking-animation', 'speaking-animation', 'interrupted-animation');
+            
+            switch (state) {
+                case 'listening':
+                    ttsBubble.classList.add('listening-animation');
+                    ttsIcon.className = 'fas fa-microphone icon';
+                    ttsStateText.textContent = 'جاري الاستماع...';
+                    break;
+                case 'thinking':
+                    ttsBubble.classList.add('thinking-animation');
+                    ttsIcon.className = 'fas fa-brain icon';
+                    ttsStateText.textContent = 'جاري التفكير...';
+                    break;
+                case 'speaking':
+                    ttsBubble.classList.add('speaking-animation');
+                    ttsIcon.className = 'fas fa-comment-dots icon';
+                    ttsStateText.textContent = 'جاري النطق...';
+                    break;
+                case 'interrupted':
+                    ttsBubble.classList.add('interrupted-animation');
+                    ttsIcon.className = 'fas fa-exclamation-triangle icon';
+                    ttsStateText.textContent = 'تمت المقاطعة!';
+                    break;
             }
         }
 
@@ -987,7 +1207,6 @@
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
             
-            // Use profile info to personalize responses
             const profile = JSON.parse(localStorage.getItem(PROFILE_KEY)) || {};
             if (role === 'ai' && profile.name) {
                 text = text.replace(/مرحباً بك/gi, `مرحباً ${profile.name}`);
@@ -996,34 +1215,27 @@
             
             contentDiv.innerHTML = marked.parse(text);
 
-            // Add TTS button for AI messages
             if (role === 'ai') {
                 const ttsButton = document.createElement('button');
                 ttsButton.classList.add('message-tts-button');
                 ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
                 ttsButton.title = 'تشغيل الصوت';
                 ttsButton.onclick = async () => {
-                    // Stop any currently playing audio
-                    if (currentPlayingAudio) {
-                        currentPlayingAudio.pause();
-                        currentPlayingAudio = null;
-                        if (currentPlayingButton) {
-                            currentPlayingButton.classList.remove('loading');
-                            currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                            currentPlayingButton = null;
+                    if (currentPlayingButton === ttsButton) {
+                        stopPlayback();
+                    } else {
+                        // Stop any current playback before starting a new one
+                        stopPlayback();
+                        
+                        ttsButton.classList.add('loading');
+                        ttsButton.innerHTML = '<i class="fas fa-spinner"></i>';
+                        
+                        try {
+                            await playTTS(text, ttsButton);
+                        } catch (error) {
+                            console.error("TTS Error:", error);
+                            stopPlayback();
                         }
-                    }
-                    
-                    // Set loading state
-                    ttsButton.classList.add('loading');
-                    ttsButton.innerHTML = '<i class="fas fa-spinner"></i>';
-                    
-                    try {
-                        await playTTS(text, ttsButton);
-                    } catch (error) {
-                        console.error("TTS Error:", error);
-                        ttsButton.classList.remove('loading');
-                        ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
                     }
                 };
                 messageDiv.appendChild(ttsButton);
@@ -1064,12 +1276,11 @@
 
         // ---- API Call Functions ----
         async function fetchGeminiResponse(prompt, imageBase64 = null) {
-            // Check for message limit before making API call
             if (!unlimitedMessages && messageCounter >= MAX_FREE_MESSAGES) {
                 const timeRemaining = getTimeUntilMidnight();
                 const responseText = `انتهت المحاولات اليومية. عد بعد (${timeRemaining}).`;
                 displayMessage('ai', responseText);
-                return; // Do not proceed with API call
+                return;
             }
 
             isWaitingForResponse = true;
@@ -1079,14 +1290,12 @@
 
             const contents = [];
             
-            // Add chat history
             chatHistory.forEach(msg => {
                 if (msg.role === "user" || msg.role === "model") {
                     contents.push(msg);
                 }
             });
 
-            // Add new user message
             const newUserMessage = {
                 role: 'user',
                 parts: [{ text: prompt }]
@@ -1101,10 +1310,8 @@
             }
             contents.push(newUserMessage);
 
-            // Get profile info for context
             const profile = JSON.parse(localStorage.getItem(PROFILE_KEY)) || {};
             
-            // System instruction with the new prompt
             const systemInstruction = {
                 role: "model",
                 parts: [{
@@ -1136,7 +1343,7 @@
                     });
 
                     if (!response.ok) {
-                        if (response.status === 429) { // Too many requests
+                        if (response.status === 429) {
                             throw new Error('Too many requests. Retrying...');
                         }
                         const error = await response.json();
@@ -1153,7 +1360,7 @@
                         responseText = "عذرًا، لم أتمكن من الحصول على رد. الرجاء المحاولة مرة أخرى.";
                     }
                     
-                    break; // Success, exit the loop
+                    break;
 
                 } catch (error) {
                     console.error('API call failed:', error);
@@ -1186,177 +1393,15 @@
             return responseText;
         }
 
-        // ---- TTS Functions ----
-        async function playTTS(text, buttonElement = null) {
-            return new Promise((resolve, reject) => {
-                const payload = {
-                    contents: [{
-                        parts: [{ text: text }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: selectedVoice }
-                            }
-                        }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-
-                fetch(ttsApiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                .then(response => response.json())
-                .then(result => {
-                    const part = result?.candidates?.[0]?.content?.parts?.[0];
-                    const audioData = part?.inlineData?.data;
-                    const mimeType = part?.inlineData?.mimeType;
-
-                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                        const sampleRate = 16000;
-                        const pcmData = base64ToArrayBuffer(audioData);
-                        const pcm16 = new Int16Array(pcmData);
-                        const wavBlob = pcmToWav(pcm16, sampleRate);
-                        const audioUrl = URL.createObjectURL(wavBlob);
-
-                        const audio = new Audio(audioUrl);
-                        currentPlayingAudio = audio;
-                        
-                        // Update button state when audio starts playing
-                        audio.onplay = () => {
-                            if (buttonElement) {
-                                buttonElement.classList.remove('loading');
-                                buttonElement.innerHTML = '<i class="fas fa-stop"></i>';
-                            }
-                            setTtsState('speaking');
-                        };
-                        
-                        // Update button state when audio ends
-                        audio.onended = () => {
-                            if (buttonElement) {
-                                buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
-                            }
-                            setTtsState('listening');
-                            resolve();
-                        };
-                        
-                        audio.onerror = () => {
-                            reject(new Error("Audio playback error"));
-                        };
-                        
-                        audio.play().catch(error => {
-                            console.error("Audio play error:", error);
-                            reject(error);
-                        });
-                    } else {
-                        reject(new Error("Failed to get audio data"));
-                    }
-                })
-                .catch(error => {
-                    console.error("TTS API error:", error);
-                    reject(error);
-                });
-            });
-        }
-
-        function base64ToArrayBuffer(base64) {
-            const binaryString = window.atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function pcmToWav(pcmData, sampleRate) {
-            const numChannels = 1;
-            const bytesPerSample = 2;
-            const pcmDataLength = pcmData.length * bytesPerSample;
-
-            const buffer = new ArrayBuffer(44 + pcmDataLength);
-            const view = new DataView(buffer);
-
-            // RIFF chunk descriptor
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + pcmDataLength, true);
-            writeString(view, 8, 'WAVE');
-
-            // fmt chunk
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM format
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
-            view.setUint16(32, numChannels * bytesPerSample, true);
-            view.setUint16(34, 16, true); // 16 bits per sample
-
-            // data chunk
-            writeString(view, 36, 'data');
-            view.setUint32(40, pcmDataLength, true);
-
-            // Write PCM data
-            let offset = 44;
-            for (let i = 0; i < pcmData.length; i++) {
-                view.setInt16(offset, pcmData[i], true);
-                offset += 2;
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
-        function stopTTS() {
-            if (currentPlayingAudio) {
-                currentPlayingAudio.pause();
-                currentPlayingAudio = null;
-            }
-            isSpeaking = false;
-            ttsModal.style.display = 'none';
+        function getTimeUntilMidnight() {
+            const now = new Date();
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0);
+            const diff = midnight.getTime() - now.getTime();
             
-            // Reset button state
-            if (currentPlayingButton) {
-                currentPlayingButton.classList.remove('loading');
-                currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                currentPlayingButton = null;
-            }
-        }
-        
-        function setTtsState(state) {
-            // Remove all animation classes
-            ttsBubble.classList.remove('listening-animation', 'thinking-animation', 'speaking-animation', 'interrupted-animation');
-            
-            switch (state) {
-                case 'listening':
-                    ttsBubble.classList.add('listening-animation');
-                    ttsIcon.className = 'fas fa-microphone icon';
-                    ttsStateText.textContent = 'جاري الاستماع...';
-                    break;
-                case 'thinking':
-                    ttsBubble.classList.add('thinking-animation');
-                    ttsIcon.className = 'fas fa-brain icon';
-                    ttsStateText.textContent = 'جاري التفكير...';
-                    break;
-                case 'speaking':
-                    ttsBubble.classList.add('speaking-animation');
-                    ttsIcon.className = 'fas fa-comment-dots icon';
-                    ttsStateText.textContent = 'جاري النطق...';
-                    break;
-                case 'interrupted':
-                    ttsBubble.classList.add('interrupted-animation');
-                    ttsIcon.className = 'fas fa-exclamation-triangle icon';
-                    ttsStateText.textContent = 'تمت المقاطعة!';
-                    break;
-            }
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours} ساعة و ${minutes} دقيقة`;
         }
 
         // ---- Notification Functions ----
@@ -1390,7 +1435,6 @@
             let scheduledTime = new Date();
             scheduledTime.setHours(hours, minutes, 0, 0);
 
-            // If the scheduled time is in the past, schedule it for the next day
             if (scheduledTime < now) {
                 scheduledTime.setDate(scheduledTime.getDate() + 1);
             }
@@ -1405,7 +1449,6 @@
                         vibrate: [200, 100, 200]
                     });
                 }
-                // Reschedule for the next day
                 scheduleNotification(title, time);
             }, delay);
         }
@@ -1502,7 +1545,6 @@
             saveChatHistory();
             chatMessages.innerHTML = '';
             
-            // Re-display the welcome message
             const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
             displayMessage('ai', welcomeMessage);
             chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
@@ -1513,26 +1555,17 @@
         ttsPopupButton.addEventListener('click', () => {
             ttsModal.style.display = 'flex';
             setTtsState('listening');
-            startSpeechRecognition();
-        });
-        
-        ttsInterruptButton.addEventListener('click', () => {
-            if (isListening) {
-                recognition.stop();
-                setTtsState('interrupted');
-                setTimeout(() => ttsModal.style.display = 'none', 1000);
-            } else if (isSpeaking) {
-                stopTTS();
-                setTtsState('interrupted');
-                setTimeout(() => ttsModal.style.display = 'none', 1000);
+            if (recognition) {
+                isListening = true;
+                recognition.start();
             }
         });
         
-        function startSpeechRecognition() {
-            if (!recognition) return;
-            isListening = true;
-            recognition.start();
-        }
+        ttsInterruptButton.addEventListener('click', () => {
+            stopPlayback();
+            setTtsState('interrupted');
+            setTimeout(() => ttsModal.style.display = 'none', 1000);
+        });
         
         if (recognition) {
             recognition.onresult = (event) => {
@@ -1543,15 +1576,15 @@
                 
                 displayMessage('user', transcript);
 
-                // Fetch response and then speak it
                 fetchGeminiResponse(transcript).then((responseText) => {
                     if (responseText) {
-                        // Stay in TTS modal and play the response
                         setTtsState('speaking');
                         playTTS(responseText).then(() => {
-                            // After playing, return to listening mode
                             setTtsState('listening');
-                            startSpeechRecognition();
+                            if (recognition) {
+                                isListening = true;
+                                recognition.start();
+                            }
                         }).catch(error => {
                             console.error("TTS Error:", error);
                             ttsModal.style.display = 'none';
@@ -1568,12 +1601,14 @@
             };
 
             recognition.onend = () => {
-                isListening = false;
-                // If not speaking and modal is still open, restart listening
                 if (!isSpeaking && ttsModal.style.display === 'flex') {
+                    // Automatically restart listening unless playback has started
                     setTimeout(() => {
                         setTtsState('listening');
-                        startSpeechRecognition();
+                        if (recognition) {
+                            isListening = true;
+                            recognition.start();
+                        }
                     }, 1000);
                 }
             };
@@ -1600,7 +1635,7 @@
                 const notifications = loadNotifications();
                 notifications.push({ title, time });
                 saveNotifications(notifications);
-                setupNotifications(); // Reschedule all notifications
+                setupNotifications();
                 renderScheduledNotifications();
                 notificationTitleInput.value = '';
                 notificationTimeInput.value = '';
@@ -1613,8 +1648,6 @@
                 let notifications = loadNotifications();
                 notifications.splice(index, 1);
                 saveNotifications(notifications);
-                // Reload the page to clear existing timeouts for simplicity, or
-                // implement a more complex system to track and clear timeouts.
                 location.reload(); 
             }
         });
@@ -1687,7 +1720,6 @@
             setupNotifications();
         };
 
-        // Offline event listener
         window.addEventListener('offline', () => {
             console.log("Internet connection lost! Redirecting to offline page.");
         });
