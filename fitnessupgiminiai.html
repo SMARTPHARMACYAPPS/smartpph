@@ -196,6 +196,18 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-7px); }
         }
+         .modal-content {
+    background-color: #2d3748;
+    padding: 2rem;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;    /* ارتفاع مناسب */
+    overflow-y: auto;    /* التمرير العمودي */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid #4a5568;
+    position: relative;
+     }
         .message.highlight-green {
             animation: highlightGreen 0.3s ease-in-out forwards;
         }
@@ -670,6 +682,55 @@
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 0.5rem;
         }
+
+        /* New styles for TTS controls */
+        .tts-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .tts-play-button, .tts-stop-button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .tts-play-button {
+            background-color: #38a169;
+            color: white;
+        }
+        .tts-stop-button {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        /* Notification repeat options */
+        .repeat-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 1rem;
+        }
+        .repeat-day {
+            padding: 5px 10px;
+            border-radius: 15px;
+            background-color: #2d3748;
+            cursor: pointer;
+            border: 1px solid #4a5568;
+        }
+        .repeat-day.selected {
+            background-color: #667eea;
+            border-color: #5a67d8;
+        }
+        .interval-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -772,6 +833,40 @@
                 <p class="font-semibold mb-2">أضف تنبيهًا جديدًا</p>
                 <input type="text" id="notification-title-input" class="modal-input" placeholder="عنوان التنبيه (مثلاً: تذكير بشرب الماء)">
                 <input type="time" id="notification-time-input" class="modal-input">
+                
+                <div class="mb-3">
+                    <label class="block text-right mb-2">نوع التكرار:</label>
+                    <select id="notification-repeat-type" class="modal-select">
+                        <option value="daily">يومي</option>
+                        <option value="weekly">أسبوعي</option>
+                        <option value="interval">كل فترة زمنية</option>
+                    </select>
+                </div>
+                
+                <div id="weekly-options" class="hidden">
+                    <label class="block text-right mb-2">أيام الأسبوع:</label>
+                    <div class="repeat-options">
+                        <div class="repeat-day" data-day="0">الأحد</div>
+                        <div class="repeat-day" data-day="1">الإثنين</div>
+                        <div class="repeat-day" data-day="2">الثلاثاء</div>
+                        <div class="repeat-day" data-day="3">الأربعاء</div>
+                        <div class="repeat-day" data-day="4">الخميس</div>
+                        <div class="repeat-day" data-day="5">الجمعة</div>
+                        <div class="repeat-day" data-day="6">السبت</div>
+                    </div>
+                </div>
+                
+                <div id="interval-options" class="hidden">
+                    <label class="block text-right mb-2">كل:</label>
+                    <div class="interval-option">
+                        <input type="number" id="interval-value" class="modal-input" min="1" max="1440" value="60" style="width: 80px;">
+                        <select id="interval-unit" class="modal-select">
+                            <option value="minutes">دقائق</option>
+                            <option value="hours">ساعات</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <button id="add-notification-button" class="modal-save-button">إضافة تنبيه</button>
             </div>
             <div class="notification-card">
@@ -789,13 +884,26 @@
             <span class="close-button" id="close-profile-modal">&times;</span>
             <h2 class="modal-header">ملف التعريف</h2>
             <input type="text" id="profile-name-input" class="modal-input" placeholder="اسمك">
-            <textarea id="profile-info-input" class="modal-input" placeholder="معلومات عنك"></textarea>
+            
+            <div class="mb-3">
+                <label class="block text-right mb-2">الجنس:</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="male" class="mr-2"> ذكر
+                    </label>
+                    <label class="flex items-center">
+                        <input type="radio" name="gender" value="female" class="mr-2"> أنثى
+                    </label>
+                </div>
+            </div>
+            
+            <textarea id="profile-info-input" class="modal-input" placeholder="معلومات عنك (العمر، الوزن، الطول، الحالة الصحية، الأهداف الرياضية...)"></textarea>
             <label for="voice-select" class="block text-right mb-2">نوع الصوت:</label>
             <select id="voice-select" class="modal-input modal-select">
-                <option value="Kore">Kore (صوت حازم)</option>
-                <option value="Puck">Puck (صوت مبهج)</option>
-                <option value="Zephyr">Zephyr (صوت مشرق)</option>
-                <option value="Charon">Charon (صوت إخباري)</option>
+                <option value="Kore">Kore (صوت حازم - ذكر)</option>
+                <option value="Puck">Puck (صوت مبهج - ذكر)</option>
+                <option value="Zephyr">Zephyr (صوت مشرق - أنثى)</option>
+                <option value="Charon">Charon (صوت إخباري - ذكر)</option>
             </select>
             <button id="save-profile-button" class="modal-save-button">حفظ</button>
         </div>
@@ -833,7 +941,7 @@
         const PREMIUM_CODE = 'Az700200';
 
         // Fix: Use an empty API key and let the Canvas environment handle it
-        const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk";
+        const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk"; // تم تغيير هذا السطر ليصبح مفتاح API فارغًا
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
         const ttsApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + apiKey;
         
@@ -877,6 +985,9 @@
         const premiumMessage = document.getElementById('premium-message');
         const activatePremiumButton = document.getElementById('activate-premium-button');
         const imageUploadWarning = document.getElementById('image-upload-warning');
+        const notificationRepeatType = document.getElementById('notification-repeat-type');
+        const weeklyOptions = document.getElementById('weekly-options');
+        const intervalOptions = document.getElementById('interval-options');
 
         // State Variables
         let chatHistory = [];
@@ -890,6 +1001,7 @@
         let currentPlayingAudio = null;
         let currentPlayingButton = null;
         let timeCounterInterval = null;
+        let isTTSModeActive = false;
 
         // Speech recognition
         function initializeSpeechRecognition() {
@@ -926,13 +1038,16 @@
         }
         
         function saveProfile() {
+            const gender = document.querySelector('input[name="gender"]:checked')?.value || 'male';
             const profile = {
                 name: profileNameInput.value,
+                gender: gender,
                 info: profileInfoInput.value,
                 voice: voiceSelect.value
             };
             localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
             selectedVoice = profile.voice;
+            return profile;
         }
 
         function loadProfile() {
@@ -943,7 +1058,15 @@
                 profileInfoInput.value = profile.info;
                 voiceSelect.value = profile.voice;
                 selectedVoice = profile.voice;
+                
+                // Set gender radio button
+                if (profile.gender) {
+                    document.querySelector(`input[name="gender"][value="${profile.gender}"]`).checked = true;
+                }
+                
+                return profile;
             }
+            return null;
         }
 
         function saveMessageCounter() {
@@ -1051,6 +1174,11 @@
         async function playTTS(text, buttonElement = null) {
             return new Promise(async (resolve, reject) => {
                 try {
+                    // If there's audio playing, stop it first
+                    if (currentPlayingAudio) {
+                        stopTTS();
+                    }
+
                     const payload = {
                         contents: [{ parts: [{ text: text }] }],
                         generationConfig: {
@@ -1071,7 +1199,6 @@
                     });
 
                     if (!response.ok) {
-                        // Throw the error here to be caught by the outer try-catch block
                         throw new Error('API response was not ok');
                     }
 
@@ -1090,7 +1217,7 @@
                         
                         const audio = new Audio(audioUrl);
                         currentPlayingAudio = audio;
-                        currentPlayingButton = buttonElement; // Set the current playing button
+                        currentPlayingButton = buttonElement;
 
                         audio.onended = () => {
                             if (currentPlayingButton) {
@@ -1099,6 +1226,15 @@
                                 currentPlayingButton = null;
                             }
                             isSpeaking = false;
+                            
+                            // If in TTS mode, restart listening after speaking
+                            if (isTTSModeActive) {
+                                setTimeout(() => {
+                                    setTtsState('listening');
+                                    startSpeechRecognition();
+                                }, 500);
+                            }
+                            
                             resolve();
                         };
                         
@@ -1133,7 +1269,6 @@
 
                 } catch (error) {
                     console.error('Error in playTTS:', error);
-                    // Ensure the button state is reset on any failure during the API call
                     if (buttonElement) {
                         buttonElement.classList.remove('loading');
                         buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
@@ -1151,7 +1286,6 @@
                 currentPlayingAudio = null;
             }
             isSpeaking = false;
-            ttsModal.style.display = 'none';
             
             if (currentPlayingButton) {
                 currentPlayingButton.classList.remove('loading');
@@ -1204,32 +1338,46 @@
             contentDiv.innerHTML = marked.parse(text);
 
             if (role === 'ai') {
+                const ttsContainer = document.createElement('div');
+                ttsContainer.classList.add('tts-controls');
+                
                 const ttsButton = document.createElement('button');
                 ttsButton.classList.add('message-tts-button');
                 ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
                 ttsButton.title = 'تشغيل الصوت';
+                
+                const ttsStopButton = document.createElement('button');
+                ttsStopButton.classList.add('message-tts-button', 'hidden');
+                ttsStopButton.innerHTML = '<i class="fas fa-stop"></i>';
+                ttsStopButton.title = 'إيقاف الصوت';
+                
                 ttsButton.onclick = async () => {
-                    // Check if another audio is already playing
                     if (currentPlayingAudio) {
-                        stopTTS(); // Stop the currently playing audio
-                        // If the user clicked the same button, we are done
-                        if (currentPlayingButton === ttsButton) {
-                            return;
-                        }
+                        stopTTS();
+                        return;
                     }
                     
-                    ttsButton.classList.add('loading');
-                    ttsButton.innerHTML = '<i class="fas fa-spinner"></i>';
+                    ttsButton.classList.add('hidden');
+                    ttsStopButton.classList.remove('hidden');
                     
                     try {
-                        // The playTTS function will now handle resetting the state
-                        await playTTS(text, ttsButton);
+                        await playTTS(text);
                     } catch (error) {
                         console.error("TTS Error:", error);
-                        // The error handler in playTTS should now handle resetting the button
+                    } finally {
+                        ttsButton.classList.remove('hidden');
+                        ttsStopButton.classList.add('hidden');
                     }
                 };
+                
+                ttsStopButton.onclick = () => {
+                    stopTTS();
+                    ttsButton.classList.remove('hidden');
+                    ttsStopButton.classList.add('hidden');
+                };
+                
                 messageDiv.appendChild(ttsButton);
+                messageDiv.appendChild(ttsStopButton);
             }
 
             const timestampDiv = document.createElement('div');
@@ -1338,6 +1486,8 @@
                     text: `بصفتك مستشاراً طبياً ورياضياً ودوداً ومرحاً ومشجعاً، 
                     اجب على الرسالة التالية من غير إطالة ومن غير اختصار شديد، 
                     مستخدماً الوجوه التعبيرية لكن بعدد قليل، وحاول أن تمزج بين اللغة العربية الفصحى واللهجة المصرية إلا إذا طُلب منك غير ذلك.
+                    ${profile.name ? `اسم المستخدم: ${profile.name}` : ''}
+                    ${profile.gender ? `جنس المستخدم: ${profile.gender === 'male' ? 'ذكر' : 'أنثى'}` : ''}
                     ${profile.info ? `المعلومات التي أعطاها المستخدم عن نفسه: ${profile.info}` : ''}
                     إذا تحدث المستخدم في شيء غير الرياضة والصحة، حاول الإجابة على طلبه وفي النهاية اربط بين الصحة وطلبه.`
                 }]
@@ -1443,13 +1593,18 @@
 
             const notifications = loadNotifications();
             notifications.forEach(notification => {
-                scheduleNotification(notification.title, notification.time);
+                scheduleNotification(notification);
             });
             renderScheduledNotifications();
         }
 
-        function scheduleNotification(title, time) {
-            const [hours, minutes] = time.split(':').map(Number);
+        function scheduleNotification(notification) {
+            if (notification.repeatType === 'interval') {
+                scheduleIntervalNotification(notification);
+                return;
+            }
+
+            const [hours, minutes] = notification.time.split(':').map(Number);
             
             const now = new Date();
             let scheduledTime = new Date();
@@ -1464,13 +1619,55 @@
             setTimeout(() => {
                 if (Notification.permission === "granted") {
                     new Notification("FitnessUp Pro", {
-                        body: title,
+                        body: notification.title,
                         icon: 'https://placehold.co/64x64/4c51bf/ffffff?text=FP',
                         vibrate: [200, 100, 200]
                     });
                 }
-                scheduleNotification(title, time);
+
+                // Reschedule based on repeat type
+                if (notification.repeatType === 'daily') {
+                    scheduleNotification(notification);
+                } else if (notification.repeatType === 'weekly') {
+                    const today = new Date().getDay();
+                    if (notification.days.includes(today.toString())) {
+                        scheduleNotification(notification);
+                    } else {
+                        // Find next day in the week
+                        let nextDay = null;
+                        for (let i = 1; i <= 7; i++) {
+                            const checkDay = (today + i) % 7;
+                            if (notification.days.includes(checkDay.toString())) {
+                                nextDay = i;
+                                break;
+                            }
+                        }
+                        
+                        if (nextDay !== null) {
+                            setTimeout(() => {
+                                scheduleNotification(notification);
+                            }, nextDay * 24 * 60 * 60 * 1000);
+                        }
+                    }
+                }
             }, delay);
+        }
+
+        function scheduleIntervalNotification(notification) {
+            const interval = notification.intervalValue * (notification.intervalUnit === 'minutes' ? 60 * 1000 : 60 * 60 * 1000);
+            
+            const timer = setInterval(() => {
+                if (Notification.permission === "granted") {
+                    new Notification("FitnessUp Pro", {
+                        body: notification.title,
+                        icon: 'https://placehold.co/64x64/4c51bf/ffffff?text=FP',
+                        vibrate: [200, 100, 200]
+                    });
+                }
+            }, interval);
+
+            // Store timer ID to allow cancellation
+            notification.timerId = timer;
         }
 
         function renderScheduledNotifications() {
@@ -1483,10 +1680,23 @@
             notifications.forEach((notification, index) => {
                 const notificationItem = document.createElement('div');
                 notificationItem.classList.add('flex', 'justify-between', 'items-center', 'py-2', 'border-b', 'border-gray-600', 'last:border-b-0');
+                
+                let details = '';
+                if (notification.repeatType === 'daily') {
+                    details = `يوميًا في ${notification.time}`;
+                } else if (notification.repeatType === 'weekly') {
+                    const daysMap = { '0': 'الأحد', '1': 'الإثنين', '2': 'الثلاثاء', '3': 'الأربعاء', 
+                                    '4': 'الخميس', '5': 'الجمعة', '6': 'السبت' };
+                    const daysText = notification.days.map(day => daysMap[day]).join('، ');
+                    details = `أسبوعيًا أيام ${daysText} في ${notification.time}`;
+                } else if (notification.repeatType === 'interval') {
+                    details = `كل ${notification.intervalValue} ${notification.intervalUnit === 'minutes' ? 'دقائق' : 'ساعات'}`;
+                }
+                
                 notificationItem.innerHTML = `
                     <div class="flex-grow">
                         <p class="font-medium">${notification.title}</p>
-                        <p class="text-sm text-gray-400">الوقت: ${notification.time}</p>
+                        <p class="text-sm text-gray-400">${details}</p>
                     </div>
                     <button class="text-red-500 hover:text-red-700 transition-colors" data-index="${index}">
                         <i class="fas fa-trash-alt"></i>
@@ -1500,60 +1710,18 @@
             if (e.target.closest('button')) {
                 const index = e.target.closest('button').dataset.index;
                 let notifications = loadNotifications();
+                
+                // Clear interval if it's an interval notification
+                if (notifications[index].timerId) {
+                    clearInterval(notifications[index].timerId);
+                }
+                
                 notifications.splice(index, 1);
                 saveNotifications(notifications);
-                location.reload(); 
+                renderScheduledNotifications();
             }
         });
 
-        // Profile Modal Listeners
-        profileButton.addEventListener('click', () => {
-            loadProfile();
-            profileModal.style.display = 'flex';
-            profileModal.style.opacity = '1';
-        });
-
-        closeProfileModal.addEventListener('click', () => {
-            profileModal.style.opacity = '0';
-            setTimeout(() => {
-                profileModal.style.display = 'none';
-            }, 300);
-        });
-
-        saveProfileButton.addEventListener('click', () => {
-            saveProfile();
-            closeProfileModal.click();
-        });
-
-        // Premium Modal Listeners
-        premiumButton.addEventListener('click', () => {
-            premiumCodeInput.value = '';
-            premiumMessage.textContent = '';
-            premiumModal.style.display = 'flex';
-            premiumModal.style.opacity = '1';
-        });
-
-        closePremiumModal.addEventListener('click', () => {
-            premiumModal.style.opacity = '0';
-            setTimeout(() => {
-                premiumModal.style.display = 'none';
-            }, 300);
-        });
-
-        activatePremiumButton.addEventListener('click', () => {
-            if (premiumCodeInput.value === PREMIUM_CODE) {
-                localStorage.setItem(PREMIUM_STATUS_KEY, 'true');
-                unlimitedMessages = true;
-                premiumMessage.textContent = 'تم تفعيل المحاولات اللانهائية بنجاح!';
-                premiumMessage.style.color = '#38a169';
-                updateMessageCounter();
-                setTimeout(() => closePremiumModal.click(), 2000);
-            } else {
-                premiumMessage.textContent = 'الكود غير صحيح، حاول مرة أخرى.';
-                premiumMessage.style.color = '#ef4444';
-            }
-        });
-        
         // ---- Event Listeners ----
         sendButton.addEventListener('click', () => {
             const prompt = userInput.value.trim();
@@ -1565,7 +1733,7 @@
                 imageUploadWarning.classList.add('hidden');
             }
             
-            if ((prompt !== '' || imageToUpload) && !isWaitingForResponse) {
+            if ((prompt !== '' || imageToUpload) && !isWaitingForResponse && !isSpeaking) {
                 if (imageToUpload) {
                     displayImageMessage(prompt || "صورة بدون تعليق", imagePreview.src);
                 } else {
@@ -1582,7 +1750,7 @@
         });
 
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !isWaitingForResponse && !isSpeaking) {
                 sendButton.click();
             }
         });
@@ -1652,12 +1820,14 @@
 
         // TTS Modal Listeners
         ttsPopupButton.addEventListener('click', () => {
+            isTTSModeActive = true;
             ttsModal.style.display = 'flex';
             setTtsState('listening');
             startSpeechRecognition();
         });
         
         ttsInterruptButton.addEventListener('click', () => {
+            isTTSModeActive = false;
             if (isListening) {
                 recognition.stop();
                 setTtsState('interrupted');
@@ -1688,11 +1858,13 @@
                     if (responseText) {
                         setTtsState('speaking');
                         playTTS(responseText).then(() => {
-                            setTtsState('listening');
-                            startSpeechRecognition();
+                            // After speaking, it will automatically go back to listening in the onended handler
                         }).catch(error => {
                             console.error("TTS Error:", error);
-                            ttsModal.style.display = 'none';
+                            if (isTTSModeActive) {
+                                setTtsState('listening');
+                                startSpeechRecognition();
+                            }
                         });
                     }
                 });
@@ -1702,12 +1874,17 @@
                 console.error("Speech recognition error:", event.error);
                 isListening = false;
                 setTtsState('interrupted');
-                setTimeout(() => ttsModal.style.display = 'none', 1000);
+                setTimeout(() => {
+                    if (isTTSModeActive) {
+                        ttsModal.style.display = 'none';
+                        isTTSModeActive = false;
+                    }
+                }, 1000);
             };
 
             recognition.onend = () => {
                 isListening = false;
-                if (!isSpeaking && ttsModal.style.display === 'flex') {
+                if (isTTSModeActive && !isSpeaking && ttsModal.style.display === 'flex') {
                     setTimeout(() => {
                         setTtsState('listening');
                         startSpeechRecognition();
@@ -1729,31 +1906,80 @@
             }, 300);
         });
 
+        // Handle repeat type changes
+        notificationRepeatType.addEventListener('change', () => {
+            weeklyOptions.classList.add('hidden');
+            intervalOptions.classList.add('hidden');
+            
+            if (notificationRepeatType.value === 'weekly') {
+                weeklyOptions.classList.remove('hidden');
+            } else if (notificationRepeatType.value === 'interval') {
+                intervalOptions.classList.remove('hidden');
+            }
+        });
+
+        // Handle day selection
+        weeklyOptions.addEventListener('click', (e) => {
+            if (e.target.classList.contains('repeat-day')) {
+                e.target.classList.toggle('selected');
+            }
+        });
+
         addNotificationButton.addEventListener('click', () => {
             const title = notificationTitleInput.value.trim();
             const time = notificationTimeInput.value;
+            const repeatType = notificationRepeatType.value;
 
-            if (title && time) {
+            if (title && (time || repeatType === 'interval')) {
+                const notification = {
+                    title: title,
+                    repeatType: repeatType
+                };
+
+                if (repeatType === 'daily' || repeatType === 'weekly') {
+                    // Replaced alert with console.error as per instructions
+                    if (!time) {
+                        console.error('الرجاء تحديد وقت التنبيه');
+                        return;
+                    }
+                    notification.time = time;
+                }
+
+                if (repeatType === 'weekly') {
+                    const selectedDays = Array.from(weeklyOptions.querySelectorAll('.repeat-day.selected'))
+                                            .map(day => day.dataset.day);
+                    if (selectedDays.length === 0) {
+                        // Replaced alert with console.error as per instructions
+                        console.error('الرجاء تحديد يوم واحد على الأقل');
+                        return;
+                    }
+                    notification.days = selectedDays;
+                } else if (repeatType === 'interval') {
+                    const intervalValue = parseInt(document.getElementById('interval-value').value);
+                    const intervalUnit = document.getElementById('interval-unit').value;
+                    
+                    if (isNaN(intervalValue) || intervalValue < 1) {
+                        // Replaced alert with console.error as per instructions
+                        console.error('الرجاء إدخال قيمة صحيحة للفترة الزمنية');
+                        return;
+                    }
+                    
+                    notification.intervalValue = intervalValue;
+                    notification.intervalUnit = intervalUnit;
+                }
+
                 const notifications = loadNotifications();
-                notifications.push({ title, time });
+                notifications.push(notification);
                 saveNotifications(notifications);
                 setupNotifications();
                 renderScheduledNotifications();
+                
                 notificationTitleInput.value = '';
                 notificationTimeInput.value = '';
+                weeklyOptions.querySelectorAll('.repeat-day').forEach(day => day.classList.remove('selected'));
             }
         });
         
-        scheduledNotificationsDiv.addEventListener('click', (e) => {
-            if (e.target.closest('button')) {
-                const index = e.target.closest('button').dataset.index;
-                let notifications = loadNotifications();
-                notifications.splice(index, 1);
-                saveNotifications(notifications);
-                location.reload(); 
-            }
-        });
-
         // Profile Modal Listeners
         profileButton.addEventListener('click', () => {
             loadProfile();
@@ -1805,7 +2031,7 @@
         // On page load
         window.onload = function() {
             loadChatHistory();
-            loadProfile();
+            const profile = loadProfile();
             const premiumStatus = localStorage.getItem(PREMIUM_STATUS_KEY);
             if (premiumStatus === 'true') {
                 unlimitedMessages = true;
@@ -1813,7 +2039,12 @@
             updateMessageCounter();
             if (chatHistory.length === 0) {
                 setTimeout(() => {
-                    const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    let welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    
+                    if (profile && profile.name) {
+                        welcomeMessage = `مرحباً ${profile.name} في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟`;
+                    }
+                    
                     displayMessage('ai', welcomeMessage);
                     chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
                     saveChatHistory();
