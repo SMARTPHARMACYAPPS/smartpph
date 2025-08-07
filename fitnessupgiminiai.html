@@ -1227,14 +1227,6 @@
                             }
                             isSpeaking = false;
                             
-                            // If in TTS mode, restart listening after speaking
-                            if (isTTSModeActive) {
-                                setTimeout(() => {
-                                    setTtsState('listening');
-                                    startSpeechRecognition();
-                                }, 500);
-                            }
-                            
                             resolve();
                         };
                         
@@ -1489,7 +1481,7 @@
                     ${profile.name ? `اسم المستخدم: ${profile.name}` : ''}
                     ${profile.gender ? `جنس المستخدم: ${profile.gender === 'male' ? 'ذكر' : 'أنثى'}` : ''}
                     ${profile.info ? `المعلومات التي أعطاها المستخدم عن نفسه: ${profile.info}` : ''}
-                    إذا تحدث المستخدم في شيء غير الرياضة والصحة، حاول الإجابة على طلبه وفي النهاية اربط بين الصحة وطلبه.`
+                     وتم برمجتك بواسطة smartpharmac  وانت شات بوت داخل تطبيق يدعي smart PPH إذا تحدث المستخدم في شيء غير الرياضة والصحة، حاول الإجابة على طلبه وفي النهاية اربط بين الصحة وطلبه.`
                 }]
             };
 
@@ -1818,56 +1810,43 @@
             saveChatHistory();
         });
 
-        // TTS Modal Listeners
+        // TTS Modal Listeners - Modified to only handle speech recognition
         ttsPopupButton.addEventListener('click', () => {
-            isTTSModeActive = true;
+            if (!recognition) {
+                alert("المتصفح الخاص بك لا يدعم التعرف على الصوت أو أن الميزة غير متاحة");
+                return;
+            }
+
             ttsModal.style.display = 'flex';
             setTtsState('listening');
-            startSpeechRecognition();
+            
+            // Start speech recognition
+            recognition.start();
+            isListening = true;
         });
         
         ttsInterruptButton.addEventListener('click', () => {
-            isTTSModeActive = false;
             if (isListening) {
                 recognition.stop();
-                setTtsState('interrupted');
-                setTimeout(() => ttsModal.style.display = 'none', 1000);
-            } else if (isSpeaking) {
-                stopTTS();
-                setTtsState('interrupted');
-                setTimeout(() => ttsModal.style.display = 'none', 1000);
+                isListening = false;
             }
+            ttsModal.style.display = 'none';
         });
-        
-        function startSpeechRecognition() {
-            if (!recognition) return;
-            isListening = true;
-            recognition.start();
-        }
         
         if (recognition) {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 console.log("Recognized:", transcript);
-                setTtsState('thinking');
+                
+                // Close the TTS modal
+                ttsModal.style.display = 'none';
                 isListening = false;
                 
+                // Display the recognized text in the chat
                 displayMessage('user', transcript);
-
-                fetchGeminiResponse(transcript).then((responseText) => {
-                    if (responseText) {
-                        setTtsState('speaking');
-                        playTTS(responseText).then(() => {
-                            // After speaking, it will automatically go back to listening in the onended handler
-                        }).catch(error => {
-                            console.error("TTS Error:", error);
-                            if (isTTSModeActive) {
-                                setTtsState('listening');
-                                startSpeechRecognition();
-                            }
-                        });
-                    }
-                });
+                
+                // Send the recognized text to the AI
+                fetchGeminiResponse(transcript);
             };
 
             recognition.onerror = (event) => {
@@ -1875,21 +1854,12 @@
                 isListening = false;
                 setTtsState('interrupted');
                 setTimeout(() => {
-                    if (isTTSModeActive) {
-                        ttsModal.style.display = 'none';
-                        isTTSModeActive = false;
-                    }
+                    ttsModal.style.display = 'none';
                 }, 1000);
             };
 
             recognition.onend = () => {
                 isListening = false;
-                if (isTTSModeActive && !isSpeaking && ttsModal.style.display === 'flex') {
-                    setTimeout(() => {
-                        setTtsState('listening');
-                        startSpeechRecognition();
-                    }, 1000);
-                }
             };
         }
 
