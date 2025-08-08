@@ -73,7 +73,7 @@
         }
         .ai-star {
             display: inline-block;
-            font-size: 1.5rem;
+            font-size: 3rem;
             color: #fcd34d;
             vertical-align: middle;
             margin-right: 0.5rem;
@@ -357,29 +357,6 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(252, 211, 77, 0.4);
         }
-        .message-tts-button {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 1.25rem;
-            cursor: pointer;
-            color: #fcd34d;
-            transition: color 0.2s;
-            padding: 5px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 50%;
-            display: block;
-        }
-        .message-tts-button:hover {
-            color: #d97706;
-        }
-        .message-tts-button.loading {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
 
         /* Image Upload Styles */
         .image-preview-container {
@@ -544,7 +521,6 @@
             .chat-input { margin-bottom: 0.5rem; }
             .button-row { flex-direction: column; gap: 0.5rem; }
             .send-button, .stop-button, .input-action-button { width: 100%; margin: 0; }
-            .message-tts-button { font-size: 1rem; top: 5px; left: 5px; }
             .floating-button-container { bottom: 10px; left: 10px; }
             .floating-button { width: 45px; height: 45px; }
         }
@@ -562,30 +538,6 @@
             padding: 0.5rem;
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 0.5rem;
-        }
-
-        /* New styles for TTS controls */
-        .tts-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .tts-play-button, .tts-stop-button {
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .tts-play-button {
-            background-color: #38a169;
-            color: white;
-        }
-        .tts-stop-button {
-            background-color: #ef4444;
-            color: white;
         }
 
         /* Notification repeat options */
@@ -612,6 +564,127 @@
             gap: 5px;
             margin-bottom: 0.5rem;
         }
+        
+        /* New styles for chat history */
+        .chat-history-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background-color: #2d3748;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .chat-history-item:hover {
+            background-color: #3f448c;
+        }
+        .chat-history-date {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        /* New styles for goals system */
+        .goals-floating-button {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(to right, #38a169, #2f855a);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(56, 161, 105, 0.3);
+            z-index: 1000;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .goals-floating-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(56, 161, 105, 0.4);
+        }
+        .goals-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .goals-modal-content {
+            background-color: #2d3748;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #4a5568;
+            position: relative;
+        }
+        .goal-item {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            background-color: #3f448c;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .goal-complete-button {
+            background-color: #38a169;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .goal-complete-button:hover {
+            background-color: #2f855a;
+        }
+        .goal-completed {
+            background-color: #2f855a;
+            text-decoration: line-through;
+        }
+        .badge-progress {
+            width: 100%;
+            height: 10px;
+            background-color: #4a5568;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .badge-progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #fcd34d, #d97706);
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .badge-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #fcd34d;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .badge-locked {
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -623,7 +696,7 @@
 
     <div class="chat-wrapper">
         <div class="chat-header">
-            <span class="chat-header-title">SmartPPH <span class="ai-star">✦</span> FitAI</span>
+            <span class="chat-header-title">SMART PPH <span class="ai-star">✦</span> 
         </div>
 
         <div class="chat-main-content">
@@ -659,6 +732,9 @@
                 <button id="clear-chat-button" class="input-action-button">
                     <i class="fas fa-trash-alt"></i> مسح المحادثة
                 </button>
+                <button id="new-chat-button" class="input-action-button">
+                    <i class="fas fa-plus"></i> محادثة جديدة
+                </button>
                 <button id="stop-button" class="stop-button">
                     <i class="fas fa-stop-circle"></i> إيقاف
                 </button>
@@ -680,15 +756,74 @@
         <button id="notification-button" class="floating-button" title="إعداد التنبيهات">
             <i class="fas fa-bell"></i>
         </button>
-        <button id="tts-popup-button" class="floating-button" title="التحدث الصوتي">
-            <i class="fas fa-microphone"></i>
-        </button>
         <button id="profile-button" class="floating-button" title="ملف التعريف">
             <i class="fas fa-user-circle"></i>
         </button>
         <button id="premium-button" class="floating-button" title="كود المحاولات">
             <i class="fas fa-key"></i>
         </button>
+        <button id="history-button" class="floating-button" title="سجل المحادثات">
+            <i class="fas fa-history"></i>
+        </button>
+    </div>
+
+    <!-- Goals Modal -->
+    <div id="goals-modal" class="goals-modal">
+        <div class="goals-modal-content">
+            <span class="close-button" id="close-goals-modal">&times;</span>
+            <h2 class="modal-header">أهدافي اليومية</h2>
+            
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">إضافة هدف جديد</h3>
+                <select id="goal-type" class="modal-select">
+                    <option value="water">شرب الماء</option>
+                    <option value="exercise">ممارسة التمارين</option>
+                    <option value="walk">المشي</option>
+                    <option value="sleep">النوم الجيد</option>
+                    <option value="healthy_meal">وجبة صحية</option>
+                </select>
+                <input type="number" id="goal-target" class="modal-input" placeholder="الهدف (مثال: 8 أكواب)" min="1">
+                <button id="add-goal-button" class="modal-save-button">إضافة هدف</button>
+            </div>
+            
+            <div class="mb-4">
+                <h3 class="font-semibold mb-2">أهدافي الحالية</h3>
+                <div id="current-goals">
+                    <!-- Goals will be added here -->
+                    <p class="text-sm text-gray-400 text-center">لا توجد أهداف حالية</p>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold mb-2">تقدمي</h3>
+                <div class="badge-progress">
+                    <div id="badge-progress-bar" class="badge-progress-bar" style="width: 0%"></div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="badge-item">
+                        <div class="badge-icon"><i class="fas fa-couch"></i></div>
+                        <span>كنبة البطاطا</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon"><i class="fas fa-walking"></i></div>
+                        <span>المبتدئ</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon"><i class="fas fa-fire"></i></div>
+                        <span>نشيط</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon"><i class="fas fa-medal"></i></div>
+                        <span>بطل اللياقة</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon"><i class="fas fa-award"></i></div>
+                        <span>Aura Body</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modals for Notifications, Profile, and Premium Code -->
@@ -765,13 +900,6 @@
             </div>
             
             <textarea id="profile-info-input" class="modal-input" placeholder="معلومات عنك (العمر، الوزن، الطول، الحالة الصحية، الأهداف الرياضية...)"></textarea>
-            <label for="voice-select" class="block text-right mb-2">نوع الصوت:</label>
-            <select id="voice-select" class="modal-input modal-select">
-                <option value="Kore">Kore (صوت حازم - ذكر)</option>
-                <option value="Puck">Puck (صوت مبهج - ذكر)</option>
-                <option value="Zephyr">Zephyr (صوت مشرق - أنثى)</option>
-                <option value="Charon">Charon (صوت إخباري - ذكر)</option>
-            </select>
             <button id="save-profile-button" class="modal-save-button">حفظ</button>
         </div>
     </div>
@@ -784,6 +912,18 @@
             <input type="password" id="premium-code-input" class="modal-input" placeholder="أدخل الكود هنا">
             <p id="premium-message" class="text-sm text-center text-red-500 mb-2"></p>
             <button id="activate-premium-button" class="modal-save-button">تفعيل</button>
+        </div>
+    </div>
+    
+    <!-- Chat History Modal -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-history-modal">&times;</span>
+            <h2 class="modal-header">سجل المحادثات</h2>
+            <div id="chat-history-list" class="max-h-[60vh] overflow-y-auto">
+                <!-- Chat history items will be appended here -->
+                <p class="text-sm text-gray-400 text-center">لا توجد محادثات مسجلة بعد.</p>
+            </div>
         </div>
     </div>
 
@@ -799,18 +939,20 @@
     <script type="module">
         // Constants for storage keys
         const CHAT_HISTORY_KEY = 'chatHistory';
+        const CHAT_SESSIONS_KEY = 'chatSessions';
         const NOTIFICATIONS_KEY = 'notifications';
         const MESSAGE_COUNTER_KEY = 'messageCounter';
         const MESSAGE_DATE_KEY = 'messageDate';
         const PREMIUM_STATUS_KEY = 'premiumStatus';
         const PROFILE_KEY = 'userProfile';
+        const GOALS_KEY = 'userGoals';
+        const BADGES_KEY = 'userBadges';
         const MAX_FREE_MESSAGES = 3;
         const PREMIUM_CODE = 'Az700200';
 
         // Fix: Use an empty API key and let the Canvas environment handle it
         const apiKey = "AIzaSyBl6P09eSlQ8lOxqG8tjc9gU-rlBFHGSXk"; // تم تغيير هذا السطر ليصبح مفتاح API فارغًا
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
-        const ttsApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=" + apiKey;
         
         // DOM Elements
         const userInput = document.getElementById('user-input');
@@ -824,7 +966,7 @@
         const removeImageButton = document.getElementById('remove-image-button');
         const suggestQuestionButton = document.getElementById('suggest-question-button');
         const clearChatButton = document.getElementById('clear-chat-button');
-        const ttsPopupButton = document.getElementById('tts-popup-button');
+        const newChatButton = document.getElementById('new-chat-button');
         const notificationButton = document.getElementById('notification-button');
         const notificationModal = document.getElementById('notification-modal');
         const closeNotificationModal = document.getElementById('close-notification-modal');
@@ -838,7 +980,6 @@
         const closeProfileModal = document.getElementById('close-profile-modal');
         const profileNameInput = document.getElementById('profile-name-input');
         const profileInfoInput = document.getElementById('profile-info-input');
-        const voiceSelect = document.getElementById('voice-select');
         const saveProfileButton = document.getElementById('save-profile-button');
         const premiumButton = document.getElementById('premium-button');
         const premiumModal = document.getElementById('premium-modal');
@@ -850,38 +991,68 @@
         const notificationRepeatType = document.getElementById('notification-repeat-type');
         const weeklyOptions = document.getElementById('weekly-options');
         const intervalOptions = document.getElementById('interval-options');
+        const historyButton = document.getElementById('history-button');
+        const historyModal = document.getElementById('history-modal');
+        const closeHistoryModal = document.getElementById('close-history-modal');
+        const chatHistoryList = document.getElementById('chat-history-list');
+        const goalsButton = document.getElementById('goals-button');
+        const goalsModal = document.getElementById('goals-modal');
+        const closeGoalsModal = document.getElementById('close-goals-modal');
+        const goalTypeSelect = document.getElementById('goal-type');
+        const goalTargetInput = document.getElementById('goal-target');
+        const addGoalButton = document.getElementById('add-goal-button');
+        const currentGoalsDiv = document.getElementById('current-goals');
+        const badgeProgressBar = document.getElementById('badge-progress-bar');
 
         // State Variables
         let chatHistory = [];
+        let chatSessions = [];
+        let currentSessionId = null;
         let imageToUpload = null;
         let isWaitingForResponse = false;
-        let isSpeaking = false;
-        let isListening = false;
         let messageCounter = 0;
         let unlimitedMessages = false;
-        let selectedVoice = 'Kore';
-        let currentPlayingAudio = null;
-        let currentPlayingButton = null;
         let timeCounterInterval = null;
+        let goals = [];
+        let badgesProgress = 0;
+        let healthTipsInterval = null;
 
-        // Speech recognition
-        function initializeSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                console.warn("Speech recognition not supported.");
-                return null;
-            }
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ar-SA';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            return recognition;
-        }
-        let recognition = initializeSpeechRecognition();
+        // Health tips
+        const healthTips = [
+            "💧 لا تنسى شرب الماء! يحتاج الجسم إلى 8 أكواب يومياً على الأقل.",
+            "🏃‍♂️ جرب المشي لمدة 30 دقيقة يومياً لتحسين صحتك العامة.",
+            "🍎 تناول الفواكه والخضروات الطازجة لتعزيز مناعتك.",
+            "😴 احرص على النوم 7-8 ساعات يومياً لاستعادة نشاطك.",
+            "🧘‍♀️ خصص 10 دقائق يومياً للتمارين التنفسية لتقليل التوتر.",
+            "🚭 تجنب التدخين فهو يضر بالرئتين والقلب.",
+            "🧂 قلل من تناول الملح لتجنب ارتفاع ضغط الدم.",
+            "☀️ احصل على 15 دقيقة من أشعة الشمس يومياً لفيتامين د.",
+            "📱 خذ استراحة من الشاشات كل ساعة لحماية عينيك.",
+            "🍽️ تناول وجبات صغيرة متعددة بدلاً من وجبات كبيرة."
+        ];
+
+        // Badges system
+        const badges = [
+            { id: 1, name: "كنبة البطاطا", icon: "fa-couch", minProgress: 0 },
+            { id: 2, name: "المبتدئ", icon: "fa-walking", minProgress: 20 },
+            { id: 3, name: "نشيط", icon: "fa-fire", minProgress: 40 },
+            { id: 4, name: "بطل اللياقة", icon: "fa-medal", minProgress: 60 },
+            { id: 5, name: "Aura Body", icon: "fa-award", minProgress: 80 }
+        ];
 
         // ---- Storage Functions ----
         function saveChatHistory() {
             localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
+            
+            // Update current session in chatSessions
+            if (currentSessionId) {
+                const sessionIndex = chatSessions.findIndex(session => session.id === currentSessionId);
+                if (sessionIndex !== -1) {
+                    chatSessions[sessionIndex].lastMessage = chatHistory[chatHistory.length - 1]?.parts[0]?.text || "بدون رسائل";
+                    chatSessions[sessionIndex].updatedAt = new Date().toISOString();
+                }
+                localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(chatSessions));
+            }
         }
 
         function loadChatHistory() {
@@ -896,6 +1067,12 @@
                     }
                 });
             }
+            
+            // Load chat sessions
+            const savedSessions = localStorage.getItem(CHAT_SESSIONS_KEY);
+            if (savedSessions) {
+                chatSessions = JSON.parse(savedSessions);
+            }
         }
         
         function saveProfile() {
@@ -903,11 +1080,9 @@
             const profile = {
                 name: profileNameInput.value,
                 gender: gender,
-                info: profileInfoInput.value,
-                voice: voiceSelect.value
+                info: profileInfoInput.value
             };
             localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-            selectedVoice = profile.voice;
             return profile;
         }
 
@@ -917,8 +1092,6 @@
                 const profile = JSON.parse(savedProfile);
                 profileNameInput.value = profile.name;
                 profileInfoInput.value = profile.info;
-                voiceSelect.value = profile.voice;
-                selectedVoice = profile.voice;
                 
                 // Set gender radio button
                 if (profile.gender) {
@@ -982,120 +1155,171 @@
             }
         }
         
-        // ---- TTS Functions ----
-        async function playTTS(text, buttonElement = null) {
-            return new Promise(async (resolve, reject) => {
-                try {
-                    // If there's audio playing, stop it first
-                    if (currentPlayingAudio) {
-                        stopTTS();
-                    }
+        // ---- Goals System Functions ----
+        function saveGoals() {
+            localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+        }
 
-                    const payload = {
-                        contents: [{ parts: [{ text: text }] }],
-                        generationConfig: {
-                            responseModalities: ["AUDIO"],
-                            speechConfig: {
-                                voiceConfig: {
-                                    prebuiltVoiceConfig: { voiceName: selectedVoice }
-                                }
-                            }
-                        },
-                        model: "gemini-2.5-flash-preview-tts"
-                    };
+        function loadGoals() {
+            const savedGoals = localStorage.getItem(GOALS_KEY);
+            goals = savedGoals ? JSON.parse(savedGoals) : [];
+            renderGoals();
+        }
 
-                    const response = await fetch(ttsApiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+        function saveBadgesProgress() {
+            localStorage.setItem(BADGES_KEY, JSON.stringify(badgesProgress));
+        }
 
-                    if (!response.ok) {
-                        throw new Error('API response was not ok');
-                    }
+        function loadBadgesProgress() {
+            const savedProgress = localStorage.getItem(BADGES_KEY);
+            badgesProgress = savedProgress ? parseInt(savedProgress) : 0;
+            updateBadgesProgress();
+        }
 
-                    const result = await response.json();
-                    const part = result?.candidates?.[0]?.content?.parts?.[0];
-                    const audioData = part?.inlineData?.data;
-                    const mimeType = part?.inlineData?.mimeType;
+        function addGoal(type, target) {
+            const goal = {
+                id: Date.now(),
+                type: type,
+                target: target,
+                completed: 0,
+                createdAt: new Date().toISOString()
+            };
+            goals.push(goal);
+            saveGoals();
+            renderGoals();
+        }
 
-                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                        const pcmBuffer = base64ToArrayBuffer(audioData);
-                        const pcm16 = new Int16Array(pcmBuffer);
-                        
-                        const wavBlob = pcmToWav(pcm16, sampleRate);
-                        const audioUrl = URL.createObjectURL(wavBlob);
-                        
-                        const audio = new Audio(audioUrl);
-                        currentPlayingAudio = audio;
-                        currentPlayingButton = buttonElement;
+        function completeGoal(goalId) {
+            const goalIndex = goals.findIndex(g => g.id === goalId);
+            if (goalIndex !== -1) {
+                goals[goalIndex].completed += 1;
+                
+                // Update badges progress
+                badgesProgress += 5;
+                if (badgesProgress > 100) badgesProgress = 100;
+                saveBadgesProgress();
+                updateBadgesProgress();
+                
+                saveGoals();
+                renderGoals();
+            }
+        }
 
-                        audio.onended = () => {
-                            if (currentPlayingButton) {
-                                currentPlayingButton.classList.remove('loading');
-                                currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                                currentPlayingButton = null;
-                            }
-                            isSpeaking = false;
-                            
-                            resolve();
-                        };
-                        
-                        audio.onerror = (e) => {
-                            console.error('Audio playback error:', e);
-                            if (currentPlayingButton) {
-                                currentPlayingButton.classList.remove('loading');
-                                currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                                currentPlayingButton = null;
-                            }
-                            isSpeaking = false;
-                            reject(new Error("Audio playback error"));
-                        };
-                        
-                        if (buttonElement) {
-                            buttonElement.innerHTML = '<i class="fas fa-stop"></i>';
-                        }
-                        isSpeaking = true;
+        function deleteGoal(goalId) {
+            goals = goals.filter(g => g.id !== goalId);
+            saveGoals();
+            renderGoals();
+        }
 
-                        audio.play().catch(e => {
-                            console.error('Playback failed:', e);
-                            if (buttonElement) {
-                                buttonElement.classList.remove('loading');
-                                buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
-                            }
-                            isSpeaking = false;
-                            reject(e);
-                        });
+        function renderGoals() {
+            currentGoalsDiv.innerHTML = '';
+            
+            if (goals.length === 0) {
+                currentGoalsDiv.innerHTML = '<p class="text-sm text-gray-400 text-center">لا توجد أهداف حالية</p>';
+                return;
+            }
+            
+            goals.forEach(goal => {
+                const goalItem = document.createElement('div');
+                goalItem.className = 'goal-item';
+                if (goal.completed >= goal.target) {
+                    goalItem.classList.add('goal-completed');
+                }
+                
+                const goalName = getGoalName(goal.type);
+                const goalIcon = getGoalIcon(goal.type);
+                
+                goalItem.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas ${goalIcon}"></i>
+                            <span>${goalName} (${goal.completed}/${goal.target})</span>
+                        </div>
+                        <div class="flex gap-2 mt-2">
+                            <button class="goal-complete-button" data-id="${goal.id}">إكمال</button>
+                            <button class="goal-complete-button" style="background-color: #ef4444;" data-id="${goal.id}" data-action="delete">حذف</button>
+                        </div>
+                    </div>
+                `;
+                
+                currentGoalsDiv.appendChild(goalItem);
+            });
+            
+            // Add event listeners to buttons
+            document.querySelectorAll('.goal-complete-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const goalId = parseInt(button.dataset.id);
+                    if (button.dataset.action === 'delete') {
+                        deleteGoal(goalId);
                     } else {
-                        reject(new Error("Failed to get audio data from API response."));
+                        completeGoal(goalId);
                     }
+                });
+            });
+        }
 
-                } catch (error) {
-                    console.error('Error in playTTS:', error);
-                    if (buttonElement) {
-                        buttonElement.classList.remove('loading');
-                        buttonElement.innerHTML = '<i class="fas fa-volume-up"></i>';
-                    }
-                    isSpeaking = false;
-                    reject(error);
+        function getGoalName(type) {
+            const names = {
+                water: 'شرب الماء',
+                exercise: 'ممارسة التمارين',
+                walk: 'المشي',
+                sleep: 'النوم الجيد',
+                healthy_meal: 'وجبة صحية'
+            };
+            return names[type] || type;
+        }
+
+        function getGoalIcon(type) {
+            const icons = {
+                water: 'fa-tint',
+                exercise: 'fa-dumbbell',
+                walk: 'fa-walking',
+                sleep: 'fa-bed',
+                healthy_meal: 'fa-apple-alt'
+            };
+            return icons[type] || 'fa-bullseye';
+        }
+
+        function updateBadgesProgress() {
+            badgeProgressBar.style.width = `${badgesProgress}%`;
+            
+            // Update badges display
+            document.querySelectorAll('.badge-item').forEach((item, index) => {
+                if (badgesProgress >= badges[index].minProgress) {
+                    item.classList.remove('badge-locked');
+                } else {
+                    item.classList.add('badge-locked');
                 }
             });
         }
 
-        function stopTTS() {
-            if (currentPlayingAudio) {
-                currentPlayingAudio.pause();
-                currentPlayingAudio.currentTime = 0;
-                currentPlayingAudio = null;
+        // ---- Health Tips Notifications ----
+        function setupHealthTips() {
+            // Clear any existing interval
+            if (healthTipsInterval) {
+                clearInterval(healthTipsInterval);
             }
-            isSpeaking = false;
             
-            if (currentPlayingButton) {
-                currentPlayingButton.classList.remove('loading');
-                currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                currentPlayingButton = null;
+            // Send first tip immediately
+            sendHealthTip();
+            
+            // Set interval for every 12 hours
+            healthTipsInterval = setInterval(sendHealthTip, 12 * 60 * 60 * 1000);
+        }
+
+        function sendHealthTip() {
+            const randomTip = healthTips[Math.floor(Math.random() * healthTips.length)];
+            
+            if (Notification.permission === "granted") {
+                new Notification("نصيحة صحية من SmartPPH", {
+                    body: randomTip,
+                    icon: 'https://placehold.co/64x64/4c51bf/ffffff?text=FP',
+                    vibrate: [200, 100, 200]
+                });
             }
+            
+            // Also display in chat if app is open
+            displayMessage('ai', `💡 نصيحة صحية: ${randomTip}`);
         }
 
         // ---- UI Functions ----
@@ -1113,49 +1337,6 @@
             }
             
             contentDiv.innerHTML = marked.parse(text);
-
-            if (role === 'ai') {
-                const ttsContainer = document.createElement('div');
-                ttsContainer.classList.add('tts-controls');
-                
-                const ttsButton = document.createElement('button');
-                ttsButton.classList.add('message-tts-button');
-                ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-                ttsButton.title = 'تشغيل الصوت';
-                
-                const ttsStopButton = document.createElement('button');
-                ttsStopButton.classList.add('message-tts-button', 'hidden');
-                ttsStopButton.innerHTML = '<i class="fas fa-stop"></i>';
-                ttsStopButton.title = 'إيقاف الصوت';
-                
-                ttsButton.onclick = async () => {
-                    if (currentPlayingAudio) {
-                        stopTTS();
-                        return;
-                    }
-                    
-                    ttsButton.classList.add('hidden');
-                    ttsStopButton.classList.remove('hidden');
-                    
-                    try {
-                        await playTTS(text);
-                    } catch (error) {
-                        console.error("TTS Error:", error);
-                    } finally {
-                        ttsButton.classList.remove('hidden');
-                        ttsStopButton.classList.add('hidden');
-                    }
-                };
-                
-                ttsStopButton.onclick = () => {
-                    stopTTS();
-                    ttsButton.classList.remove('hidden');
-                    ttsStopButton.classList.add('hidden');
-                };
-                
-                messageDiv.appendChild(ttsButton);
-                messageDiv.appendChild(ttsStopButton);
-            }
 
             const timestampDiv = document.createElement('div');
             timestampDiv.classList.add('message-timestamp');
@@ -1500,6 +1681,114 @@
             }
         });
 
+        // ---- Chat History Functions ----
+        function renderChatHistory() {
+            chatHistoryList.innerHTML = '';
+            
+            if (chatSessions.length === 0) {
+                chatHistoryList.innerHTML = '<p class="text-sm text-gray-400 text-center">لا توجد محادثات مسجلة بعد.</p>';
+                return;
+            }
+            
+            // Sort sessions by date (newest first)
+            const sortedSessions = [...chatSessions].sort((a, b) => 
+                new Date(b.updatedAt) - new Date(a.updatedAt));
+            
+            sortedSessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.classList.add('chat-history-item');
+                sessionItem.dataset.sessionId = session.id;
+                
+                const date = new Date(session.updatedAt);
+                const dateStr = date.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // تحديد الرسالة المعروضة (الرسالة الثانية إذا كانت موجودة)
+                let displayMessage = 'بدون رسائل';
+                if (session.messages && session.messages.length > 1) {
+                    // نأخذ أول رسالة من المستخدم (تخطي رسالة الترحيب الأولى)
+                    const userMessages = session.messages.filter(msg => msg.role === 'user');
+                    if (userMessages.length > 0) {
+                        displayMessage = userMessages[0].parts[0].text;
+                    } else if (session.messages.length > 1) {
+                        displayMessage = session.messages[1].parts[0].text;
+                    }
+                }
+                
+                sessionItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <p>${session.title || 'محادثة جديدة'}</p>
+                        <span class="chat-history-date">${dateStr}</span>
+                    </div>
+                    <p class="text-sm text-gray-400 truncate">${displayMessage}</p>
+                `;
+                
+                sessionItem.addEventListener('click', () => {
+                    loadChatSession(session.id);
+                    closeHistoryModal.click();
+                });
+                
+                chatHistoryList.appendChild(sessionItem);
+            });
+        }
+
+        function loadChatSession(sessionId) {
+            const session = chatSessions.find(s => s.id === sessionId);
+            if (session) {
+                currentSessionId = sessionId;
+                chatHistory = session.messages || [];
+                chatMessages.innerHTML = '';
+                
+                chatHistory.forEach(message => {
+                    if (message.role === 'user' && message.imageUrl) {
+                        displayImageMessage(message.parts[0].text, message.imageUrl);
+                    } else {
+                        displayMessage(message.role, message.parts[0].text);
+                    }
+                });
+                
+                if (chatHistory.length === 0) {
+                    const welcomeMessage = 'مرحباً بك في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    displayMessage('ai', welcomeMessage);
+                    chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+                    saveChatHistory();
+                }
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+        
+        function createNewChatSession() {
+            const sessionId = Date.now().toString();
+            const newSession = {
+                id: sessionId,
+                title: 'محادثة جديدة',
+                lastMessage: '',
+                messages: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            chatSessions.push(newSession);
+            localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(chatSessions));
+            
+            currentSessionId = sessionId;
+            chatHistory = [];
+            chatMessages.innerHTML = '';
+            
+            const welcomeMessage = 'مرحباً بك في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+            displayMessage('ai', welcomeMessage);
+            chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
+            saveChatHistory();
+            
+            return sessionId;
+        }
+
         // ---- Event Listeners ----
         sendButton.addEventListener('click', () => {
             const prompt = userInput.value.trim();
@@ -1511,7 +1800,7 @@
                 imageUploadWarning.classList.add('hidden');
             }
             
-            if ((prompt !== '' || imageToUpload) && !isWaitingForResponse && !isSpeaking) {
+            if ((prompt !== '' || imageToUpload) && !isWaitingForResponse) {
                 if (imageToUpload) {
                     displayImageMessage(prompt || "صورة بدون تعليق", imagePreview.src);
                 } else {
@@ -1528,7 +1817,7 @@
         });
 
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !isWaitingForResponse && !isSpeaking) {
+            if (e.key === 'Enter' && !isWaitingForResponse) {
                 sendButton.click();
             }
         });
@@ -1600,47 +1889,10 @@
             chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
             saveChatHistory();
         });
-
-        // TTS Popup Button Listener - Simplified version
-        ttsPopupButton.addEventListener('click', () => {
-            if (!unlimitedMessages && messageCounter >= MAX_FREE_MESSAGES) {
-                const timeRemaining = getTimeUntilMidnight();
-                alert(`انتهت المحاولات اليومية. عد بعد (${timeRemaining}).`);
-                return;
-            }
-            
-            if (!recognition) {
-                alert("المتصفح الخاص بك لا يدعم التعرف على الصوت أو أن الميزة غير متاحة");
-                return;
-            }
-            
-            // Start speech recognition
-            recognition.start();
-            isListening = true;
-        });
         
-        if (recognition) {
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                console.log("Recognized:", transcript);
-                isListening = false;
-                
-                // Display the recognized text in the chat
-                displayMessage('user', transcript);
-                
-                // Send the recognized text to the AI
-                fetchGeminiResponse(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech recognition error:", event.error);
-                isListening = false;
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-            };
-        }
+        newChatButton.addEventListener('click', () => {
+            createNewChatSession();
+        });
 
         // Notification Modal Listeners
         notificationButton.addEventListener('click', () => {
@@ -1773,79 +2025,78 @@
                 premiumMessage.style.color = '#ef4444';
             }
         });
+        
+        // History Modal Listeners
+        historyButton.addEventListener('click', () => {
+            renderChatHistory();
+            historyModal.style.display = 'flex';
+            historyModal.style.opacity = '1';
+        });
+
+        closeHistoryModal.addEventListener('click', () => {
+            historyModal.style.opacity = '0';
+            setTimeout(() => {
+                historyModal.style.display = 'none';
+            }, 300);
+        });
+
+        // Goals Modal Listeners
+        goalsButton.addEventListener('click', () => {
+            goalsModal.style.display = 'flex';
+        });
+
+        closeGoalsModal.addEventListener('click', () => {
+            goalsModal.style.display = 'none';
+        });
+
+        addGoalButton.addEventListener('click', () => {
+            const type = goalTypeSelect.value;
+            const target = parseInt(goalTargetInput.value);
+            
+            if (target > 0) {
+                addGoal(type, target);
+                goalTargetInput.value = '';
+            }
+        });
 
         // On page load
         window.onload = function() {
-            loadChatHistory();
+            // Load chat sessions
+            const savedSessions = localStorage.getItem(CHAT_SESSIONS_KEY);
+            if (savedSessions) {
+                chatSessions = JSON.parse(savedSessions);
+            }
+            
+            // If no sessions exist, create a new one
+            if (chatSessions.length === 0) {
+                currentSessionId = createNewChatSession();
+            } else {
+                // Load the most recent session
+                const mostRecentSession = [...chatSessions].sort((a, b) => 
+                    new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+                currentSessionId = mostRecentSession.id;
+                loadChatSession(currentSessionId);
+            }
+            
             const profile = loadProfile();
             const premiumStatus = localStorage.getItem(PREMIUM_STATUS_KEY);
             if (premiumStatus === 'true') {
                 unlimitedMessages = true;
             }
             updateMessageCounter();
-            if (chatHistory.length === 0) {
-                setTimeout(() => {
-                    let welcomeMessage = 'مرحباً بك في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
-                    
-                    if (profile && profile.name) {
-                        welcomeMessage = `مرحباً ${profile.name} في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟`;
-                    }
-                    
-                    displayMessage('ai', welcomeMessage);
-                    chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
-                    saveChatHistory();
-                }, 500);
-            }
+            
+            // Load goals and badges
+            loadGoals();
+            loadBadgesProgress();
+            
+            // Setup notifications and health tips
             setupNotifications();
+            setupHealthTips();
         };
 
         window.addEventListener('offline', () => {
             console.log("Internet connection lost! Redirecting to offline page.");
         });
-
-        // Helper functions for TTS
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function pcmToWav(pcmData, sampleRate) {
-            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
-            const view = new DataView(buffer);
-
-            // Write WAV header
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + pcmData.length * 2, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM format
-            view.setUint16(22, 1, true); // Mono
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true); // Byte rate
-            view.setUint16(32, 2, true); // Block align
-            view.setUint16(34, 16, true); // Bits per sample
-            writeString(view, 36, 'data');
-            view.setUint32(40, pcmData.length * 2, true);
-
-            // Write PCM data
-            const offset = 44;
-            for (let i = 0; i < pcmData.length; i++, offset += 2) {
-                view.setInt16(offset, pcmData[i], true);
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
     </script>
 </body>
 </html>
