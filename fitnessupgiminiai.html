@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitnessUp Pro - مستشارك الصحي والرياضي</title>
+    <title>SmartPPH - مستشارك الصحي الشامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -531,125 +531,6 @@
             100% { box-shadow: 0 0 0 0 rgba(252, 211, 77, 0); }
         }
 
-        /* TTS Modal Styles */
-        .tts-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .tts-animation-container {
-            width: 200px;
-            height: 200px;
-            position: relative;
-        }
-        .tts-bubble {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: rgba(102, 126, 234, 0.3);
-            border: 2px solid #667eea;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transform-origin: center;
-        }
-        .tts-bubble .icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 4rem;
-            color: #667eea;
-        }
-        .tts-state-text {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        
-        /* TTS Animation States */
-        .listening-animation .tts-bubble {
-            animation: pulse-listening 1.5s infinite ease-out;
-        }
-        @keyframes pulse-listening {
-            0%, 100% { transform: scale(0.95); opacity: 0.7; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.7; }
-        }
-        .thinking-animation .tts-bubble {
-            animation: thinking-dots 1.5s infinite steps(3, end);
-        }
-        @keyframes thinking-dots {
-            0% { transform: scale(1); }
-            33% { transform: scale(1.1); }
-            66% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
-        .speaking-animation .tts-bubble {
-            animation: speaking-wave 1s infinite ease-in-out;
-        }
-        @keyframes speaking-wave {
-            0% { box-shadow: 0 0 0 0px #667eea, 0 0 0 0px #667eea; }
-            50% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0.4), 0 0 0 40px rgba(102, 126, 234, 0.2); }
-            100% { box-shadow: 0 0 0 40px rgba(102, 126, 234, 0), 0 0 0 40px rgba(102, 126, 234, 0); }
-        }
-        .interrupted-animation .tts-bubble {
-            animation: shake 0.5s ease-in-out;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
-
-        .tts-stop-button {
-            background-color: #ef4444;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .tts-stop-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.5);
-        }
-        
-        .disabled-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            border-radius: 1.5rem;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-        .disabled-message {
-            background-color: #ef4444;
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 0.75rem;
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-align: center;
-            animation: slideUp 0.3s ease-out;
-        }
-
         /* Responsive adjustments */
         @media (max-width: 640px) {
             body { padding: 10px; }
@@ -742,7 +623,7 @@
 
     <div class="chat-wrapper">
         <div class="chat-header">
-            <span class="chat-header-title">FitnessUp Pro <span class="ai-star">✦</span> PPH AI</span>
+            <span class="chat-header-title">SmartPPH <span class="ai-star">✦</span> FitAI</span>
         </div>
 
         <div class="chat-main-content">
@@ -763,7 +644,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <input type="text" id="user-input" class="chat-input" placeholder="اكتب سؤالك عن الصحة أو اللياقة البدنية هنا...">
+            <input type="text" id="user-input" class="chat-input" placeholder="اكتب سؤالك عن الصحة العامة أو اللياقة البدنية هنا...">
             <div id="image-upload-warning" class="text-sm text-yellow-400 hidden">يرجى كتابة تعليق مع الصورة قبل الإرسال</div>
             <div class="button-row">
                 <button id="send-button" class="send-button">
@@ -810,21 +691,7 @@
         </button>
     </div>
 
-    <!-- Modals for TTS, Notifications, Profile, and Premium Code -->
-    <div id="tts-modal" class="tts-modal">
-        <div class="tts-animation-container">
-            <div id="tts-bubble" class="tts-bubble listening-animation">
-                <i id="tts-icon" class="fas fa-microphone icon"></i>
-            </div>
-        </div>
-        <div id="tts-state-text" class="tts-state-text">
-            جاري الاستماع...
-        </div>
-        <button id="tts-interrupt-button" class="tts-stop-button mt-4">
-            مقاطعة / إيقاف
-        </button>
-    </div>
-
+    <!-- Modals for Notifications, Profile, and Premium Code -->
     <div id="notification-modal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="close-notification-modal">&times;</span>
@@ -958,11 +825,6 @@
         const suggestQuestionButton = document.getElementById('suggest-question-button');
         const clearChatButton = document.getElementById('clear-chat-button');
         const ttsPopupButton = document.getElementById('tts-popup-button');
-        const ttsModal = document.getElementById('tts-modal');
-        const ttsInterruptButton = document.getElementById('tts-interrupt-button');
-        const ttsBubble = document.getElementById('tts-bubble');
-        const ttsIcon = document.getElementById('tts-icon');
-        const ttsStateText = document.getElementById('tts-state-text');
         const notificationButton = document.getElementById('notification-button');
         const notificationModal = document.getElementById('notification-modal');
         const closeNotificationModal = document.getElementById('close-notification-modal');
@@ -1001,7 +863,6 @@
         let currentPlayingAudio = null;
         let currentPlayingButton = null;
         let timeCounterInterval = null;
-        let isTTSModeActive = false;
 
         // Speech recognition
         function initializeSpeechRecognition() {
@@ -1121,55 +982,6 @@
             }
         }
         
-        // --- Added utility functions for TTS audio conversion ---
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function pcmToWav(pcmData, sampleRate) {
-            const dataLength = pcmData.length;
-            const buffer = new ArrayBuffer(44 + dataLength * 2);
-            const view = new DataView(buffer);
-
-            const writeString = (view, offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            };
-
-            let offset = 0;
-            // RIFF chunk descriptor
-            writeString(view, offset, 'RIFF'); offset += 4;
-            view.setUint32(offset, 36 + dataLength * 2, true); offset += 4;
-            writeString(view, offset, 'WAVE'); offset += 4;
-            // FMT sub-chunk
-            writeString(view, offset, 'fmt '); offset += 4;
-            view.setUint32(offset, 16, true); offset += 4;
-            view.setUint16(offset, 1, true); offset += 2; // Audio format (1 for PCM)
-            view.setUint16(offset, 1, true); offset += 2; // Number of channels
-            view.setUint32(offset, sampleRate, true); offset += 4; // Sample rate
-            view.setUint32(offset, sampleRate * 2, true); offset += 4; // Byte rate
-            view.setUint16(offset, 2, true); offset += 2; // Block align
-            view.setUint16(offset, 16, true); offset += 2; // Bits per sample
-            // Data sub-chunk
-            writeString(view, offset, 'data'); offset += 4;
-            view.setUint32(offset, dataLength * 2, true); offset += 4;
-
-            // Write PCM data
-            for (let i = 0; i < dataLength; i++) {
-                view.setInt16(offset, pcmData[i], true);
-                offset += 2;
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
         // ---- TTS Functions ----
         async function playTTS(text, buttonElement = null) {
             return new Promise(async (resolve, reject) => {
@@ -1283,33 +1095,6 @@
                 currentPlayingButton.classList.remove('loading');
                 currentPlayingButton.innerHTML = '<i class="fas fa-volume-up"></i>';
                 currentPlayingButton = null;
-            }
-        }
-        
-        function setTtsState(state) {
-            ttsBubble.classList.remove('listening-animation', 'thinking-animation', 'speaking-animation', 'interrupted-animation');
-            
-            switch (state) {
-                case 'listening':
-                    ttsBubble.classList.add('listening-animation');
-                    ttsIcon.className = 'fas fa-microphone icon';
-                    ttsStateText.textContent = 'جاري الاستماع...';
-                    break;
-                case 'thinking':
-                    ttsBubble.classList.add('thinking-animation');
-                    ttsIcon.className = 'fas fa-brain icon';
-                    ttsStateText.textContent = 'جاري التفكير...';
-                    break;
-                case 'speaking':
-                    ttsBubble.classList.add('speaking-animation');
-                    ttsIcon.className = 'fas fa-comment-dots icon';
-                    ttsStateText.textContent = 'جاري النطق...';
-                    break;
-                case 'interrupted':
-                    ttsBubble.classList.add('interrupted-animation');
-                    ttsIcon.className = 'fas fa-exclamation-triangle icon';
-                    ttsStateText.textContent = 'تمت المقاطعة!';
-                    break;
             }
         }
 
@@ -1481,7 +1266,8 @@
                     ${profile.name ? `اسم المستخدم: ${profile.name}` : ''}
                     ${profile.gender ? `جنس المستخدم: ${profile.gender === 'male' ? 'ذكر' : 'أنثى'}` : ''}
                     ${profile.info ? `المعلومات التي أعطاها المستخدم عن نفسه: ${profile.info}` : ''}
-                     وتم برمجتك بواسطة smartpharmacy  وانت شات بوت داخل تطبيق يدعي smart PPH إذا تحدث المستخدم في شيء غير الرياضة والصحة، حاول الإجابة على طلبه وفي النهاية اربط بين الصحة وطلبه.`
+                    تم برمجتك بواسطة SmartPharmacy وانت شات بوت اسمه FitAI داخل تطبيق اسمه SmartPPH
+                    إذا تحدث المستخدم في شيء غير الرياضة والصحة، حاول الإجابة على طلبه وفي النهاية اربط بين الصحة وطلبه.`
                 }]
             };
 
@@ -1610,7 +1396,7 @@
             
             setTimeout(() => {
                 if (Notification.permission === "granted") {
-                    new Notification("FitnessUp Pro", {
+                    new Notification("SmartPPH", {
                         body: notification.title,
                         icon: 'https://placehold.co/64x64/4c51bf/ffffff?text=FP',
                         vibrate: [200, 100, 200]
@@ -1650,7 +1436,7 @@
             
             const timer = setInterval(() => {
                 if (Notification.permission === "granted") {
-                    new Notification("FitnessUp Pro", {
+                    new Notification("SmartPPH", {
                         body: notification.title,
                         icon: 'https://placehold.co/64x64/4c51bf/ffffff?text=FP',
                         vibrate: [200, 100, 200]
@@ -1792,7 +1578,12 @@
                 'كيف يمكنني أن أحرق الدهون بشكل أسرع؟',
                 'ما هي التمارين الرياضية المناسبة للمبتدئين؟',
                 'هل يمكن أن تعطيني خطة تدريبية لمدة أسبوع؟',
-                'ما أهمية شرب الماء أثناء التمرين؟'
+                'ما أهمية شرب الماء أثناء التمرين؟',
+                'ما هي أعراض نقص فيتامين د؟',
+                'كيف أتعامل مع ارتفاع ضغط الدم؟',
+                'ما هي أفضل الأطعمة لصحة القلب؟',
+                'كيف يمكنني تحسين جودة نومي؟',
+                'ما هي طرق الوقاية من نزلات البرد؟'
             ];
             const randomQuestion = suggestions[Math.floor(Math.random() * suggestions.length)];
             userInput.value = randomQuestion;
@@ -1804,42 +1595,34 @@
             saveChatHistory();
             chatMessages.innerHTML = '';
             
-            const welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+            const welcomeMessage = 'مرحباً بك في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
             displayMessage('ai', welcomeMessage);
             chatHistory.push({ role: "model", parts: [{ text: welcomeMessage }] });
             saveChatHistory();
         });
 
-        // TTS Modal Listeners - Modified to only handle speech recognition
+        // TTS Popup Button Listener - Simplified version
         ttsPopupButton.addEventListener('click', () => {
+            if (!unlimitedMessages && messageCounter >= MAX_FREE_MESSAGES) {
+                const timeRemaining = getTimeUntilMidnight();
+                alert(`انتهت المحاولات اليومية. عد بعد (${timeRemaining}).`);
+                return;
+            }
+            
             if (!recognition) {
                 alert("المتصفح الخاص بك لا يدعم التعرف على الصوت أو أن الميزة غير متاحة");
                 return;
             }
-
-            ttsModal.style.display = 'flex';
-            setTtsState('listening');
             
             // Start speech recognition
             recognition.start();
             isListening = true;
         });
         
-        ttsInterruptButton.addEventListener('click', () => {
-            if (isListening) {
-                recognition.stop();
-                isListening = false;
-            }
-            ttsModal.style.display = 'none';
-        });
-        
         if (recognition) {
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 console.log("Recognized:", transcript);
-                
-                // Close the TTS modal
-                ttsModal.style.display = 'none';
                 isListening = false;
                 
                 // Display the recognized text in the chat
@@ -1852,10 +1635,6 @@
             recognition.onerror = (event) => {
                 console.error("Speech recognition error:", event.error);
                 isListening = false;
-                setTtsState('interrupted');
-                setTimeout(() => {
-                    ttsModal.style.display = 'none';
-                }, 1000);
             };
 
             recognition.onend = () => {
@@ -1907,7 +1686,6 @@
                 };
 
                 if (repeatType === 'daily' || repeatType === 'weekly') {
-                    // Replaced alert with console.error as per instructions
                     if (!time) {
                         console.error('الرجاء تحديد وقت التنبيه');
                         return;
@@ -1919,7 +1697,6 @@
                     const selectedDays = Array.from(weeklyOptions.querySelectorAll('.repeat-day.selected'))
                                             .map(day => day.dataset.day);
                     if (selectedDays.length === 0) {
-                        // Replaced alert with console.error as per instructions
                         console.error('الرجاء تحديد يوم واحد على الأقل');
                         return;
                     }
@@ -1929,7 +1706,6 @@
                     const intervalUnit = document.getElementById('interval-unit').value;
                     
                     if (isNaN(intervalValue) || intervalValue < 1) {
-                        // Replaced alert with console.error as per instructions
                         console.error('الرجاء إدخال قيمة صحيحة للفترة الزمنية');
                         return;
                     }
@@ -2009,10 +1785,10 @@
             updateMessageCounter();
             if (chatHistory.length === 0) {
                 setTimeout(() => {
-                    let welcomeMessage = 'مرحباً بك في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
+                    let welcomeMessage = 'مرحباً بك في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟';
                     
                     if (profile && profile.name) {
-                        welcomeMessage = `مرحباً ${profile.name} في FitnessUp Pro! أنا **مستشارك الشخصي في الصحة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح رياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟`;
+                        welcomeMessage = `مرحباً ${profile.name} في SmartPPH! أنا **مستشارك الشخصي في الصحة العامة واللياقة البدنية**. يسعدني أن أقدم لك استشارات طبية ونصائح صحية ورياضية لمساعدتك في تحقيق أهدافك. كيف يمكنني مساعدتك اليوم؟`;
                     }
                     
                     displayMessage('ai', welcomeMessage);
@@ -2026,7 +1802,50 @@
         window.addEventListener('offline', () => {
             console.log("Internet connection lost! Redirecting to offline page.");
         });
+
+        // Helper functions for TTS
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+
+            // Write WAV header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM format
+            view.setUint16(22, 1, true); // Mono
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true); // Byte rate
+            view.setUint16(32, 2, true); // Block align
+            view.setUint16(34, 16, true); // Bits per sample
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.length * 2, true);
+
+            // Write PCM data
+            const offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) {
+                view.setInt16(offset, pcmData[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
     </script>
 </body>
 </html>
-
