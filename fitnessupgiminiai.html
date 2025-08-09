@@ -358,34 +358,6 @@
             box-shadow: 0 6px 15px rgba(252, 211, 77, 0.4);
         }
 
-        /* Image Upload Styles */
-        .image-preview-container {
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-        .image-preview {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 0.75rem;
-            border: 2px solid #667eea;
-        }
-        .remove-image-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
         /* Floating and Modal Styles */
         .floating-button-container {
             position: fixed;
@@ -523,21 +495,6 @@
             .send-button, .stop-button, .input-action-button { width: 100%; margin: 0; }
             .floating-button-container { bottom: 10px; left: 10px; }
             .floating-button { width: 45px; height: 45px; }
-        }
-
-        /* Image Message Styles */
-        .image-message-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .image-message-caption {
-            font-size: 0.9rem;
-            color: #a0aec0;
-            padding: 0.5rem;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 0.5rem;
         }
 
         /* Notification repeat options */
@@ -710,21 +667,13 @@
         </div>
 
         <div class="chat-input-area">
-            <input type="file" id="image-upload" accept="image/*" class="hidden">
-            <div id="image-preview-container" class="image-preview-container hidden">
-                <img id="image-preview" class="image-preview" src="" alt="Image preview">
-                <button id="remove-image-button" class="remove-image-button">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
             <input type="text" id="user-input" class="chat-input" placeholder="اكتب سؤالك عن الصحة العامة أو اللياقة البدنية هنا...">
-            <div id="image-upload-warning" class="text-sm text-yellow-400 hidden">يرجى كتابة تعليق مع الصورة قبل الإرسال</div>
             <div class="button-row">
                 <button id="send-button" class="send-button">
                     <i class="fas fa-paper-plane"></i> إرسال
                 </button>
-                <button id="image-upload-button" class="input-action-button">
-                    <i class="fas fa-camera"></i> صورة
+                <button id="voice-input-button" class="input-action-button">
+                    <i class="fas fa-microphone"></i> صوت
                 </button>
                 <button id="suggest-question-button" class="input-action-button">
                     <i class="fas fa-question-circle"></i> اقترح سؤالا
@@ -959,11 +908,7 @@
         const sendButton = document.getElementById('send-button');
         const stopButton = document.getElementById('stop-button');
         const chatMessages = document.getElementById('chat-messages');
-        const imageUploadButton = document.getElementById('image-upload-button');
-        const imageUpload = document.getElementById('image-upload');
-        const imagePreviewContainer = document.getElementById('image-preview-container');
-        const imagePreview = document.getElementById('image-preview');
-        const removeImageButton = document.getElementById('remove-image-button');
+        const voiceInputButton = document.getElementById('voice-input-button');
         const suggestQuestionButton = document.getElementById('suggest-question-button');
         const clearChatButton = document.getElementById('clear-chat-button');
         const newChatButton = document.getElementById('new-chat-button');
@@ -987,7 +932,6 @@
         const premiumCodeInput = document.getElementById('premium-code-input');
         const premiumMessage = document.getElementById('premium-message');
         const activatePremiumButton = document.getElementById('activate-premium-button');
-        const imageUploadWarning = document.getElementById('image-upload-warning');
         const notificationRepeatType = document.getElementById('notification-repeat-type');
         const weeklyOptions = document.getElementById('weekly-options');
         const intervalOptions = document.getElementById('interval-options');
@@ -1008,7 +952,6 @@
         let chatHistory = [];
         let chatSessions = [];
         let currentSessionId = null;
-        let imageToUpload = null;
         let isWaitingForResponse = false;
         let messageCounter = 0;
         let unlimitedMessages = false;
@@ -1016,6 +959,8 @@
         let goals = [];
         let badgesProgress = 0;
         let healthTipsInterval = null;
+        let recognition = null;
+        let isListening = false;
 
         // Health tips
         const healthTips = [
@@ -1040,6 +985,71 @@
             { id: 5, name: "Aura Body", icon: "fa-award", minProgress: 80 }
         ];
 
+        // ---- Voice Recognition Functions ----
+        function setupVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-EG';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    voiceInputButton.innerHTML = '<i class="fas fa-microphone-slash"></i> إيقاف';
+                    voiceInputButton.style.backgroundColor = '#ef4444';
+                    displayMessage('ai', 'جاري الاستماع...');
+                };
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    userInput.value = speechResult;
+                    isListening = false;
+                    voiceInputButton.innerHTML = '<i class="fas fa-microphone"></i> صوت';
+                    voiceInputButton.style.backgroundColor = '';
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Voice recognition error', event.error);
+                    isListening = false;
+                    voiceInputButton.innerHTML = '<i class="fas fa-microphone"></i> صوت';
+                    voiceInputButton.style.backgroundColor = '';
+                    displayMessage('ai', 'حدث خطأ في التعرف على الصوت. يرجى المحاولة مرة أخرى.');
+                };
+
+                recognition.onend = () => {
+                    if (isListening) {
+                        recognition.start();
+                    }
+                };
+            } else {
+                console.warn('Speech recognition not supported');
+                voiceInputButton.disabled = true;
+                voiceInputButton.innerHTML = '<i class="fas fa-microphone-slash"></i> غير مدعوم';
+            }
+        }
+
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                setupVoiceRecognition();
+            }
+
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                voiceInputButton.innerHTML = '<i class="fas fa-microphone"></i> صوت';
+                voiceInputButton.style.backgroundColor = '';
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error('Error starting voice recognition:', e);
+                    displayMessage('ai', 'حدث خطأ في بدء التعرف على الصوت. يرجى التحقق من صلاحيات الميكروفون.');
+                }
+            }
+        }
+
         // ---- Storage Functions ----
         function saveChatHistory() {
             localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(chatHistory));
@@ -1060,11 +1070,7 @@
             if (savedChat) {
                 chatHistory = JSON.parse(savedChat);
                 chatHistory.forEach(message => {
-                    if (message.role === 'user' && message.imageUrl) {
-                        displayImageMessage(message.parts[0].text, message.imageUrl);
-                    } else {
-                        displayMessage(message.role, message.parts[0].text);
-                    }
+                    displayMessage(message.role, message.parts[0].text);
                 });
             }
             
@@ -1351,40 +1357,6 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function displayImageMessage(caption, imageUrl) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', 'user');
-            
-            const imageContainer = document.createElement('div');
-            imageContainer.classList.add('image-message-container');
-            
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.style.maxWidth = '100%';
-            img.style.maxHeight = '200px';
-            img.style.borderRadius = '0.75rem';
-            img.style.border = '2px solid #667eea';
-            
-            const captionDiv = document.createElement('div');
-            captionDiv.classList.add('image-message-caption');
-            captionDiv.textContent = caption;
-            
-            imageContainer.appendChild(img);
-            imageContainer.appendChild(captionDiv);
-            
-            const timestampDiv = document.createElement('div');
-            timestampDiv.classList.add('message-timestamp');
-            timestampDiv.textContent = new Date().toLocaleTimeString('ar-EG', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            messageDiv.appendChild(imageContainer);
-            messageDiv.appendChild(timestampDiv);
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
         function displayThinkingBubble() {
             const thinkingDiv = document.createElement('div');
             thinkingDiv.classList.add('message', 'thinking-bubble', 'ai');
@@ -1406,7 +1378,7 @@
         }
 
         // ---- API Call Functions ----
-        async function fetchGeminiResponse(prompt, imageBase64 = null) {
+        async function fetchGeminiResponse(prompt) {
             if (!unlimitedMessages && messageCounter >= MAX_FREE_MESSAGES) {
                 const timeRemaining = getTimeUntilMidnight();
                 const responseText = `انتهت المحاولات اليومية. عد بعد (${timeRemaining}).`;
@@ -1431,9 +1403,6 @@
                 role: 'user',
                 parts: [{ text: prompt }]
             };
-            if (imageBase64) {
-                newUserMessage.imageUrl = imagePreview.src;
-            }
             contents.push(newUserMessage);
 
             const profile = JSON.parse(localStorage.getItem(PROFILE_KEY)) || {};
@@ -1745,11 +1714,7 @@
                 chatMessages.innerHTML = '';
                 
                 chatHistory.forEach(message => {
-                    if (message.role === 'user' && message.imageUrl) {
-                        displayImageMessage(message.parts[0].text, message.imageUrl);
-                    } else {
-                        displayMessage(message.role, message.parts[0].text);
-                    }
+                    displayMessage(message.role, message.parts[0].text);
                 });
                 
                 if (chatHistory.length === 0) {
@@ -1793,26 +1758,10 @@
         sendButton.addEventListener('click', () => {
             const prompt = userInput.value.trim();
             
-            if (imageToUpload && !prompt) {
-                imageUploadWarning.classList.remove('hidden');
-                return;
-            } else {
-                imageUploadWarning.classList.add('hidden');
-            }
-            
-            if ((prompt !== '' || imageToUpload) && !isWaitingForResponse) {
-                if (imageToUpload) {
-                    displayImageMessage(prompt || "صورة بدون تعليق", imagePreview.src);
-                } else {
-                    displayMessage('user', prompt);
-                }
-                
+            if (prompt !== '' && !isWaitingForResponse) {
+                displayMessage('user', prompt);
                 userInput.value = '';
-                const imageBase64 = imageToUpload ? imagePreview.src.split(',')[1] : null;
-                fetchGeminiResponse(prompt || "يرجى تحليل هذه الصورة", imageBase64);
-                imageToUpload = null;
-                imagePreviewContainer.classList.add('hidden');
-                imagePreview.src = '';
+                fetchGeminiResponse(prompt);
             }
         });
 
@@ -1829,36 +1778,7 @@
             stopButton.style.display = 'none';
         });
 
-        imageUploadButton.addEventListener('click', () => {
-            imageUpload.click();
-        });
-
-        imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    imageToUpload = file;
-                    imagePreview.src = event.target.result;
-                    imagePreviewContainer.classList.remove('hidden');
-                    
-                    if (!userInput.value.trim()) {
-                        imageUploadWarning.classList.remove('hidden');
-                    } else {
-                        imageUploadWarning.classList.add('hidden');
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        removeImageButton.addEventListener('click', () => {
-            imageToUpload = null;
-            imagePreview.src = '';
-            imagePreviewContainer.classList.add('hidden');
-            imageUpload.value = '';
-            imageUploadWarning.classList.add('hidden');
-        });
+        voiceInputButton.addEventListener('click', toggleVoiceRecognition);
 
         suggestQuestionButton.addEventListener('click', () => {
             if (isWaitingForResponse) return;
@@ -1876,7 +1796,6 @@
             ];
             const randomQuestion = suggestions[Math.floor(Math.random() * suggestions.length)];
             userInput.value = randomQuestion;
-            imageUploadWarning.classList.add('hidden');
         });
 
         clearChatButton.addEventListener('click', () => {
